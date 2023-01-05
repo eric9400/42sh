@@ -54,24 +54,65 @@ struct Token *next_token(void)
     int was_operator = 0;
     char prev = '\0';
     char curr = '\0';
+    int is_word = 0;
     while (1)
     {
         char prev = curr;
         curr = fgetc(f);
+        len = test_data_full(res->data, len);
 
         if (c == '\0' || c == EOF)
             break;
 
+        else if (in_quote)
+        {
+            if (curr == ''')
+                //RETURN TOKEN
+            res->data[i] = curr;
+            i++;
+        }
+        /*
         else if (!in_quote && was_operator)
         {
             // char curr = is_operator(prev, curr);
             puts("TODO");
         }
+        */
+        else if (curr == ''')
+            in_quote = 1;
 
-        else if ()
+        // rule 5
+
+        // rule 6
+        /*else if (!in_quote && start_op(curr))
+        {
+            // RETURN TOKEN
+        }*/
+
+        else if (isspace(curr))
+        {
+            // RETURN TOKEN WITHOUT BLANK
+        }
+
+        else if (is_word)
+            res->data[i] = curr;
+
+        else if (curr == '#')
+        {
+            curr = fgetc(f);
+            while (curr != '\n' && curr != '\0' && curr != EOF)
+                curr = fgetc(f);
+        }
+
+        else
+        {
+            is_word = 1;
+            res->data[i] = curr;
+        }
         i++;
     }
     res->data = realloc(res->data, i + 1);
     res->data[i] = '\0';
     find_type(res);
+    return res;
 }
