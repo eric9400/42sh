@@ -2,7 +2,8 @@
 #include "lexer.h"
 
 static FILE *f = NULL;
-static enum QUOTE_STATE in_quote = 0;
+static int in_quote = 0;
+static int lasttokenspace = 0;
 
 static void findtype(struct Token *token)
 {
@@ -56,33 +57,27 @@ struct Token *next_token(void)
     int was_operator = 0;
     char prev = '\0';
     char curr = '\0';
+    char tmp = fgetc(f);
     int is_word = 0;
+    while (isspace(tmp))
+        tmp = fgetc(f);
+    fseek(f, -1, SEEK_CUR);
     while (1)
     {
         char prev = curr;
         curr = fgetc(f);
         len = test_data_full(res->data, len); //CHECK IF NEED TO DOUBLE SIZE
 
-        if (c == '\0' || c == EOF)
+        if (curr == '\0' || curr == EOF)
             break;
 
-        else if (in_quote == FIRST)
+        else if (in_quote)
         {
             if (curr == ''')
-            {
-                lseek(f, -1, SEEK_CUR);
-                in_quote = LAST;
-                //RETURN TOKEN FROM DATA
-            }
+                in_quote = 0;
             res->data[i] = curr;
-            i++;
         }
 
-        else if (in_quote == LAST)
-        {
-            in_quote = NONE;
-            //RETURN ' TOKEN
-        }
         /*
         else if (!in_quote && was_operator)
         {
@@ -92,8 +87,8 @@ struct Token *next_token(void)
         */
         else if (curr == ''')
         {
-            in_quote = FIRST;
-            //RETURN ' TOKEN
+            in_quote = 1;
+            res->data[i] = ''';
         }
 
         else if (curr == ';' || curr == '\n')
@@ -119,8 +114,7 @@ struct Token *next_token(void)
 
         else if (isspace(curr))
         {
-            if (i == 0)
-                continue;
+            lasttokenspace = 1;
             // RETURN TOKEN WITHOUT BLANK
         }
 
