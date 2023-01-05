@@ -15,7 +15,7 @@ enum Token_type
 struct Token
 {
     enum Token_type t_type;
-    char *t_value;
+    char *data;
 };
 
 #endif /*TOKEN_H*/
