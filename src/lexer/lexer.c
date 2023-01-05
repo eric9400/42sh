@@ -1,6 +1,8 @@
 #include "token.h"
+#include "lexer.h"
 
 static FILE *f = NULL;
+static enum QUOTE_STATE in_quote = 0;
 
 static void findtype(struct Token *token)
 {
@@ -42,6 +44,7 @@ void init_file(FILE *file)
     f = file;
 }
 
+//WHEN EXE IS KILL CLOSE THE FILE
 struct Token *next_token(void)
 {
     struct Token *res = malloc(sizeof(Token));
@@ -50,7 +53,6 @@ struct Token *next_token(void)
     int i = 0;
     res->data = malloc(sizeof(char) * len);
 
-    int in_quote = 0;
     int was_operator = 0;
     char prev = '\0';
     char curr = '\0';
@@ -59,17 +61,27 @@ struct Token *next_token(void)
     {
         char prev = curr;
         curr = fgetc(f);
-        len = test_data_full(res->data, len);
+        len = test_data_full(res->data, len); //CHECK IF NEED TO DOUBLE SIZE
 
         if (c == '\0' || c == EOF)
             break;
 
-        else if (in_quote)
+        else if (in_quote == FIRST)
         {
             if (curr == ''')
-                //RETURN TOKEN
+            {
+                lseek(f, -1, SEEK_CUR);
+                in_quote = LAST;
+                //RETURN TOKEN FROM DATA
+            }
             res->data[i] = curr;
             i++;
+        }
+
+        else if (in_quote == LAST)
+        {
+            in_quote = NONE;
+            //RETURN ' TOKEN
         }
         /*
         else if (!in_quote && was_operator)
@@ -79,11 +91,27 @@ struct Token *next_token(void)
         }
         */
         else if (curr == ''')
-            in_quote = 1;
+        {
+            in_quote = FIRST;
+            //RETURN ' TOKEN
+        }
+
+        else if (curr == ';' || curr == '\n')
+        {
+            if (i != 0)
+            {
+                fseek(f, -1, SEEK_CUR);
+                //RETURN TOKEN FROM RES DATA
+            }
+            else
+            {
+                curr == '\n' ? return /* \n TOKEN */ : return /* ; TOKEN*/;
+                //RETURN ; TOKEN
+            }
+        }
 
         // rule 5
 
-        // rule 6
         /*else if (!in_quote && start_op(curr))
         {
             // RETURN TOKEN
@@ -91,6 +119,8 @@ struct Token *next_token(void)
 
         else if (isspace(curr))
         {
+            if (i == 0)
+                continue;
             // RETURN TOKEN WITHOUT BLANK
         }
 
