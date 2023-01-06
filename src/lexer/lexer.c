@@ -5,6 +5,16 @@ static FILE *f = NULL;
 static int in_quote = 0;
 static int lasttokenspace = 0;
 
+static int test_data_full(char **data, int i, int len)
+{
+    if (i >= len)
+    {
+        len *= 2;
+        *data = realloc(*data, len);
+    }
+    return len;
+}
+
 static void findtype(struct Token *token)
 {
     if (!strcmp(token->data,"if"))
@@ -66,8 +76,9 @@ struct Token *next_token(void)
     {
         char prev = curr;
         curr = fgetc(f);
-        len = test_data_full(res->data, len); //CHECK IF NEED TO DOUBLE SIZE
 
+        //CHECK IF NEED TO DOUBLE SIZE
+        len = test_data_full(&(res->data), i, len);
         if (curr == '\0' || curr == EOF)
             break;
 
