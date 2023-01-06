@@ -3,19 +3,22 @@
 
 struct ast_cmd
 {
-    
+    // liste de string OU vector si opti
+    char **data = NULL;
+    struct ast_cmd *next;
 };
 
 struct ast_list
 {
-
+   struct  
 };
 
 struct ast_if
 {
-    struct ast_list *condition;
-    struct ast_cmd *then;
-    struct ast_cmd *else_body;
+    int is_list;
+    struct ast *condition;
+    struct ast *then;
+    struct ast *else_body;
 };
 
 union ast_union
