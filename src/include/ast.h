@@ -1,16 +1,20 @@
 #ifndef AST_H
 #define AST_H
 
+/*
+ * #include "vector.h"
+ */
+
 struct ast_cmd
 {
     // liste de string OU vector si opti
     char **data = NULL;
-    struct ast_cmd *next;
 };
 
 struct ast_list
 {
-   struct  
+   struct ast_list *next;
+   struct ast_cmd *cmd;
 };
 
 struct ast_if
