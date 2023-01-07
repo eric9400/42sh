@@ -12,8 +12,10 @@ int main(void)
     // char *argv1[] = {strdup("echo"), strdup("-n"), strdup("test"), NULL};
     // char *argv2[] = {strdup("echo"), strdup("test"), NULL};
     char *s1 = strdup("echo");
-    char *argv2[] = {s1, strdup("'test'asdsd"), NULL};
+    char *s2 = strdup("-Ee");
+    char *argv2[] = {s1, s2, strdup("test\\n"), NULL};
     echo(argv2);
     free(s1);
+    free(s2);
     return 0;
 }

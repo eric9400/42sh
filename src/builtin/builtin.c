@@ -58,13 +58,12 @@ void print_echo(int f_n, int f_e, struct vector *v)
         printf("\n");
 }
 
-int is_flag(char *s, int *f_n, int *f_e, int *f_E)
+int is_flag(char *s, int *f_n, int *f_e)
 {
     if (!s)
         return 1;
     int save_n = *f_n;
     int save_e = *f_e;
-    int save_E = *f_E;
 
     // can be a flag
     if (s[0] == '-')
@@ -76,12 +75,11 @@ int is_flag(char *s, int *f_n, int *f_e, int *f_E)
             else if (s[i] == 'e')
                 *f_e = 1;
             else if (s[i] == 'E')
-                *f_E = 1;
+                *f_e = 0;
             else
             {
                 *f_n = save_n;
                 *f_e = save_e;
-                *f_E = save_E;
                 return 0;
             }
         }
@@ -96,7 +94,6 @@ int echo(char **s)
         return 1;
     int f_n = 0;
     int f_e = 0;
-    int f_E = 0;
     struct vector *v = vector_init(10);
     size_t i = 1;
 
@@ -104,7 +101,7 @@ int echo(char **s)
     while (s[i] != NULL)
     {
         // break if detecting a non flag
-        if (!is_flag(s[i], &f_n, &f_e, &f_E))
+        if (!is_flag(s[i], &f_n, &f_e))
             break;
         i++;
     }
@@ -114,10 +111,7 @@ int echo(char **s)
         v = vector_append(v, s[i++]);
 
     // both flags set => disable interpretation of \n etc
-    if (f_e && f_E)
-        print_echo(f_n, 0, v);
-    else
-        print_echo(f_n, f_e, v);
+    print_echo(f_n, f_e, v);
 
     vector_destroy(v);
     fflush(stdout);
