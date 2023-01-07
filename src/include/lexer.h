@@ -11,6 +11,7 @@ struct lexer
 {
     FILE* filename;
     struct token *tok;
+    int *error;
 };
 
 struct lexer *init_lexer(FILE *file);

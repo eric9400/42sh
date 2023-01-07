@@ -8,6 +8,7 @@ struct lexer *init_lexer(FILE *file)
         return NULL;
     lex->filename = file;
     lex->tok = NULL;
+    lex->error = NULL;
     return lex;
 }
 
@@ -17,6 +18,7 @@ void free_lexer(struct lexer *lex)
     {
         free(lex->tok->data);
         free(lex->tok);
+        free(lex->error);
     }
     free(lex);
 }
