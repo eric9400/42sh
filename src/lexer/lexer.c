@@ -8,7 +8,7 @@ struct lexer *init_lexer(FILE *file)
         return NULL;
     lex->filename = file;
     lex->tok = NULL;
-    lex->error = NULL;
+    lex->error = 0;
     return lex;
 }
 
@@ -18,7 +18,6 @@ void free_lexer(struct lexer *lex)
     {
         free(lex->tok->data);
         free(lex->tok);
-        free(lex->error);
     }
     free(lex);
 }
@@ -245,6 +244,7 @@ void next_token(struct lexer *lex)
     lex->tok = tok;
 }
 
+/*
 int main(void)
 {
     FILE *ipf = fopen("lexer_test_1", "r");
@@ -271,3 +271,4 @@ int main(void)
     free_lexer(lex);
     fclose(ipf);
 }
+*/

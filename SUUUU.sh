@@ -9,7 +9,7 @@ fi
 if [ $# -eq 1 ]; then
     if [[ $1 == "clean" ]]; then
         rm -rf "builddir"
-        rm -rf "httpd"
+        rm -rf "42sh"
         echo "clean done"
         exit 0
     fi
@@ -18,19 +18,19 @@ if [ $# -eq 1 ]; then
 fi
 
 rm -rf "builddir"
-rm -rf "httpd"
+rm -rf "42sh"
 
 # compile 
 # >=======
 meson setup builddir
 echo "meson setup build done"
 
-ninja -C build
+ninja -C builddir
 echo "ninja done"
 # =======<
 
 # cp binary in current branch
-cp "builddir/httpd" "."
+cp "builddir/42sh" "."
 echo "build finish"
 
 exit 0

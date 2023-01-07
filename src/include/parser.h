@@ -1,9 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "lexer.h"
-#include "ast.h"
+#include <stdio.h>
 
-struct ast input(void);
+struct ast *input(FILE *filename);
 
 #endif /* PARSER_H */

@@ -1,5 +1,7 @@
 #include "ast.h"
 
+#include <stdlib.h>
+
 struct ast_cmd *init_cmd(void)
 {
     struct ast_cmd *ast_cmd = malloc(sizeof(struct ast_cmd));
@@ -18,23 +20,32 @@ struct ast_if *init_if(void)
     ast_if->condition = NULL;
     ast_if->then = NULL;
     ast_if->else_body = NULL;
+    return ast_if;
 }
 
-void free_cmd(struct ast_cmd *ast_cmd)
+void free_node(struct ast *ast)
 {
-    vector_destroy(ast_cmd->arg);
-    free(ast_cmd);
-}
-void free_list(struct ast_list *ast_list)
-{
-    //TODO
-}
-void free_if(struct ast_if *ast_if)
-{
-    //TODO
+    if (!ast)
+        return;
+    if (ast->type == AST_IF)
+    {
+        free_node(ast->data.ast_if.condition);
+        free_node(ast->data.ast_if.then);
+        free_node(ast->data.ast_if.else_body);
+    }
+    else if (ast->type == AST_LIST)
+    {
+        for (size_t i = 0; i < ast->data.ast_list.size; i++)
+            free_node(ast->data.ast_list.cmd_if[i]);
+    }
+    else if (ast->type == AST_CMD)
+    {
+        vector_destroy(ast->data.ast_cmd.arg);
+    }
+    free(ast);
 }
 
-void add_elm_list(struct ast_list *ast_list, struct ast *node)
+void add_elm_list(struct ast_list *ast_list)
 {
-    //TODO
+    (void) ast_list;
 }

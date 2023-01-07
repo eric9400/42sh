@@ -5,9 +5,9 @@
 
 enum ast_type
 {
-    LIST,
-    IF,
-    CMD
+    AST_LIST,
+    AST_IF,
+    AST_CMD
 };
 
 struct ast_cmd
@@ -46,9 +46,7 @@ struct ast_cmd *init_cmd(void);
 struct ast_list *init_list(void);
 struct ast_if *init_if(void);
 
-void free_cmd(struct ast_cmd *ast_cmd);
-void free_list(struct ast_list *ast_list);
-void free_if(struct ast_if *ast_if);
+void free_node(struct ast *ast);
 
 void add_elm_list(struct ast_list *ast_list);
 
