@@ -110,6 +110,9 @@ static void end_of_file(struct lexer *lex)
 //WHEN EXE IS KILL CLOSE THE FILE
 void next_token(struct lexer *lex)
 {
+    if(lex->tok)
+        return;
+
     //skip space types
     char tmp = skip_space(lex);
     //if first char is newline return it as a token
