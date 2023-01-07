@@ -88,13 +88,22 @@ static char skip_space(struct lexer *lex)
 static void newline(struct lexer *lex, char tmp)
 {
     struct token *tok = malloc(sizeof(struct token));
-    tok->data  = malloc(2);
+    tok->data = malloc(2);
     tok->data[0] = tmp;
     tok->data[1] = '\0';
     if (tmp == '\n')
         tok->type = NEWLINE;
     else
         tok->type = SEMICOLON;
+    lex->tok = tok;
+}
+
+static void end_of_file(struct lexer *lex)
+{
+    struct token *tok = malloc(sizeof(struct token));
+    tok->data = malloc(1);
+    tok->data[0] = '\0';
+    tok->type = END_OF_FILE;
     lex->tok = tok;
 }
 
@@ -106,10 +115,10 @@ void next_token(struct lexer *lex)
     //if first char is newline return it as a token
     if (tmp == EOF)
     {
-        lex->tok = NULL;
+        end_of_file(lex);
         return;
     }
-    if (tmp == '\n' || tmp == ';' || tmp == EOF)
+    if (tmp == '\n' || tmp == ';')
     {
         newline(lex, tmp);
         return;
@@ -235,7 +244,7 @@ void next_token(struct lexer *lex)
 
 int main(void)
 {
-    FILE *ipf = fopen("test", "r");
+    FILE *ipf = fopen("lexer_test_1", "r");
     if (!ipf)
         return -1;
 
@@ -243,9 +252,9 @@ int main(void)
     next_token(lex);
     while(1)
     {
-        if (lex->tok == NULL)
+        if (lex->tok->type == END_OF_FILE)
         {
-            printf("Token : \"EOF\"\t\tType : NULL\n");
+            printf("Token : \"EOF\"\t\tType : %d\n", lex->tok->type);
             break;
         }
         if (lex->tok->data[0] == '\n')

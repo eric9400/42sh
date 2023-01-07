@@ -10,7 +10,9 @@ enum tok_type
     //syntax 
     SEMICOLON, NEWLINE, S_QUOTE,
 
-    WORD
+    WORD,
+
+    END_OF_FILE
 };
 
 struct token
