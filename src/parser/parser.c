@@ -5,7 +5,37 @@
 static struct lexer *lex = init_lexer();
 static int error;
 
-
+void pretty_print(struct ast *tree)
+{
+    if (!tree)
+        printf("NULL");
+    if (tree->type == IF)
+    {
+        printf("if (");
+        pretty_print(tree->data.ast_if.condition);
+        printf(") then");
+        pretty_print(tree->data.ast_if.then);
+        printf("; else ");
+        pretty_print(tree->data.ast_if.else_body);
+        printf("fi");
+    }
+    else if (tree->type == CMD)
+    {
+        printf("commande (");
+        vector_print(tree->data.ast_cmd.arg);
+        printf(")");
+    }
+    else if (tree->type == LIST)
+    {
+        printf("list (");
+        for (size_t i = 0; i < tree->data.ast_list.size; i++)
+        {
+            pretty_print(tree->data.ast_list.cmd_if[i]);
+            printf(" ");
+        }
+        printf(")");
+    }
+}
 
 struct ast *convert_node_ast(enum ast_type type, void *node)
 {
@@ -60,7 +90,7 @@ struct ast *input(struct lexer* lex)
 static struct ast *list(struct lexer* lex)
 {
     int cpt_cmd = 0;
-    struct ast_list *exec_tree = malloc(sizeof(struct ast_list));
+    struct ast_list *exec_tree = init_list();
 
     struct ast *head_cmd = and_or(lex);
     exec_tree->cmd = head_cmd;
@@ -86,6 +116,7 @@ static struct ast *list(struct lexer* lex)
   
         peek_token(lex);
     }
+    exec_tree->cmd[cpt_cmd] = NULL;
 
     if (cpt_cmd > 1) // plus d'une commande donc une list 
     {
@@ -95,17 +126,17 @@ static struct ast *list(struct lexer* lex)
     return head_cmd;
 }
 
-static struct ast and_or(struct lexer *lex)
+static struct ast *and_or(struct lexer *lex)
 {
     return pipeline(lex);
 }
 
-static struct ast pipeline(struct lexer *lex)
+static struct ast *pipeline(struct lexer *lex)
 {
     return command(lex);
 }
 
-static struct ast command(struct lexer *lex)
+static struct ast *command(struct lexer *lex)
 {
     struct ast *cmd = simple_command(lex);
     
@@ -123,43 +154,142 @@ static struct ast command(struct lexer *lex)
     return cmd;
 }
 
-static struct ast simple_command(struct lexer *lex)
+static struct ast *simple_command(struct lexer *lex)
 {
+    struct ast_cmd *cmd = init_cmd();
+
     peek_token(lex);
 
     if(lex->tok->type != WORD)
+    {
+        free_cmd(cmd);
         return NULL;
-    
+    }
+
+    char *w = lex->tok->data;
+    vector_append(cmd->arg,w);
+    free(lex->tok);
+
+    char *word;
     do{
-        struct ast *node = element(lex);
-    }while()
+        word = element(lex, cmd);
+        vector_append(cmd->arg,word);
+    }while(!word);
+
+    return convert_node_ast(CMD, cmd);
 }
 
-static struct ast element(struct lexer *lex)
+static char *element(struct lexer *lex, struct ast_cmd *cmd)
 {
     peek_token(lex);
     if (lex->tok->type == WORD)
     {
-        
+        char *word = strdup(lex->tok->data);
+        free(lex->tok);
+        return word;
     }
+    return NULL;
 }
 
-static struct ast rule_if(void)
+static struct ast *rule_if(struct lexer *lex)
 {
-i   //TODO
+    peek_token(lex);
+
+    if(lex->tok->type != IF)
+    {
+        return NULL;
+    }
+
+    free(lex->tok);
+
+    struct ast_if *if_node = init_if();
+
+    if_node->condition = compound_list(lex); // list or cmd
+    
+    if(!if_node->condition || lex->error == 2)
+    {
+        free_if(if_node);
+        return NULL;
+    }
+
+    next_token(lex);
+
+    if(lex->tok->type != THEN)
+    {
+        free_if(if_node);
+        lex->error = 2;
+        return NULL;
+    }
+
+    if_node->then = compound_list(lex);
+
+    if(!if_node->then || lex->error == 2)
+    {
+        free_if(if_node);
+        lex->error = 2;
+        return NULL;
+    }
+
+    if_node->else_body = else_clause(lex);
+
+    next_token(lex);
+
+    if(lex->tok->type != FI)
+    {
+        free_if(if_node);
+        lex->error = 2;
+    }
+
+    free(lex->tok);
+    return convert_node_ast(IF, if_node);
 }
 
-static struct ast shell_command(struct lexer *lex)
+static struct ast *shell_command(struct lexer *lex)
 {
     return rule_if(lex);
 }
 
-static struct ast else_clause(void)
+static struct ast *else_clause(struct lexer *lex)
 {
-    //TODO
+    peek_token(lex);
+
+    if(lex->tok->type != ELSE && lex->tok->type != ELIF)
+        return NULL;
+
+    if (lex->tok->type == ELSE)
+    {
+        free(lex->tok);
+        return compound_list(lex);
+    }
+
+    //ELSE IF CASE :
+    lex->tok = IF;
+    return rule_if(lex);
 }
 
-static struct ast compound_list(void)
+static struct ast *compound_list(struct lexer *lex)
 {
-    //TODO
+    peek_token(lex);
+
+    while(lex->tok->type == NEWLINE)
+    {
+        free(lex->tok);
+        peek_token(lex);
+    }
+
+    struct ast *node = and_or(lex);
+    if(!node)
+    {
+        lex->error = 2;
+        return NULL;
+    }
+
+    free(lex->tok);
+
+    peek_token(lex);
+
+    if(lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
+        return node;
+
+    //TODO : continuer la fonction 
 }
