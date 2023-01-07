@@ -12,13 +12,13 @@ enum ast_type
 
 struct ast_cmd
 {
-    // liste de string OU vector
     struct vector *arg;
 };
 
 struct ast_list
 {
     size_t size;
+    size_t capacity;
     struct ast **cmd_if;
 };
 
@@ -31,19 +31,19 @@ struct ast_if
 
 union ast_union
 {
-    struct ast_cmd ast_cmd;
-    struct ast_list ast_list;
-    struct ast_if ast_if;
+    struct ast_cmd *ast_cmd;
+    struct ast_list *ast_list;
+    struct ast_if *ast_if;
 };
 
 struct ast
 {
     enum ast_type type;
-    union ast_union data;
+    union ast_union *data;
 };
 
 struct ast_cmd *init_cmd(void);
-struct ast_list *init_list(void);
+struct ast_list *init_list(size_t capacity);
 struct ast_if *init_if(void);
 
 void free_node(struct ast *ast);

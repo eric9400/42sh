@@ -1,8 +1,4 @@
-#include "lexer.h"
 #include "parser.h"
-#include "token.h"
-#include "ast.h"
-
 // static struct lexer *lex = NULL;
 // static int error;
 
@@ -11,7 +7,7 @@ static struct ast *list(struct lexer* lex);
 void pretty_print(struct ast *tree);
 struct ast *convert_node_ast(enum ast_type type, void *node);
 void peek_token(struct lexer* lex);
-struct ast *input(FILE *filename);
+struct ast *input(struct lexer *lex);
 static struct ast *list(struct lexer* lex);
 static struct ast *and_or(struct lexer *lex);
 static struct ast *pipeline(struct lexer *lex);
@@ -27,28 +23,28 @@ void pretty_print(struct ast *tree)
 {
     if (!tree)
         printf("NULL");
-    if (tree->type == AST_IF)
+    else if (tree->type == AST_IF)
     {
         printf("if (");
-        pretty_print(tree->data.ast_if.condition);
+        pretty_print(tree->data->ast_if->condition);
         printf(") then");
-        pretty_print(tree->data.ast_if.then);
+        pretty_print(tree->data->ast_if->then);
         printf("; else ");
-        pretty_print(tree->data.ast_if.else_body);
+        pretty_print(tree->data->ast_if->else_body);
         printf("fi");
     }
     else if (tree->type == AST_CMD)
     {
         printf("commande (");
-        vector_print(tree->data.ast_cmd.arg);
+        vector_print(tree->data->ast_cmd->arg);
         printf(")");
     }
     else if (tree->type == AST_LIST)
     {
         printf("list (");
-        for (size_t i = 0; i < tree->data.ast_list.size; i++)
+        for (size_t i = 0; i < tree->data->ast_list->size; i++)
         {
-            pretty_print(tree->data.ast_list.cmd_if[i]);
+            pretty_print(tree->data->ast_list->cmd_if[i]);
             printf(" ");
         }
         printf(")");
@@ -58,14 +54,15 @@ void pretty_print(struct ast *tree)
 struct ast *convert_node_ast(enum ast_type type, void *node)
 {
     struct ast *ast_node = malloc(sizeof(struct ast));
+    ast_node->data = malloc(sizeof(union ast_union));
     ast_node->type = type;
 
     if (type == AST_LIST)
-        ast_node->data.ast_list = *((struct ast_list*)(node));
+        ast_node->data->ast_list = (struct ast_list *)node;
     if (type == AST_CMD)
-        ast_node->data.ast_cmd = *((struct ast_cmd*)(node));
+        ast_node->data->ast_cmd = (struct ast_cmd *)node;
     if (type == AST_IF)
-        ast_node->data.ast_if = *((struct ast_if*)(node));
+        ast_node->data->ast_if = (struct ast_if *)node;
 
     return ast_node;
 }
@@ -76,14 +73,16 @@ void peek_token(struct lexer* lex)
        next_token(lex);
 }
 
-struct ast *input(FILE *filename)
+struct ast *input(struct lexer *lex)
 {
-    struct lexer *lex = init_lexer(filename);
     peek_token(lex);
     if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE) // EOF OU \n
     {
         if (lex->tok)
+        {
             free(lex->tok); // futur pop
+            lex->tok = NULL;
+        }
         return NULL; // ast vide
     }
     
@@ -99,7 +98,11 @@ struct ast *input(FILE *filename)
     if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE)
     {
         if (lex->tok)
+        {
+            free(lex->tok->data);
             free(lex->tok);
+            lex->tok = NULL;
+        }
         return exec_tree;
     }
     lex->error = 2;
@@ -109,7 +112,7 @@ struct ast *input(FILE *filename)
 static struct ast *list(struct lexer* lex)
 {
     int cpt_cmd = 0;
-    struct ast_list *exec_tree = init_list();
+    struct ast_list *exec_tree = init_list(10);
 
     struct ast *head_cmd = and_or(lex);
     exec_tree->cmd_if[0] = head_cmd;
@@ -117,30 +120,35 @@ static struct ast *list(struct lexer* lex)
     if (lex->error == 2)
         return NULL;
     cpt_cmd += 1;
+    exec_tree->size++;
 
     peek_token(lex);
 
     while(lex->tok->type == SEMICOLON)
     {
+        free(lex->tok->data);
         free(lex->tok);
+        lex->tok = NULL;
 
         struct ast *cmd = and_or(lex);
         
         exec_tree->cmd_if[cpt_cmd] = cmd;
-        
+
         if (!cmd)
             break;
-        
+        exec_tree->size++; 
         cpt_cmd += 1;
   
         peek_token(lex);
     }
-    exec_tree->cmd_if[cpt_cmd] = NULL;
+    //exec_tree->cmd_if[cpt_cmd] = NULL;
 
-    if (cpt_cmd > 1) // plus d'une commande donc une list 
+    // plus d'une commande donc une list 
+    if (cpt_cmd > 1)
     {
         return convert_node_ast(AST_LIST, exec_tree);
     }
+    free(exec_tree->cmd_if);
     free(exec_tree);
     return head_cmd;
 }
@@ -188,12 +196,13 @@ static struct ast *simple_command(struct lexer *lex)
     char *w = lex->tok->data;
     vector_append(cmd->arg,w);
     free(lex->tok);
+    lex->tok = NULL;
 
     char *word;
     do{
         word = element(lex);
         vector_append(cmd->arg,word);
-    }while(!word);
+    } while(!word);
 
     return convert_node_ast(AST_CMD, cmd);
 }
@@ -204,7 +213,9 @@ static char *element(struct lexer *lex)
     if (lex->tok->type == WORD)
     {
         char *word = strdup(lex->tok->data);
+        free(lex->tok->data);
         free(lex->tok);
+        lex->tok = NULL;
         return word;
     }
     return NULL;
@@ -220,6 +231,7 @@ static struct ast *rule_if(struct lexer *lex)
     }
 
     free(lex->tok);
+    lex->tok = NULL;
 
     struct ast_if *if_node = init_if();
 
@@ -260,6 +272,7 @@ static struct ast *rule_if(struct lexer *lex)
     }
 
     free(lex->tok);
+    lex->tok = NULL;
     return convert_node_ast(AST_IF, if_node);
 }
 
@@ -278,6 +291,7 @@ static struct ast *else_clause(struct lexer *lex)
     if (lex->tok->type == ELSE)
     {
         free(lex->tok);
+        lex->tok = NULL;
         return compound_list(lex);
     }
 
@@ -293,6 +307,7 @@ static struct ast *compound_list(struct lexer *lex)
     while(lex->tok->type == NEWLINE)
     {
         free(lex->tok);
+        lex->tok = NULL;
         peek_token(lex);
     }
 
@@ -304,6 +319,7 @@ static struct ast *compound_list(struct lexer *lex)
     }
 
     free(lex->tok);
+    lex->tok = NULL;
 
     peek_token(lex);
 

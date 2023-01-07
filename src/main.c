@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "parser.h"
 
 static int BaBaJi(int argc, char *argv[], char **filename, int *d_opt)
 {
@@ -46,8 +47,27 @@ int main(int argc, char* argv[])
 {        
     char *filename = NULL;
     int opt = -1;
+    FILE *file = NULL;
 
     BaBaJi(argc, argv, &filename, &opt);
-
-    return opt;
+    if (!opt || opt == 2)
+    {
+        file = fopen(filename, "r");
+        if (!file)
+            return 2;
+    }
+    else if (filename != NULL)
+        file = fmemopen(filename, strlen(filename), "r");
+    else
+        file = stdin;
+    struct lexer *lex = init_lexer(file);
+    struct ast *ast = input(lex);
+    if (lex->error == 0)
+        pretty_print(ast);
+    else
+        printf("ca bug\n");
+    free_node(ast);
+    free_lexer(lex);
+    fflush(stdout);
+    return 0;
 }
