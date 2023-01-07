@@ -1,25 +1,28 @@
 #ifndef AST_H
 #define AST_H
 
-/*
- * #include "vector.h"
- */
+#include "vector.h"
+
+enum ast_type
+{
+    LIST,
+    IF,
+    CMD
+};
 
 struct ast_cmd
 {
-    // liste de string OU vector si opti
-    char **data = NULL;
+    // liste de string OU vector
+    struct vector *arg;
 };
 
 struct ast_list
 {
-   struct ast_list *next;
-   struct ast_cmd *cmd;
+   struct ast **cmd;
 };
 
 struct ast_if
 {
-    int is_list;
     struct ast *condition;
     struct ast *then;
     struct ast *else_body;
@@ -34,7 +37,7 @@ union ast_union
 
 struct ast
 {
-    enum ast-type type;
+    enum ast_type type;
     union ast_union data;
 };
 

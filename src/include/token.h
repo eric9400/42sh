@@ -7,7 +7,7 @@ enum Token_type
     IF, ELSE, THEN, ELIF, FI,
 
     //syntax 
-    SEMICOLON, NEWLINE, S_QUOTE, 
+    SEMICOLON, NEWLINE, S_QUOTE,
     
     WORDS
 };
