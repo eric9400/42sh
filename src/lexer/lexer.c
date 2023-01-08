@@ -1,6 +1,13 @@
 #include "token.h"
 #include "lexer.h"
 
+void free_token(struct lexer *lex)
+{
+    free(lex->tok->data);
+    free(lex->tok);
+    lex->tok = NULL;
+}
+
 struct lexer *init_lexer(FILE *file)
 {
     struct lexer *lex = malloc(sizeof(struct lexer));
@@ -15,13 +22,9 @@ struct lexer *init_lexer(FILE *file)
 void free_lexer(struct lexer *lex)
 {
     if (lex->tok != NULL)
-    {
-        free(lex->tok->data);
-        free(lex->tok);
-    }
+        free_token(lex);
     free(lex);
 }
-
 
 static int test_data_full(char **data, int i, int len)
 {

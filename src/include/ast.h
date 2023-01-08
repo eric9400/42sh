@@ -46,8 +46,8 @@ struct ast_cmd *init_cmd(void);
 struct ast_list *init_list(size_t capacity);
 struct ast_if *init_if(void);
 
-void free_node(struct ast *ast);
+void add_to_list(struct ast_list *ast_list, struct ast *element, int *index);
 
-void add_elm_list(struct ast_list *ast_list);
+void free_node(struct ast *ast);
 
 #endif /* AST_H */

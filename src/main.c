@@ -43,6 +43,38 @@ static int BaBaJi(int argc, char *argv[], char **filename, int *d_opt)
         errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
 }
 
+void pretty_print(struct ast *tree)
+{
+    if (!tree)
+        printf("NULL");
+    else if (tree->type == AST_IF)
+    {
+        printf("if (");
+        pretty_print(tree->data->ast_if->condition);
+        printf("); then ");
+        pretty_print(tree->data->ast_if->then);
+        printf("; else ");
+        pretty_print(tree->data->ast_if->else_body);
+        printf("fi");
+    }
+    else if (tree->type == AST_CMD)
+    {
+        printf("commande (");
+        vector_print(tree->data->ast_cmd->arg);
+        printf(")");
+    }
+    else if (tree->type == AST_LIST)
+    {
+        printf("list (");
+        for (size_t i = 0; i < tree->data->ast_list->size; i++)
+        {
+            pretty_print(tree->data->ast_list->cmd_if[i]);
+            printf(" ");
+        }
+        printf(")");
+    }
+}
+
 int main(int argc, char* argv[])
 {        
     char *filename = NULL;
@@ -60,14 +92,18 @@ int main(int argc, char* argv[])
         file = fmemopen(filename, strlen(filename), "r");
     else
         file = stdin;
+    free(filename);
     struct lexer *lex = init_lexer(file);
     struct ast *ast = input(lex);
+    printf("\n\n");
     if (lex->error == 0)
         pretty_print(ast);
     else
         printf("ca bug\n");
-    free_node(ast);
+    if (ast)
+        free_node(ast);
     free_lexer(lex);
     fflush(stdout);
+    printf("\n\n\n");
     return 0;
 }

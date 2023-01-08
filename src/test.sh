@@ -1,1 +1,1 @@
-echo "bar foo"; echo coucou
+if stop then stop else stop fi
