@@ -1,5 +1,8 @@
 #/bin/sh
 
+dir=builddir
+bin=42sh
+
 if [ $# -ne 0 ] && [ $# -ne 1 ]; then
     echo "problemo in el pasta"
     echo "Usage: "$0" [clean]"
@@ -8,8 +11,8 @@ fi
 
 if [ $# -eq 1 ]; then
     if [[ $1 == "clean" ]]; then
-        rm -rf "builddir"
-        rm -rf "42sh"
+        rm -rf "$dir"
+        rm -rf "$bin"
         echo "clean done"
         exit 0
     fi
@@ -17,20 +20,20 @@ if [ $# -eq 1 ]; then
     exit 1
 fi
 
-rm -rf "builddir"
-rm -rf "42sh"
+rm -rf "$dir"
+rm -rf "$bin"
 
 # compile 
 # >=======
-meson setup builddir
+meson setup "$dir"
 echo "meson setup build done"
 
-ninja -C builddir
+ninja -C "$dir"
 echo "ninja done"
 # =======<
 
 # cp binary in current branch
-cp "builddir/42sh" "."
+cp "$dir"/"$bin" "."
 echo "build finish"
 
 exit 0
