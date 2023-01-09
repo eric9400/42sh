@@ -27,6 +27,8 @@ struct ast_if *init_if(void)
     return ast_if;
 }
 
+//ADD NEW AST INIT HERE
+
 /*
 void add_to_list(struct ast_list *ast_list, struct ast *element, int *index)
 {

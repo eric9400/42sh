@@ -30,6 +30,7 @@ static struct ast *convert_node_ast(enum ast_type type, void *node)
         ast_node->data->ast_cmd = (struct ast_cmd *)node;
     if (type == AST_IF)
         ast_node->data->ast_if = (struct ast_if *)node;
+    // ADD NEW AST CONVERT HERE
 
     return ast_node;
 }
@@ -248,11 +249,12 @@ static struct ast *compound_list(struct lexer *lex)
 {
     //just pour tester le reste
     peek_token(lex);
-    if (strcmp(lex->tok->data, "stop") != 0)
+    if (strcmp(lex->tok->data, "true") != 0
+        && strcmp(lex->tok->data, "false") != 0)
         error_handler(lex);
-    free_token(lex);
     struct ast_cmd *cmd = init_cmd();
-    vector_append(cmd->arg, strdup("stop"));
+    vector_append(cmd->arg, strdup(lex->tok->data));
+    free_token(lex);
     return convert_node_ast(AST_CMD, cmd);
    
     /*
