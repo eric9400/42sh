@@ -108,7 +108,7 @@ int echo(char **s)
 
     // add all strings supposed to be printed
     while (s[i] != NULL)
-        v = vector_append(v, s[i++]);
+        v = vector_append(v, strdup(s[i++]));
 
     // both flags set => disable interpretation of \n etc
     print_echo(f_n, f_e, v);
