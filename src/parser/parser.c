@@ -2,7 +2,7 @@
 // static struct lexer *lex = NULL;
 // static int error;
 
-static struct ast *list(struct lexer* lex);
+static struct ast *list(struct lexer *lex);
 struct ast *input(struct lexer *lex);
 static struct ast *list(struct lexer* lex);
 static struct ast *and_or(struct lexer *lex);
@@ -35,15 +35,16 @@ static struct ast *convert_node_ast(enum ast_type type, void *node)
     return ast_node;
 }
 
-static void peek_token(struct lexer* lex)
+static void peek_token(struct lexer *lex)
 {
     if(!lex->tok)
        next_token(lex);
 }
 
-static struct ast *error_handler(struct lexer *lex)
+static struct ast *error_handler(struct lexer *lex, char *error_message)
 {
     lex->error = 2;
+    printf("%s\n", error_message);
     return NULL;
 }
 
@@ -52,28 +53,28 @@ struct ast *input(struct lexer *lex)
     peek_token(lex);
     if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE) // EOF OU \n
     {
-        //if (lex->tok)
-            free_token(lex);
+        free_token(lex);
         return NULL; // ast vide
     }
     
     struct ast *exec_tree = list(lex);
-    
     if (lex->error == 2)
+    {
+        printf("Error input: NO MATCHING PATERN\n");
         return exec_tree;
+    }
     
     peek_token(lex);
     if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE)
     {
-        //if (lex->tok)
-            free_token(lex);
+        free_token(lex);
         return exec_tree;
     }
     lex->error = 2;
     return exec_tree;
 }
 
-static struct ast *list(struct lexer* lex)
+static struct ast *list(struct lexer *lex)
 {
     int cpt_cmd = 0;
     struct ast_list *exec_tree = init_list(10);
@@ -86,7 +87,10 @@ static struct ast *list(struct lexer* lex)
         cpt_cmd++;
     }
     if (lex->error == 2)
+    {
+        printf("Error list: NO MATCHING PATERN\n");
         return convert_node_ast(AST_LIST, exec_tree);
+    }
 
     peek_token(lex);
     while(lex->tok->type == SEMICOLON)
@@ -133,7 +137,8 @@ static struct ast *command(struct lexer *lex)
         cmd = shell_command(lex);
     
         if(!cmd)
-            return error_handler(lex);
+            return error_handler(lex,
+            "Error command: simple_command and shell_command failed");
     }
 
     return cmd;
@@ -157,7 +162,6 @@ static struct ast *simple_command(struct lexer *lex)
     do{
         word = element(lex);
         vector_append(cmd->arg, word);
-        //free_token(lex);
     } while(word != NULL);
 
     return convert_node_ast(AST_CMD, cmd);
@@ -193,24 +197,22 @@ static struct ast *rule_if(struct lexer *lex)
     if(!if_node->condition || lex->error == 2)
     {
         free_node(convert_node_ast(AST_IF, if_node));
-        return NULL;
+        return error_handler(lex, "Error rule_if: NO MATCHING PATERN after \"if\"");
     }
 
     next_token(lex);
     if(lex->tok->type != THEN)
     {
-        //free_node(convert_node_ast(AST_IF, if_node));
-        lex->error = 2;
-        return convert_node_ast(AST_IF, if_node);
+        free_node(convert_node_ast(AST_IF, if_node));
+        return error_handler(lex, "Error rule_if: \"then\" IS MISSING");
     }
     free_token(lex);
 
     if_node->then = compound_list(lex);
     if(!if_node->then || lex->error == 2)
     {
-        //free_node(convert_node_ast(AST_IF, if_node));
-        lex->error = 2;
-        return convert_node_ast(AST_IF, if_node);
+        free_node(convert_node_ast(AST_IF, if_node));
+        return error_handler(lex, "Error rule_if: NO MATCHING PATERN after \"then\"");
     }
 
     if_node->else_body = else_clause(lex);
@@ -218,9 +220,8 @@ static struct ast *rule_if(struct lexer *lex)
     next_token(lex);
     if(lex->tok->type != FI || lex->error == 2)
     {
-        //free_node(convert_node_ast(AST_IF, if_node));
-        lex->error = 2;
-        return convert_node_ast(AST_IF, if_node);
+        free_node(convert_node_ast(AST_IF, if_node));
+        return error_handler(lex, "Error rule_if: \"fi\" IS MISSING");
     }
     free_token(lex);
 
@@ -230,7 +231,6 @@ static struct ast *rule_if(struct lexer *lex)
 static struct ast *else_clause(struct lexer *lex)
 {
     peek_token(lex);
-
     if(lex->tok->type != ELSE && lex->tok->type != ELIF)
         return NULL;
 
@@ -240,7 +240,7 @@ static struct ast *else_clause(struct lexer *lex)
         return compound_list(lex);
     }
 
-    //ELSE IF CASE :
+    //ELSE IF CASE
     lex->tok->type = IF;
     return rule_if(lex);
 }
@@ -251,7 +251,7 @@ static struct ast *compound_list(struct lexer *lex)
     peek_token(lex);
     if (strcmp(lex->tok->data, "true") != 0
         && strcmp(lex->tok->data, "false") != 0)
-        error_handler(lex);
+        error_handler(lex, "Error compound_list: NO MATCHING PATERN");
     struct ast_cmd *cmd = init_cmd();
     vector_append(cmd->arg, strdup(lex->tok->data));
     free_token(lex);

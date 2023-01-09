@@ -63,6 +63,7 @@ void free_node(struct ast *ast)
         vector_destroy(ast->data->ast_cmd->arg);
         free(ast->data->ast_cmd);
     }
+    // ADD NEW FREE AST HERE
     free(ast->data);
     free(ast);
 }

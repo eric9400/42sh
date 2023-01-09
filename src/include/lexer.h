@@ -9,7 +9,7 @@
 
 struct lexer
 {
-    FILE* filename;
+    FILE *filename;
     struct token *tok;
     int error;
 };

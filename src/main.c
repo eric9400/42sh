@@ -43,39 +43,52 @@ static int BaBaJi(int argc, char *argv[], char **filename, int *d_opt)
         errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
 }
 
-void pretty_print(struct ast *tree)
+void print_tab(int tab)
 {
+    for (int t = 0; t < tab; t++)
+        printf("    ");    
+}
+
+void pretty_print(struct ast *tree, int tab)
+{
+    print_tab(tab);
     if (!tree)
         printf("NULL");
     else if (tree->type == AST_IF)
     {
         printf("if (");
-        pretty_print(tree->data->ast_if->condition);
-        printf("); then ");
-        pretty_print(tree->data->ast_if->then);
-        printf("; else ");
-        pretty_print(tree->data->ast_if->else_body);
-        printf("fi");
+        pretty_print(tree->data->ast_if->condition, 0);
+        printf("); then\n");
+        pretty_print(tree->data->ast_if->then, tab + 1);
+        printf("\n");
+        print_tab(tab);
+        printf("else\n");
+        pretty_print(tree->data->ast_if->else_body, tab + 1);
+        printf("\n");
+        print_tab(tab);
+        printf("fi;\n");
     }
     else if (tree->type == AST_CMD)
     {
-        printf("commande (");
+        printf("commande [");
         vector_print(tree->data->ast_cmd->arg);
-        printf(")");
+        printf("]");
     }
     else if (tree->type == AST_LIST)
     {
-        printf("list (");
-        for (size_t i = 0; i < tree->data->ast_list->size; i++)
+        printf("list \n{\n");
+        pretty_print(tree->data->ast_list->cmd_if[0], tab + 1);
+        for (size_t i = 1; i < tree->data->ast_list->size; i++)
         {
-            pretty_print(tree->data->ast_list->cmd_if[i]);
-            printf(" ");
+            printf(";\n");
+            pretty_print(tree->data->ast_list->cmd_if[i], tab + 1);
         }
-        printf(")");
+        printf("\n}");
     }
+    // ADD NEW AST PRINT HERE
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {        
     char *filename = NULL;
     int opt = -1;
@@ -93,17 +106,23 @@ int main(int argc, char* argv[])
     else
         file = stdin;
     free(filename);
+
     struct lexer *lex = init_lexer(file);
     struct ast *ast = input(lex);
-    printf("\n\n");
+
     if (lex->error == 0)
-        pretty_print(ast);
+    {
+        pretty_print(ast, 0);
+        printf("\n");
+    }
     else
-        printf("ca bug\n");
+        printf("Error: AST IS REFUSED\n");
+
     if (ast)
         free_node(ast);
+
+    int error = lex->error;
     free_lexer(lex);
     fflush(stdout);
-    printf("\n\n\n");
-    return 0;
+    return error;
 }

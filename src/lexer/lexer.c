@@ -224,9 +224,13 @@ void next_token(struct lexer *lex)
             curr = fgetc(lex->filename);
             while (curr != '\n' && curr != '\0' && curr != EOF)
                 curr = fgetc(lex->filename);
-            if (curr == '\n')
-                fseek(lex->filename, -1, SEEK_CUR);
-            break;
+            free(tok->data);
+            free(tok);
+            if (curr == EOF)
+                end_of_file(lex);
+            else if (curr == '\n')
+                newline(lex, curr);
+            return;
         }
 
         else
@@ -250,7 +254,7 @@ void next_token(struct lexer *lex)
 /*
 int main(void)
 {
-    FILE *ipf = fopen("lexer_test_1", "r");
+    FILE *ipf = fopen("test.sh", "r");
     if (!ipf)
         return -1;
 
@@ -269,9 +273,9 @@ int main(void)
             printf("Token : \"%s\"\t\tType : %d\n", lex->tok->data, lex->tok->type);
         free(lex->tok->data);
         free(lex->tok);
+        lex->tok = NULL;
         next_token(lex);
     }
     free_lexer(lex);
     fclose(ipf);
-}
-*/
+}*/
