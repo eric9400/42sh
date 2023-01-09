@@ -76,7 +76,7 @@ void vector_print(const struct vector *v)
     }
 
     for (size_t i = 0; i < v->size; i++)
-        printf("%ld. %s ", i + 1, v->data[i]);
+        printf("%ld. %s\n", i + 1, v->data[i]);
 }
 
 struct vector *vector_reset(struct vector *v, size_t n)

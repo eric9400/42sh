@@ -1,9 +1,30 @@
 #include "token.h"
 #include "lexer.h"
 
-static FILE *f = NULL;
-static int in_quote = 0;
-static int lasttokenspace = 0;
+void free_token(struct lexer *lex)
+{
+    free(lex->tok->data);
+    free(lex->tok);
+    lex->tok = NULL;
+}
+
+struct lexer *init_lexer(FILE *file)
+{
+    struct lexer *lex = malloc(sizeof(struct lexer));
+    if (!lex)
+        return NULL;
+    lex->filename = file;
+    lex->tok = NULL;
+    lex->error = 0;
+    return lex;
+}
+
+void free_lexer(struct lexer *lex)
+{
+    if (lex->tok != NULL)
+        free_token(lex);
+    free(lex);
+}
 
 static int test_data_full(char **data, int i, int len)
 {
@@ -15,28 +36,29 @@ static int test_data_full(char **data, int i, int len)
     return len;
 }
 
-static void findtype(struct Token *token)
+static void findtype(struct token *tok, int is_word)
 {
-    if (!strcmp(token->data,"if"))
-        token->t_type = IF;
-    else if (!strcmp(token->data,"else"))
-        token->t_type = ELSE;
-    else if (!strcmp(token->data,"then"))
-        token->t_type = THEN;
-    else if (!strcmp(token->data,"fi"))
-        token->t_type = FI;
-    else if (!strcmp(token->data,"elif"))
-        token->t_type = ELIF;
+    if (!tok->data)
+        return;
 
-    else if (!strcmp(token->data,"'"))
-        token->t_type = S_QUOTE;
-    else if (!strcmp(token->data,";"))
-        token->t_type = SEMICOLON;
-    else if (!strcmp(token->data,"\n"))
-        token->t_type = NEWLINE;
-    
+    if (!strcmp(tok->data,"if"))
+        tok->type = IF;
+    else if (!strcmp(tok->data,"else"))
+        tok->type = ELSE;
+    else if (!strcmp(tok->data,"then"))
+        tok->type = THEN;
+    else if (!strcmp(tok->data,"fi"))
+        tok->type = FI;
+    else if (!strcmp(tok->data,"elif"))
+        tok->type = ELIF;
+
+    else if (is_word)
+        tok->type = WORD;
+    else if (tok->data[0] == '\'')
+        tok->type = S_QUOTE;
+
     else
-        token->t_type = WORDS;
+        tok->type = WORD;
 }
 
 /*
@@ -50,104 +72,210 @@ char is_operator(char prev, char curr)
 }
 */
 
-void init_file(FILE *file)
+static int my_isspace(char c)
 {
-    f = file;
+    return c == ' ' || c == '\t' || c == '\v' || c == '\f';
+}
+
+static char skip_space(struct lexer *lex)
+{
+    // ephemere char to skip <space> type
+    char tmp = fgetc(lex->filename);
+    // skip <space> type
+    while (my_isspace(tmp))
+        tmp = fgetc(lex->filename);
+    return tmp;
+}
+
+static void newline(struct lexer *lex, char tmp)
+{
+    struct token *tok = malloc(sizeof(struct token));
+    tok->data = malloc(2);
+    tok->data[0] = tmp;
+    tok->data[1] = '\0';
+    if (tmp == '\n')
+        tok->type = NEWLINE;
+    else
+        tok->type = SEMICOLON;
+    lex->tok = tok;
+}
+
+static void end_of_file(struct lexer *lex)
+{
+    struct token *tok = malloc(sizeof(struct token));
+    tok->data = malloc(1);
+    tok->data[0] = '\0';
+    tok->type = END_OF_FILE;
+    lex->tok = tok;
 }
 
 //WHEN EXE IS KILL CLOSE THE FILE
-struct Token *next_token(void)
+void next_token(struct lexer *lex)
 {
-    struct Token *res = malloc(sizeof(Token));
+    if(lex->tok)
+        return;
 
+    //skip space types
+    char tmp = skip_space(lex);
+    //if first char is newline return it as a token
+    if (tmp == EOF)
+    {
+        end_of_file(lex);
+        return;
+    }
+    if (tmp == '\n' || tmp == ';')
+    {
+        newline(lex, tmp);
+        return;
+    }
+    fseek(lex->filename, -1, SEEK_CUR);
+
+    struct token *tok = malloc(sizeof(struct token));
     int len = 20;
     int i = 0;
-    res->data = malloc(sizeof(char) * len);
+    tok->data = malloc(sizeof(char) * len);
 
-    int was_operator = 0;
-    char prev = '\0';
+    // curr = current character et prev = previous character
+    //char prev = '\0';
     char curr = '\0';
-    char tmp = fgetc(f);
+    // word flag, singlequote flag, doublequote flag
     int is_word = 0;
-    while (isspace(tmp))
-        tmp = fgetc(f);
-    fseek(f, -1, SEEK_CUR);
+    int in_squote = 0;
+    int in_dquote = 0;
+
     while (1)
     {
-        char prev = curr;
-        curr = fgetc(f);
+        //char prev = curr;
+        curr = fgetc(lex->filename);
 
-        //CHECK IF NEED TO DOUBLE SIZE
-        len = test_data_full(&(res->data), i, len);
         if (curr == '\0' || curr == EOF)
-            break;
-
-        else if (in_quote)
         {
-            if (curr == ''')
-                in_quote = 0;
-            res->data[i] = curr;
+            fseek(lex->filename, -1, SEEK_CUR);
+            break;
         }
+        //CHECK IF NEED TO DOUBLE SIZE
+        len = test_data_full(&(tok->data), i, len);
 
         /*
-        else if (!in_quote && was_operator)
+        else if (!in_squote && !in_dquote && was_operator)
         {
             // char curr = is_operator(prev, curr);
             puts("TODO");
         }
         */
-        else if (curr == ''')
+
+        if (in_squote)
         {
-            in_quote = 1;
-            res->data[i] = ''';
+            if (curr == '\'')
+                in_squote = 0;
+            tok->data[i] = curr;
+        }
+
+        else if (in_dquote)
+        {
+            if (curr == '\"')
+                in_dquote = 0;
+            tok->data[i] = curr;
+        }
+
+        else if (curr == '\'')
+        {
+            in_squote = 1;
+            tok->data[i] = curr;
+        }
+
+        else if (curr == '\"')
+        {
+            in_dquote = 1;
+            tok->data[i] = curr;
+        }
+
+        else if (curr == '\\')
+        {
+            tok->data[i] = curr;
+            curr = fgetc(lex->filename);
+            tok->data[i] = curr;
+            break;
         }
 
         else if (curr == ';' || curr == '\n')
         {
-            if (i != 0)
-            {
-                fseek(f, -1, SEEK_CUR);
-                //RETURN TOKEN FROM RES DATA
-            }
-            else
-            {
-                curr == '\n' ? return /* \n TOKEN */ : return /* ; TOKEN*/;
-                //RETURN ; TOKEN
-            }
+            fseek(lex->filename, -1, SEEK_CUR);
+            break;
         }
 
         // rule 5
+        //TODO
 
         /*else if (!in_quote && start_op(curr))
         {
+            //TODO
             // RETURN TOKEN
         }*/
 
-        else if (isspace(curr))
-        {
-            lasttokenspace = 1;
-            // RETURN TOKEN WITHOUT BLANK
-        }
+        else if (my_isspace(curr))
+            break; // RETURN TOKEN WITHOUT BLANK
 
         else if (is_word)
-            res->data[i] = curr;
+            tok->data[i] = curr;
 
         else if (curr == '#')
         {
-            curr = fgetc(f);
+            curr = fgetc(lex->filename);
             while (curr != '\n' && curr != '\0' && curr != EOF)
-                curr = fgetc(f);
+                curr = fgetc(lex->filename);
+            free(tok->data);
+            free(tok);
+            if (curr == EOF)
+                end_of_file(lex);
+            else if (curr == '\n')
+                newline(lex, curr);
+            return;
         }
 
         else
         {
             is_word = 1;
-            res->data[i] = curr;
+            tok->data[i] = curr;
         }
         i++;
     }
-    res->data = realloc(res->data, i + 1);
-    res->data[i] = '\0';
-    find_type(res);
-    return res;
+    if (curr == '\0' || curr == EOF)
+    {
+        lex->tok = NULL;
+        return;
+    }
+    tok->data = realloc(tok->data, i + 1);
+    tok->data[i] = '\0';
+    findtype(tok, is_word);
+    lex->tok = tok;
 }
+
+/*
+int main(void)
+{
+    FILE *ipf = fopen("test.sh", "r");
+    if (!ipf)
+        return -1;
+
+    struct lexer *lex = init_lexer(ipf);
+    next_token(lex);
+    while(1)
+    {
+        if (lex->tok->type == END_OF_FILE)
+        {
+            printf("Token : \"EOF\"\t\tType : %d\n", lex->tok->type);
+            break;
+        }
+        if (lex->tok->data[0] == '\n')
+            printf("Token : \"\\n\"\t\tType : %d\n", lex->tok->type);
+        else
+            printf("Token : \"%s\"\t\tType : %d\n", lex->tok->data, lex->tok->type);
+        free(lex->tok->data);
+        free(lex->tok);
+        lex->tok = NULL;
+        next_token(lex);
+    }
+    free_lexer(lex);
+    fclose(ipf);
+}*/

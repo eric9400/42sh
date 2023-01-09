@@ -1,9 +1,12 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdio.h>
+
 #include "lexer.h"
+#include "token.h"
 #include "ast.h"
 
-struct ast input(void);
+struct ast *input(struct lexer *lex);
 
 #endif /* PARSER_H */
