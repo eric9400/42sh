@@ -75,6 +75,7 @@ int execute(struct ast *ast)
         case AST_CMD:
             return func_cmd(ast);
         default:
-            return 19; // ADD NEW AST EXECUTE HERE
+            return 19;
+        // ADD NEW AST EXECUTE HERE
     }
 }

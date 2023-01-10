@@ -1,5 +1,9 @@
-#include "token.h"
 #include "lexer.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "token.h"
 
 void free_token(struct lexer *lex)
 {

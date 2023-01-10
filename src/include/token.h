@@ -4,11 +4,18 @@
 enum tok_type
 {
     //conditional tokens
-    IF, ELSE, THEN, ELIF, FI,
+    IF,
+    ELSE,
+    THEN,
+    ELIF,
+    FI,
 
     //syntax 
-    SEMICOLON, NEWLINE, S_QUOTE,
+    SEMICOLON,
+    NEWLINE,
+    S_QUOTE,
 
+    // else
     WORD,
 
     END_OF_FILE
