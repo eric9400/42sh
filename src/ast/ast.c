@@ -125,8 +125,13 @@ void ugly_print(struct ast *tree)
         struct vector *v = tree->data->ast_cmd->arg;
         if (v->size == 0)
             return;
-        for (size_t i = 0; i < v->size; i++)
-            printf("%s ",v->data[i]);
+        if (v->size == 1)
+        {
+            printf("%s ", v->data[0]);
+            return;
+        }
+        for (size_t i = 0; i < v->size - 1; i++)
+            printf("%s ", v->data[i]);
     }
     else if (tree->type == AST_LIST)
     {
