@@ -3,16 +3,6 @@
 
 #include "vector.h"
 
-int my_true(void)
-{
-    return 0;
-}
-
-int my_false(void)
-{
-    return 1;
-}
-
 size_t print_special_char(int f_e, char c)
 {
     if (!f_e)
@@ -46,7 +36,7 @@ void print_echo(int f_n, int f_e, struct vector *v)
         {
             if (s[j] == '\\')
                 j += print_special_char(f_e, s[j + 1]);
-            else if (s[j] == '\'')
+            else if (s[j] == '\'' || s[j] == '"')
                 continue;
             else
                 printf("%c", s[j]);

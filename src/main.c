@@ -137,14 +137,13 @@ int main(int argc, char *argv[])
     //int error = lex->error;
     free_lexer(lex);
 
-    //int value = 0;
-    // execute
-    //if (ast)
-    //    value = execute(ast);
+    int value = 0;
+    if (ast)
+        value = execute(ast);
 
     if (ast)
         free_node(ast);
 
     fflush(stdout);
-    return 0;
+    return value;
 }
