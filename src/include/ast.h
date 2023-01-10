@@ -46,8 +46,9 @@ struct ast_cmd *init_cmd(void);
 struct ast_list *init_list(size_t capacity);
 struct ast_if *init_if(void);
 
-void add_to_list(struct ast_list *ast_list, struct ast *element, int *index);
-
 void free_node(struct ast *ast);
+
+void pretty_print(struct ast *tree, int tab);
+void ugly_print(struct ast *tree);
 
 #endif /* AST_H */

@@ -1,5 +1,6 @@
 #include "ast.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 struct ast_cmd *init_cmd(void)
@@ -28,14 +29,6 @@ struct ast_if *init_if(void)
 }
 
 //ADD NEW AST INIT HERE
-
-/*
-void add_to_list(struct ast_list *ast_list, struct ast *element, int *index)
-{
-    ast_list->cmd_if[*index] = element;
-    ast_list->size++;
-    *(index)++;
-}*/
 
 void free_node(struct ast *ast)
 {
@@ -66,4 +59,82 @@ void free_node(struct ast *ast)
     // ADD NEW FREE AST HERE
     free(ast->data);
     free(ast);
+}
+
+static void print_tab(int tab)
+{
+    for (int t = 0; t < tab; t++)
+        printf("    ");    
+}
+
+void pretty_print(struct ast *tree, int tab)
+{
+    print_tab(tab);
+    if (!tree)
+        printf("NULL");
+    else if (tree->type == AST_IF)
+    {
+        printf("if (");
+        pretty_print(tree->data->ast_if->condition, 0);
+        printf("); then\n");
+        pretty_print(tree->data->ast_if->then, tab + 1);
+        printf("\n");
+        print_tab(tab);
+        printf("else\n");
+        pretty_print(tree->data->ast_if->else_body, tab + 1);
+        printf("\n");
+        print_tab(tab);
+        printf("fi;\n");
+    }
+    else if (tree->type == AST_CMD)
+    {
+        printf("commande [");
+        vector_print(tree->data->ast_cmd->arg);
+        printf("]");
+    }
+    else if (tree->type == AST_LIST)
+    {
+        printf("list \n{\n");
+        pretty_print(tree->data->ast_list->cmd_if[0], tab + 1);
+        for (size_t i = 1; i < tree->data->ast_list->size; i++)
+        {
+            printf(";\n");
+            pretty_print(tree->data->ast_list->cmd_if[i], tab + 1);
+        }
+        printf("\n}");
+    }
+    // ADD NEW AST PRINT HERE
+}
+
+void ugly_print(struct ast *tree)
+{
+    if (!tree)
+        printf("NULL");
+    else if (tree->type == AST_IF)
+    {
+        printf("if ");
+        ugly_print(tree->data->ast_if->condition);
+        printf("then ");
+        ugly_print(tree->data->ast_if->then);
+        printf("else ");
+        ugly_print(tree->data->ast_if->else_body);
+        printf("fi ");
+    }
+    else if (tree->type == AST_CMD)
+    {
+        struct vector *v = tree->data->ast_cmd->arg;
+        if (v->size == 0)
+            return;
+        for (size_t i = 0; i < v->size; i++)
+            printf("%s ",v->data[i]);
+    }
+    else if (tree->type == AST_LIST)
+    {
+        ugly_print(tree->data->ast_list->cmd_if[0]);
+        for (size_t i = 1; i < tree->data->ast_list->size; i++)
+        {
+            printf("; ");
+            ugly_print(tree->data->ast_list->cmd_if[i]);
+        }
+    }
 }
