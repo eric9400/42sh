@@ -26,7 +26,11 @@ int main(int argc, char **argv)
     else
         file = stdin;
     if (!file)
-            return 2;
+    {
+        free(filename);
+        free(flags);
+        return 2;
+    }
     free(filename);
 
     return parse_execute_loop(file, flags);
