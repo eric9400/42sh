@@ -48,6 +48,7 @@ struct ast_if *init_if(void);
 
 void free_node(struct ast *ast);
 
-void add_elm_list(struct ast_list *ast_list);
+void pretty_print(struct ast *tree, int tab);
+void ugly_print(struct ast *tree);
 
 #endif /* AST_H */

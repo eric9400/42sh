@@ -1,8 +1,6 @@
 #ifndef BUILTIN_H
 #define BUILTIN_H
 
-int my_true(void);
-int my_false(void);
-int echo(char **s);
+int echo(char **s, int return_value);
 
 #endif /* BUILTIN_H */

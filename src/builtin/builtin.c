@@ -3,16 +3,6 @@
 
 #include "vector.h"
 
-int my_true(void)
-{
-    return 0;
-}
-
-int my_false(void)
-{
-    return 1;
-}
-
 size_t print_special_char(int f_e, char c)
 {
     if (!f_e)
@@ -46,7 +36,7 @@ void print_echo(int f_n, int f_e, struct vector *v)
         {
             if (s[j] == '\\')
                 j += print_special_char(f_e, s[j + 1]);
-            else if (s[j] == '\'')
+            else if (s[j] == '\'' || s[j] == '"')
                 continue;
             else
                 printf("%c", s[j]);
@@ -88,8 +78,9 @@ int is_flag(char *s, int *f_n, int *f_e)
     return 0;
 }
 
-int echo(char **s)
+int echo(char **s, int return_value)
 {
+    (void) return_value;
     if (s && strcmp(s[0], "echo"))
         return 1;
     int f_n = 0;
@@ -108,7 +99,7 @@ int echo(char **s)
 
     // add all strings supposed to be printed
     while (s[i] != NULL)
-        v = vector_append(v, s[i++]);
+        v = vector_append(v, strdup(s[i++]));
 
     // both flags set => disable interpretation of \n etc
     print_echo(f_n, f_e, v);

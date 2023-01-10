@@ -1,5 +1,16 @@
-#include "token.h"
 #include "lexer.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "token.h"
+
+void free_token(struct lexer *lex)
+{
+    free(lex->tok->data);
+    free(lex->tok);
+    lex->tok = NULL;
+}
 
 struct lexer *init_lexer(FILE *file)
 {
@@ -15,13 +26,9 @@ struct lexer *init_lexer(FILE *file)
 void free_lexer(struct lexer *lex)
 {
     if (lex->tok != NULL)
-    {
-        free(lex->tok->data);
-        free(lex->tok);
-    }
+        free_token(lex);
     free(lex);
 }
-
 
 static int test_data_full(char **data, int i, int len)
 {
@@ -71,7 +78,7 @@ char is_operator(char prev, char curr)
 
 static int my_isspace(char c)
 {
-    return c == ' ' || c == '\t' || c == '\v' || c == '\f';
+    return c == ' ' || c == '\t';
 }
 
 static char skip_space(struct lexer *lex)
@@ -125,7 +132,8 @@ void next_token(struct lexer *lex)
         newline(lex, tmp);
         return;
     }
-    fseek(lex->filename, -1, SEEK_CUR);
+    ungetc(tmp, lex->filename);
+    //fseek(lex->filename, -1, SEEK_CUR);
 
     struct token *tok = malloc(sizeof(struct token));
     int len = 20;
@@ -142,7 +150,6 @@ void next_token(struct lexer *lex)
 
     while (1)
     {
-        //char prev = curr;
         curr = fgetc(lex->filename);
 
         if (curr == '\0' || curr == EOF)
@@ -197,7 +204,8 @@ void next_token(struct lexer *lex)
 
         else if (curr == ';' || curr == '\n')
         {
-            fseek(lex->filename, -1, SEEK_CUR);
+            //fseek(lex->filename, -1, SEEK_CUR);
+            ungetc(curr, lex->filename);
             break;
         }
 
@@ -221,9 +229,13 @@ void next_token(struct lexer *lex)
             curr = fgetc(lex->filename);
             while (curr != '\n' && curr != '\0' && curr != EOF)
                 curr = fgetc(lex->filename);
-            if (curr == '\n')
-                fseek(lex->filename, -1, SEEK_CUR);
-            break;
+            free(tok->data);
+            free(tok);
+            if (curr == EOF)
+                end_of_file(lex);
+            else if (curr == '\n')
+                newline(lex, curr);
+            return;
         }
 
         else
@@ -247,7 +259,7 @@ void next_token(struct lexer *lex)
 /*
 int main(void)
 {
-    FILE *ipf = fopen("lexer_test_1", "r");
+    FILE *ipf = fopen("test.sh", "r");
     if (!ipf)
         return -1;
 
@@ -266,9 +278,9 @@ int main(void)
             printf("Token : \"%s\"\t\tType : %d\n", lex->tok->data, lex->tok->type);
         free(lex->tok->data);
         free(lex->tok);
+        lex->tok = NULL;
         next_token(lex);
     }
     free_lexer(lex);
     fclose(ipf);
-}
-*/
+}*/
