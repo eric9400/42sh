@@ -46,11 +46,11 @@ test_lex_parse "test_shell/test4.sh" "echo foo bar ; echo wsh mon reuf bien ou b
 test_lex_parse "test_shell/test5.sh" "ls -l "
 test_lex_parse "test_shell/test6.sh" "echo "
 
-test_lex_parse "test_shell/test7.sh" "if true ; false ; true then echo a; echo foooooo bar else if true ; false then echo b; echo else echo thomas xu fi "
+test_lex_parse "test_shell/test7.sh" "if true ; false ; true then echo a ; echo foooooo bar else if true ; false then echo b ; echo else echo thomas xu fi fi "
 test_lex_parse "test_shell/test8.sh" "if false then echo a else echo c fi "
-test_lex_parse "test_shell/test9.sh" "if true ; false ; true then echo a ; echo foooooo bar else if true ; false then echo b; echo else echo thomas xu fi "
+test_lex_parse "test_shell/test9.sh" "if true ; false ; true then echo a ; echo foooooo bar else if true ; false then echo b ; echo else echo thomas xu fi fi "
 test_lex_parse "test_shell/test10.sh" "if false true then echo a ; echo b ; echo c fi"
-test_lex_parse "test_shell/test11.sh" "if false; true; false then echo a else echo b echo c echo a fi "
+test_lex_parse "test_shell/test11.sh" "if false ; true ; false then echo a else echo b ; echo c echo a fi "
 
 echo
 echo
