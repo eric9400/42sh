@@ -8,45 +8,45 @@
 #include "ast.h"
 #include "builtin.h"
 
-int execute(struct ast *ast);
-int func_if(struct ast *ast);
-int func_list(struct ast *ast);
-int check_builtin(char **str);
-int func_cmd(struct ast *ast);
+int execute(struct ast *ast, int return_value);
+int func_if(struct ast *ast, int return_value);
+int func_list(struct ast *ast, int return_value);
+int check_builtin(char **str, int return_value);
+int func_cmd(struct ast *ast, int return_value);
 
-int func_if(struct ast *ast)
+int func_if(struct ast *ast, int return_value)
 {
-    if (execute(ast->data->ast_if->condition) == 0)
-        return execute(ast->data->ast_if->then);
+    if (execute(ast->data->ast_if->condition, return_value) == 0)
+        return execute(ast->data->ast_if->then, return_value);
     else
-        return execute(ast->data->ast_if->else_body);
+        return execute(ast->data->ast_if->else_body, return_value);
 }
 
-int func_list(struct ast *ast)
+int func_list(struct ast *ast, int return_value)
 {
     size_t size = ast->data->ast_list->size;
     for (size_t i = 0; i < size; i++)
     {
-        if (execute(ast->data->ast_list->cmd_if[i]) != 0)
+        if (execute(ast->data->ast_list->cmd_if[i], return_value) != 0)
             return 2;
     }
     return 0;
 }
 
-int check_builtin(char **str)
+int check_builtin(char **str, int return_value)
 {
     if (!strcmp(str[0], "true"))
         return 0;
     if (!strcmp(str[0], "false"))
         return 1;
     if (!strcmp(str[0], "echo"))
-        return echo(str);
+        return echo(str, return_value);
     return 3;
 }
 
-int func_cmd(struct ast *ast)
+int func_cmd(struct ast *ast, int return_value)
 {
-    int code = check_builtin(ast->data->ast_cmd->arg->data);
+    int code = check_builtin(ast->data->ast_cmd->arg->data, return_value);
     if (code < 3)
         return code;
     int pid = fork();
@@ -69,16 +69,16 @@ int func_cmd(struct ast *ast)
  * \param ast from parser
  * \return the code error
  */
-int execute(struct ast *ast)
+int execute(struct ast *ast, int return_value)
 {
     switch(ast->type)
     {
         case AST_IF:
-            return func_if(ast);
+            return func_if(ast, return_value);
         case AST_LIST:
-            return func_list(ast); 
+            return func_list(ast, return_value); 
         case AST_CMD:
-            return func_cmd(ast);
+            return func_cmd(ast, return_value);
         default:
             return 19;
         // ADD NEW AST EXECUTE HERE

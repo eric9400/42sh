@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-int execute(struct ast *ast);
+int execute(struct ast *ast, int return_value);
 
 #endif /* EXECUTE_H */
 

@@ -7,53 +7,27 @@
 #include "execute.h"
 #include "parser.h"
 #include "utils.h"
+#include "parse_execute_loop.h"
 
 int main(int argc, char **argv)
 {        
     char *filename = NULL;
-    int opt = -1;
+    struct flags *flags = calloc(1, sizeof(struct flags));
     FILE *file = NULL;
 
     // parsing arguments
-    BaBaJi(argc, argv, &filename, &opt);
+    BaBaJi(argc, argv, &filename, flags);
 
-    if (!opt || opt == 2)
-    {
-        file = fopen(filename, "r");
-        if (!file)
-            return 2;
-    }
-    else if (filename != NULL)
+    // switch of file type
+    if (flags->c)
         file = fmemopen(filename, strlen(filename), "r");
+    else if (filename != NULL)
+        file = fopen(filename, "r");
     else
         file = stdin;
+    if (!file)
+            return 2;
     free(filename);
 
-    // lexing && parsing
-    struct lexer *lex = init_lexer(file);
-    struct ast *ast = input(lex);
-
-    // pretty print
-    if (lex->error == 0 && opt)
-    {
-        pretty_print(ast, 0);
-        printf("\n");
-    }
-    else if (lex->error != 0)
-    {
-        printf("ERROR DANGER MAYDAY MAYDAY PARSOR\n");
-        exit(2);
-    }
-
-    //int error = lex->error;
-    free_lexer(lex);
-
-    int value = 0;
-    if (ast)
-        value = execute(ast);
-
-    if (ast)
-        free_node(ast);
-
-    return value;
+    return parse_execute_loop(file, flags);
 }

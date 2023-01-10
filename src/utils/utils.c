@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "ast.h"
+#include "utils.h"
 
 /*
  * \brief Parsing of inputs
@@ -12,7 +13,7 @@
  * \param argc argv from main, filename *.sh, d_opt to know which flags set
  * \return 0 if no args, 0 if -c, 1 if -p, 2 if both
  */
-int BaBaJi(int argc, char **argv, char **filename, int *d_opt)
+int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
 {
     if (argc == 1)
         return 0;
@@ -23,17 +24,10 @@ int BaBaJi(int argc, char **argv, char **filename, int *d_opt)
         switch (opt)
         {
             case 'c':
-                if (*d_opt >= 1)
-                    *d_opt = 2;
-                else
-                    *d_opt = 0; 
+                flags->c = 1;
                 break;
-                //pretty-print opt
             case 'p':
-                if (*d_opt >= 0)
-                    *d_opt = 2;
-                else   
-                    *d_opt = 1;
+                flags->p = 1; 
                 break;
             case ':':
                 errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
@@ -46,6 +40,8 @@ int BaBaJi(int argc, char **argv, char **filename, int *d_opt)
         *filename = strdup(argv[optind]);
         return 0;
     }
+    else if ((argc == 2 && flags->p) || argc == 1)
+        return 0;
     else
         errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
 }
