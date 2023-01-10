@@ -71,6 +71,8 @@ int func_cmd(struct ast *ast, int return_value)
  */
 int execute(struct ast *ast, int return_value)
 {
+    if (!ast)
+        return 0;
     switch(ast->type)
     {
         case AST_IF:
