@@ -1,4 +1,8 @@
 #include "parser.h"
+
+#include <stdlib.h>
+#include <string.h>
+
 // static struct lexer *lex = NULL;
 // static int error;
 
