@@ -25,6 +25,7 @@ int main(int argc, char **argv)
         file = fopen(filename, "r");
     else
         file = stdin;
+
     if (!file)
     {
         free(filename);
