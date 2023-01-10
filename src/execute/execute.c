@@ -64,6 +64,11 @@ int func_cmd(struct ast *ast)
     }
 }
 
+/*
+ * \brief recursively execute the ast
+ * \param ast from parser
+ * \return the code error
+ */
 int execute(struct ast *ast)
 {
     switch(ast->type)
