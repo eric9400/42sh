@@ -4,21 +4,38 @@
 enum tok_type
 {
     //conditional tokens
-    IF, ELSE, THEN, ELIF, FI,
-    WHILE, DO, DONE,
+    IF,
+    ELSE,
+    THEN,
+    ELIF,
+    FI,
+    
+    // loop
+    WHILE,
+    DO,
+    DONE,
     UNTIL,
-    FOR, IN,
-
+    FOR,
+    IN,
 
     //syntax 
-    SEMICOLON, NEWLINE, S_QUOTE, D_QUOTE
-
-    WORD, ASSIGNEMENT_WORD
+    SEMICOLON,
+    NEWLINE,
+    S_QUOTE,
+    D_QUOTE
+    
+    WORD,
+    ASSIGNEMENT_WORD
 
     END_OF_FILE,
 
+
     //all type of operators
-    OP_REDIRECTION, OP_AND, OP_OR, OP_PIPE, OP_NEGATION
+    OP_REDIRECTION,
+    OP_AND,
+    OP_OR,
+    OP_PIPE,
+    OP_NEGATION
 };
 
 struct token

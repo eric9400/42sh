@@ -78,8 +78,9 @@ int is_flag(char *s, int *f_n, int *f_e)
     return 0;
 }
 
-int echo(char **s)
+int echo(char **s, int return_value)
 {
+    (void) return_value;
     if (s && strcmp(s[0], "echo"))
         return 1;
     int f_n = 0;

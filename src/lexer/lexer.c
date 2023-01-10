@@ -1,5 +1,9 @@
-#include "token.h"
 #include "lexer.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "token.h"
 
 void free_token(struct lexer *lex)
 {
@@ -74,7 +78,7 @@ char is_operator(char prev, char curr)
 
 static int my_isspace(char c)
 {
-    return c == ' ' || c == '\t' || c == '\v' || c == '\f';
+    return c == ' ' || c == '\t';
 }
 
 static char skip_space(struct lexer *lex)
@@ -128,7 +132,8 @@ void next_token(struct lexer *lex)
         newline(lex, tmp);
         return;
     }
-    fseek(lex->filename, -1, SEEK_CUR);
+    ungetc(tmp, lex->filename);
+    //fseek(lex->filename, -1, SEEK_CUR);
 
     struct token *tok = malloc(sizeof(struct token));
     int len = 20;
@@ -145,7 +150,6 @@ void next_token(struct lexer *lex)
 
     while (1)
     {
-        //char prev = curr;
         curr = fgetc(lex->filename);
 
         if (curr == '\0' || curr == EOF)
@@ -200,7 +204,8 @@ void next_token(struct lexer *lex)
 
         else if (curr == ';' || curr == '\n')
         {
-            fseek(lex->filename, -1, SEEK_CUR);
+            //fseek(lex->filename, -1, SEEK_CUR);
+            ungetc(curr, lex->filename);
             break;
         }
 
