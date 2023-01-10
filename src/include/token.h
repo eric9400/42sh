@@ -9,16 +9,33 @@ enum tok_type
     THEN,
     ELIF,
     FI,
+    
+    // loop
+    WHILE,
+    DO,
+    DONE,
+    UNTIL,
+    FOR,
+    IN,
 
     //syntax 
     SEMICOLON,
     NEWLINE,
     S_QUOTE,
-
-    // else
+    D_QUOTE
+    
     WORD,
+    ASSIGNEMENT_WORD
 
-    END_OF_FILE
+    END_OF_FILE,
+
+
+    //all type of operators
+    OP_REDIRECTION,
+    OP_AND,
+    OP_OR,
+    OP_PIPE,
+    OP_NEGATION
 };
 
 struct token
