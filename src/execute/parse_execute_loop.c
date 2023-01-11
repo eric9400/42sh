@@ -22,8 +22,8 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     int p = flags->p;
     free(flags);
     int return_value = 0;
-    //if (file == stdin)
-     //   printf("42sh> ");
+    if (file == stdin)
+        printf("42sh> ");
     while (1) // RAJOUTER UN ETAT D'AST POUR QUAND 
     {
         ast = input(lex);
