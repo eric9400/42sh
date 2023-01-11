@@ -19,7 +19,7 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
         return 0;
 
     int opt;
-    while ((opt = getopt(argc, argv, ":cp")) != -1)
+    while ((opt = getopt(argc, argv, ":cpu")) != -1)
     {
         switch (opt)
         {
@@ -28,6 +28,9 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
                 break;
             case 'p':
                 flags->p = 1; 
+                break;
+            case 'u':
+                flags->u = 1;
                 break;
             case ':':
                 errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");

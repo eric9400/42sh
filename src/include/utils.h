@@ -7,6 +7,7 @@ struct flags
 {
     int c;
     int p;
+    int u;
 };
 
 int BaBaJi(int argc, char *argv[], char **filename, struct flags *flags);
