@@ -44,23 +44,8 @@ static void findtype(struct token *tok, int is_word)
 {
     if (!tok->data)
         return;
-
-    if (!strcmp(tok->data,"if"))
-        tok->type = IF;
-    else if (!strcmp(tok->data,"else"))
-        tok->type = ELSE;
-    else if (!strcmp(tok->data,"then"))
-        tok->type = THEN;
-    else if (!strcmp(tok->data,"fi"))
-        tok->type = FI;
-    else if (!strcmp(tok->data,"elif"))
-        tok->type = ELIF;
-
     else if (is_word)
         tok->type = WORD;
-    else if (tok->data[0] == '\'')
-        tok->type = S_QUOTE;
-
     else
         tok->type = WORD;
 }
@@ -231,12 +216,6 @@ void next_token(struct lexer *lex)
         }
         i++;
     }
-    /*if (curr == EOF)
-    {
-        fprintf(stderr, "ERROR LEXER: TOKEN IS NULL\n");
-        lex->tok = NULL;
-        return;
-    }*/
     tok->data = realloc(tok->data, i + 1);
     tok->data[i] = '\0';
     findtype(tok, is_word);

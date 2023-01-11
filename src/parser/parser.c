@@ -20,6 +20,17 @@ static struct ast *else_clause(struct lexer *lex);
 static struct ast *compound_list(struct lexer *lex);
 
 /*
+* check if the current token is a simple command
+*/
+
+int is_shell_command(struct lexer *lex)
+{
+    char *data = lex->tok->data;
+    return strcmp("if", data) == 0 || strcmp("else", data) == 0 || strcmp("elif", data) == 0
+           || strcmp("then", data) == 0 || strcmp("fi", data) == 0;
+}
+
+/*
 *convert any type of ast into a general ast
 */
 static struct ast *convert_node_ast(enum ast_type type, void *node)
@@ -55,12 +66,19 @@ static struct ast *error_handler(struct lexer *lex, char *error_message)
 struct ast *input(struct lexer *lex)
 {
     peek_token(lex);
-    if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE) // EOF OU \n
+    if (lex->tok->type == END_OF_FILE) // EOF
     {
         free_token(lex);
         return NULL; // ast vide
     }
-    
+    if (lex->tok->type == NEWLINE) // Si on a une ligne vide
+    {
+        free_token(lex);
+        struct ast_cmd *cmd = init_cmd();
+        vector_append(cmd->arg, strdup(""));
+        return convert_node_ast(AST_CMD, cmd);
+    }
+
     struct ast *exec_tree = list(lex);
     if (lex->error == 2)
     {
@@ -157,7 +175,7 @@ static struct ast *simple_command(struct lexer *lex)
     struct ast_cmd *cmd = init_cmd();
     
     peek_token(lex);
-    if(lex->tok->type != WORD && lex->tok->type != S_QUOTE)
+    if(lex->tok->type != WORD || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
@@ -178,7 +196,7 @@ static struct ast *simple_command(struct lexer *lex)
 static char *element(struct lexer *lex)
 {
     peek_token(lex);
-    if (lex->tok && (lex->tok->type == WORD || lex->tok->type == S_QUOTE))
+    if (lex->tok && lex->tok->type == WORD)
     {
         char *word = strdup(lex->tok->data);
         free_token(lex);
@@ -196,7 +214,7 @@ static struct ast *shell_command(struct lexer *lex)
 static struct ast *rule_if(struct lexer *lex, int opt)
 {
     peek_token(lex);
-    if(lex->tok->type != IF)
+    if(strcmp("if", lex->tok->data) != 0)
         return NULL;
     free_token(lex);
 
@@ -210,7 +228,7 @@ static struct ast *rule_if(struct lexer *lex, int opt)
     }
 
     next_token(lex);
-    if(lex->tok->type != THEN)
+    if(strcmp("then", lex->tok->data) != 0 )
     {
         free_node(convert_node_ast(AST_IF, if_node));
         return error_handler(lex, "Error rule_if: \"then\" IS MISSING");
@@ -229,7 +247,7 @@ static struct ast *rule_if(struct lexer *lex, int opt)
     if(!opt)
     {
         next_token(lex);
-        if(lex->tok->type != FI || lex->error == 2)
+        if(lex->error == 2 || strcmp("fi", lex->tok->data) != 0)
         {
             free_node(convert_node_ast(AST_IF, if_node));
             return error_handler(lex, "Error rule_if: \"fi\" IS MISSING");
@@ -243,18 +261,20 @@ static struct ast *rule_if(struct lexer *lex, int opt)
 static struct ast *else_clause(struct lexer *lex)
 {
     peek_token(lex);
-    if(lex->tok->type != ELSE && lex->tok->type != ELIF)
-        return NULL;
 
-    if (lex->tok->type == ELSE)
+    if (!strcmp(lex->tok->data, "else"))
     {
         free_token(lex);
         return compound_list(lex);
     }
-
-    //ELSE IF CASE
-    lex->tok->type = IF;
-    return rule_if(lex,1);
+    else if(!strcmp(lex->tok->data, "elif"))
+    {
+        free(lex->tok->data);
+        lex->tok->data = strdup("if");
+        return rule_if(lex,1);
+    }
+    else
+        return NULL;
 }
 
 static struct ast *compound_list(struct lexer *lex)
