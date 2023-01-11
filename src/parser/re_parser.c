@@ -109,42 +109,45 @@ static struct ast *list(struct lexer *lex)
     struct ast *head_cmd = and_or(lex);
     if (head_cmd != NULL)
     {
-        exec_tree->cmd_if[cpt_cmd] = head_cmd;
+        exec_tree->cmd_if[exec_tree->size] = head_cmd;
         exec_tree->size++;
-        cpt_cmd++;
     }
     if (lex->error == 2)
-    {
-        // printf("Error list: NO MATCHING PATERN\n");
         return convert_node_ast(AST_LIST, exec_tree);
-    }
+        // printf("Error list: NO MATCHING PATERN\n");
 
-    peek_token(lex);
-    while (lex->tok->type == SEMICOLON)
-    {
-        free_token(lex);
-        struct ast *cmd = and_or(lex);
-        if (!cmd)
-        {
-            lex->error = 0;
-            break;
-        }
-
-        exec_tree->cmd_if[cpt_cmd] = cmd;
-        exec_tree->size++;
-        cpt_cmd++;
-
-        peek_token(lex);
-    }
+    list2(lex, exec_tree);
 
     // plusieurs commandes donc une list
-    if (cpt_cmd > 1)
+    if (exec_tree->size > 1)
         return convert_node_ast(AST_LIST, exec_tree);
 
     // une seule commande
     free(exec_tree->cmd_if);
     free(exec_tree);
     return head_cmd;
+}
+
+/*
+*If there is more than one ast than we add it in the list until it doesn't fit
+*/
+static void list2(struct lexer *lex, struct ast_list *exec_tree)
+{
+    peek_token(lex);
+    if (lex->tok->type != SEMICOLON)
+        return;
+    
+    free_token(lex);
+    struct ast *cmd = and_or(lex);
+    if (!cmd) // If we are at the end of the list
+    {
+        lex->error = 0;
+        return;
+    }
+
+    exec_tree->cmd_if[exec_tree->size] = cmd;
+    exec_tree->size++;
+    list2(lex, exec_tree);
 }
 
 static struct ast *and_or(struct lexer *lex)
@@ -166,10 +169,9 @@ static struct ast *command(struct lexer *lex)
         cmd = shell_command(lex);
 
         if (!cmd)
-        { // return error_handler(lex,"Error command: simple_command and
-          // shell_command failed");
-            lex->error = 2;
-            return NULL;
+        {
+            return error_handler(lex,"Error command: simple_command and\
+                                 shell_command failed");
         }
     }
 
@@ -191,13 +193,19 @@ static struct ast *simple_command(struct lexer *lex)
     vector_append(cmd->arg, word);
     free_token(lex);
 
-    do
-    {
-        word = element(lex);
-        vector_append(cmd->arg, word);
-    } while (word != NULL);
+    simple_command2(lex, cmd);
 
     return convert_node_ast(AST_CMD, cmd);
+}
+
+static void *simple_command2(struct lexer *lex, struct ast_cmd *cmd)
+{
+    char *word = element(lex);
+    vector_append(cmd->arg, word);
+
+    if (word == NULL)
+        return;
+    simple_command2(lex, cmd);
 }
 
 static char *element(struct lexer *lex)
@@ -214,7 +222,7 @@ static char *element(struct lexer *lex)
 
 static struct ast *shell_command(struct lexer *lex)
 {
-    return rule_if(lex, 0);
+    return rule_if(lex, 0); //change 0 to 1 dans change negate all the rest
 }
 
 // is_elif : 0 = if, 1 = elif
@@ -286,76 +294,63 @@ static struct ast *else_clause(struct lexer *lex)
         return NULL;
 }
 
-static struct ast *compound_list(struct lexer *lex)
+static void new_line(struct lexer *lex)
 {
     peek_token(lex);
-
     while (lex->tok->type == NEWLINE)
     {
         free_token(lex);
         peek_token(lex);
     }
+}
+
+static struct ast *compound_list(struct lexer *lex)
+{
+    new_line(lex); // will have stock the first token non new_line in lex
 
     struct ast *node = and_or(lex);
     if (!node)
-    {
-        lex->error = 2;
-        return NULL;
-    }
-
-    peek_token(lex);
-
-    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
-        return node;
-
-    int last_token;
-    int cpt_cmd = 0;
+        return error_handler(lex, "ERROR COMPOUND_LIST: NO MATCHIN PATTERN");
 
     struct ast_list *list = init_list(SIZE);
 
-    while (lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
-    {
-        last_token = 0; // 0 = ';' | 1 = '\n'
+    compound_list2(lex, list);
 
-        while (lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
-        {
-            if (lex->tok->type == SEMICOLON && last_token == 1)
-            {
-                free_node(node);
-                free_node(convert_node_ast(AST_LIST, list));
-                return error_handler(lex,
-                                     "ERROR COMPOUND_LIST : wrong token\n");
-            }
-            free_token(lex);
-            peek_token(lex);
-            last_token = (lex->tok->type == SEMICOLON);
-        }
-
-        struct ast *res_cmd = and_or(lex);
-        if (!res_cmd)
-        {
-            lex->error = 0;
-            break;
-        }
-
-        if (cpt_cmd == 0)
-        {
-            list->cmd_if[cpt_cmd] = node;
-            list->size++;
-            cpt_cmd += 1;
-        }
-        list->cmd_if[cpt_cmd] = res_cmd;
-        list->size++;
-
-        cpt_cmd += 1;
-
-        peek_token(lex);
-    }
+    peek_token(lex);
+    if (lex->tok->type == SEMICOLON)
+        free_token(lex);
+    
+    new_line(lex);
 
     // multiple command
-    if (cpt_cmd > 0)
+    if (list->size > 0)
         return convert_node_ast(AST_LIST, list);
     // only one command
-    free_node(convert_node_ast(AST_LIST, list));
+    free(list->cmd_if);
+    free(list);
     return node;
+}
+
+static void compound_list2(struct lexer *lex, struct ast_list *list)
+{
+    peek_token(lex);
+    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
+        return;
+
+    if (lex->tok->type == NEWLINE)
+    {
+        new_line(lex);
+        struct ast *node = and_or(lex);
+        if (!node)
+        {
+            lex->error = 0;
+            return;
+        }
+        list->cmd_if[list->size] = node;
+        list->size++;
+    }
+    // case of SEMICOLON
+    free_token(lex);
+
+    compound_list2(lex, list);
 }
