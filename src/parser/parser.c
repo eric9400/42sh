@@ -55,12 +55,19 @@ static struct ast *error_handler(struct lexer *lex, char *error_message)
 struct ast *input(struct lexer *lex)
 {
     peek_token(lex);
-    if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE) // EOF OU \n
+    if (lex->tok->type == END_OF_FILE) // EOF
     {
         free_token(lex);
         return NULL; // ast vide
     }
-    
+    if (lex->tok->type = NEWLINE) // Si on a une ligne vide
+    {
+        free_token(lex);
+        struct ast_cmd *cmd = init_cmd();
+        vector_append(cmd->arg, strdup(""));
+        return convert_node_ast(AST_CMD, cmd);
+    }
+
     struct ast *exec_tree = list(lex);
     if (lex->error == 2)
     {
