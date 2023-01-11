@@ -5,3 +5,6 @@ src += src_file
 subdir('lexer')
 subdir('parser')
 subdir('ast')
+subdir('utils')
+subdir('execute')
+subdir('builtin')
