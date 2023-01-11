@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SIZE 100
+
 // static struct lexer *lex = NULL;
 // static int error;
 
 static struct ast *list(struct lexer *lex);
 struct ast *input(struct lexer *lex);
-static struct ast *list(struct lexer* lex);
+static struct ast *list(struct lexer *lex);
 static struct ast *and_or(struct lexer *lex);
 static struct ast *pipeline(struct lexer *lex);
 static struct ast *command(struct lexer *lex);
@@ -20,19 +22,20 @@ static struct ast *else_clause(struct lexer *lex);
 static struct ast *compound_list(struct lexer *lex);
 
 /*
-* check if the current token is a simple command
-*/
+ * check if the current token is a simple command
+ */
 
 int is_shell_command(struct lexer *lex)
 {
     char *data = lex->tok->data;
-    return strcmp("if", data) == 0 || strcmp("else", data) == 0 || strcmp("elif", data) == 0
-           || strcmp("then", data) == 0 || strcmp("fi", data) == 0;
+    return strcmp("if", data) == 0 || strcmp("else", data) == 0
+        || strcmp("elif", data) == 0 || strcmp("then", data) == 0
+        || strcmp("fi", data) == 0;
 }
 
 /*
-*convert any type of ast into a general ast
-*/
+ *convert any type of ast into a general ast
+ */
 static struct ast *convert_node_ast(enum ast_type type, void *node)
 {
     struct ast *ast_node = calloc(1, sizeof(struct ast));
@@ -52,14 +55,16 @@ static struct ast *convert_node_ast(enum ast_type type, void *node)
 
 static void peek_token(struct lexer *lex)
 {
-    if(!lex->tok)
-       next_token(lex);
+    if (!lex->tok)
+        next_token(lex);
 }
 
 static struct ast *error_handler(struct lexer *lex, char *error_message)
 {
     lex->error = 2;
-    printf("%s\n", error_message);
+    char var = error_message[0];
+    var++;
+    // printf("%s\n", error_message);
     return NULL;
 }
 
@@ -82,10 +87,10 @@ struct ast *input(struct lexer *lex)
     struct ast *exec_tree = list(lex);
     if (lex->error == 2)
     {
-        printf("Error input: NO MATCHING PATERN\n");
+        // printf("Error input: NO MATCHING PATERN\n");
         return exec_tree;
     }
-    
+
     peek_token(lex);
     if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE)
     {
@@ -99,7 +104,7 @@ struct ast *input(struct lexer *lex)
 static struct ast *list(struct lexer *lex)
 {
     int cpt_cmd = 0;
-    struct ast_list *exec_tree = init_list(10);
+    struct ast_list *exec_tree = init_list(SIZE);
 
     struct ast *head_cmd = and_or(lex);
     if (head_cmd != NULL)
@@ -110,12 +115,12 @@ static struct ast *list(struct lexer *lex)
     }
     if (lex->error == 2)
     {
-        printf("Error list: NO MATCHING PATERN\n");
+        // printf("Error list: NO MATCHING PATERN\n");
         return convert_node_ast(AST_LIST, exec_tree);
     }
 
     peek_token(lex);
-    while(lex->tok->type == SEMICOLON)
+    while (lex->tok->type == SEMICOLON)
     {
         free_token(lex);
         struct ast *cmd = and_or(lex);
@@ -126,13 +131,13 @@ static struct ast *list(struct lexer *lex)
         }
 
         exec_tree->cmd_if[cpt_cmd] = cmd;
-        exec_tree->size++; 
+        exec_tree->size++;
         cpt_cmd++;
-  
+
         peek_token(lex);
     }
 
-    // plusieurs commandes donc une list 
+    // plusieurs commandes donc une list
     if (cpt_cmd > 1)
         return convert_node_ast(AST_LIST, exec_tree);
 
@@ -155,15 +160,16 @@ static struct ast *pipeline(struct lexer *lex)
 static struct ast *command(struct lexer *lex)
 {
     struct ast *cmd = simple_command(lex);
-    
-    if(!cmd)
+
+    if (!cmd)
     {
         cmd = shell_command(lex);
-    
-        if(!cmd)
-        {    //return error_handler(lex,"Error command: simple_command and shell_command failed");
+
+        if (!cmd)
+        { // return error_handler(lex,"Error command: simple_command and
+          // shell_command failed");
             lex->error = 2;
-            return NULL;        
+            return NULL;
         }
     }
 
@@ -173,9 +179,9 @@ static struct ast *command(struct lexer *lex)
 static struct ast *simple_command(struct lexer *lex)
 {
     struct ast_cmd *cmd = init_cmd();
-    
+
     peek_token(lex);
-    if(lex->tok->type != WORD || is_shell_command(lex))
+    if (lex->tok->type != WORD || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
@@ -185,10 +191,11 @@ static struct ast *simple_command(struct lexer *lex)
     vector_append(cmd->arg, word);
     free_token(lex);
 
-    do{
+    do
+    {
         word = element(lex);
         vector_append(cmd->arg, word);
-    } while(word != NULL);
+    } while (word != NULL);
 
     return convert_node_ast(AST_CMD, cmd);
 }
@@ -210,25 +217,26 @@ static struct ast *shell_command(struct lexer *lex)
     return rule_if(lex, 0);
 }
 
-//opt : 0 = if, 1 = elif
+// opt : 0 = if, 1 = elif
 static struct ast *rule_if(struct lexer *lex, int opt)
 {
     peek_token(lex);
-    if(strcmp("if", lex->tok->data) != 0)
+    if (strcmp("if", lex->tok->data) != 0)
         return NULL;
     free_token(lex);
 
     struct ast_if *if_node = init_if();
 
     if_node->condition = compound_list(lex); // list or cmd
-    if(!if_node->condition || lex->error == 2)
+    if (!if_node->condition || lex->error == 2)
     {
         free_node(convert_node_ast(AST_IF, if_node));
-        return error_handler(lex, "Error rule_if: NO MATCHING PATERN after \"if\"");
+        return error_handler(lex,
+                             "Error rule_if: NO MATCHING PATERN after \"if\"");
     }
 
     next_token(lex);
-    if(strcmp("then", lex->tok->data) != 0 )
+    if (strcmp("then", lex->tok->data) != 0)
     {
         free_node(convert_node_ast(AST_IF, if_node));
         return error_handler(lex, "Error rule_if: \"then\" IS MISSING");
@@ -236,18 +244,19 @@ static struct ast *rule_if(struct lexer *lex, int opt)
     free_token(lex);
 
     if_node->then = compound_list(lex);
-    if(!if_node->then || lex->error == 2)
+    if (!if_node->then || lex->error == 2)
     {
         free_node(convert_node_ast(AST_IF, if_node));
-        return error_handler(lex, "Error rule_if: NO MATCHING PATERN after \"then\"");
+        return error_handler(
+            lex, "Error rule_if: NO MATCHING PATERN after \"then\"");
     }
 
     if_node->else_body = else_clause(lex);
 
-    if(!opt)
+    if (!opt)
     {
         next_token(lex);
-        if(lex->error == 2 || strcmp("fi", lex->tok->data) != 0)
+        if (lex->error == 2 || strcmp("fi", lex->tok->data) != 0)
         {
             free_node(convert_node_ast(AST_IF, if_node));
             return error_handler(lex, "Error rule_if: \"fi\" IS MISSING");
@@ -267,11 +276,11 @@ static struct ast *else_clause(struct lexer *lex)
         free_token(lex);
         return compound_list(lex);
     }
-    else if(!strcmp(lex->tok->data, "elif"))
+    else if (!strcmp(lex->tok->data, "elif"))
     {
         free(lex->tok->data);
         lex->tok->data = strdup("if");
-        return rule_if(lex,1);
+        return rule_if(lex, 1);
     }
     else
         return NULL;
@@ -279,26 +288,16 @@ static struct ast *else_clause(struct lexer *lex)
 
 static struct ast *compound_list(struct lexer *lex)
 {
-    //just pour tester le reste
-    /*peek_token(lex);
-    if (strcmp(lex->tok->data, "true") != 0
-        && strcmp(lex->tok->data, "false") != 0)
-        error_handler(lex, "Error compound_list: NO MATCHING PATERN");
-    struct ast_cmd *cmd = init_cmd();
-    vector_append(cmd->arg, strdup(lex->tok->data));
-    free_token(lex);
-    return convert_node_ast(AST_CMD, cmd);*/
-   
     peek_token(lex);
 
-    while(lex->tok->type == NEWLINE)
+    while (lex->tok->type == NEWLINE)
     {
         free_token(lex);
         peek_token(lex);
     }
 
     struct ast *node = and_or(lex);
-    if(!node)
+    if (!node)
     {
         lex->error = 2;
         return NULL;
@@ -306,25 +305,26 @@ static struct ast *compound_list(struct lexer *lex)
 
     peek_token(lex);
 
-    if(lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
+    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
         return node;
 
     int last_token;
     int cpt_cmd = 0;
 
-    struct ast_list *list = init_list(10);
+    struct ast_list *list = init_list(SIZE);
 
-    while(lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
+    while (lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
     {
         last_token = 0; // 0 = ';' | 1 = '\n'
 
-        while(lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
+        while (lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
         {
-            if(lex->tok->type == SEMICOLON && last_token == 1)
+            if (lex->tok->type == SEMICOLON && last_token == 1)
             {
                 free_node(node);
-                free_node(convert_node_ast(AST_LIST,list));
-                return error_handler(lex,"ERROR COMPOUND_LIST : wrong token\n");
+                free_node(convert_node_ast(AST_LIST, list));
+                return error_handler(lex,
+                                     "ERROR COMPOUND_LIST : wrong token\n");
             }
             free_token(lex);
             peek_token(lex);
@@ -332,13 +332,13 @@ static struct ast *compound_list(struct lexer *lex)
         }
 
         struct ast *res_cmd = and_or(lex);
-        if(!res_cmd)
+        if (!res_cmd)
         {
             lex->error = 0;
             break;
         }
 
-        if(cpt_cmd == 0)
+        if (cpt_cmd == 0)
         {
             list->cmd_if[cpt_cmd] = node;
             list->size++;
@@ -346,16 +346,16 @@ static struct ast *compound_list(struct lexer *lex)
         }
         list->cmd_if[cpt_cmd] = res_cmd;
         list->size++;
-        
+
         cpt_cmd += 1;
 
         peek_token(lex);
     }
 
-    // multiple command 
-    if(cpt_cmd > 0)
-        return convert_node_ast(AST_LIST,list);
-    // only one command 
-    free_node(convert_node_ast(AST_LIST,list));
+    // multiple command
+    if (cpt_cmd > 0)
+        return convert_node_ast(AST_LIST, list);
+    // only one command
+    free_node(convert_node_ast(AST_LIST, list));
     return node;
 }

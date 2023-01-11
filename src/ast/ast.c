@@ -28,7 +28,7 @@ struct ast_if *init_if(void)
     return ast_if;
 }
 
-//ADD NEW AST INIT HERE
+// ADD NEW AST INIT HERE
 
 void free_node(struct ast *ast)
 {
@@ -64,7 +64,7 @@ void free_node(struct ast *ast)
 static void print_tab(int tab)
 {
     for (int t = 0; t < tab; t++)
-        printf("    ");    
+        printf("    ");
 }
 
 void pretty_print(struct ast *tree, int tab)

@@ -1,3 +1,5 @@
+#include "utils.h"
+
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,7 +7,6 @@
 #include <unistd.h>
 
 #include "ast.h"
-#include "utils.h"
 
 /*
  * \brief Parsing of inputs
@@ -23,19 +24,21 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     {
         switch (opt)
         {
-            case 'c':
-                flags->c = 1;
-                break;
-            case 'p':
-                flags->p = 1; 
-                break;
-            case 'u':
-                flags->u = 1;
-                break;
-            case ':':
-                errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
-            case '?':
-                errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
+        case 'c':
+            flags->c = 1;
+            break;
+        case 'p':
+            flags->p = 1;
+            break;
+        case 'u':
+            flags->u = 1;
+            break;
+        case ':':
+            return 2;
+            // errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
+        case '?':
+            return 2;
+            // errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
         }
     }
     if (argc - optind == 1)
@@ -46,5 +49,6 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     else if ((argc == 2 && flags->p) || argc == 1)
         return 0;
     else
-        errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
+        return 2;
+    // errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
 }

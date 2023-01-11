@@ -2,12 +2,12 @@
 #include <stdlib.h>
 
 #include "ast.h"
-#include "utils.h"
+#include "execute.h"
 #include "lexer.h"
 #include "parser.h"
-#include "execute.h"
+#include "utils.h"
 
-static struct flags *global_flags = NULL; 
+static struct flags *global_flags = NULL;
 
 static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
 {
@@ -28,7 +28,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     if (file == stdin)
         printf("42sh$ ");
     */
-    // RAJOUTER UN ETAT D'AST POUR QUAND 
+    // RAJOUTER UN ETAT D'AST POUR QUAND
     while (1)
     {
         ast = input(lex);
@@ -36,9 +36,13 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             break;
         if (lex->error)
         {
+            /*
             if (file == stdin)
                 fprintf(stderr, "Parsing error TO COMPLETE\n");
             else
+                return freeAll(file, lex, ast, lex->error);
+            */
+            if (file != stdin)
                 return freeAll(file, lex, ast, lex->error);
         }
         else if (!ast && file != stdin)
@@ -57,17 +61,23 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 break;
             }
             // if (ast != SPECIFIC_AST_FOR_END_OF_LINE (FOR EXAMPLE))
-            if (ast->type == AST_CMD && ast->data->ast_cmd->arg->data[0][0] == '\0')
+            if (ast->type == AST_CMD
+                && ast->data->ast_cmd->arg->data[0][0] == '\0')
             {
                 free_node(ast);
                 continue;
             }
-            return_value = execute(ast, return_value); //RETURN_VALUE FOR ECHO EXPAND (echo $?)
+            return_value = execute(
+                ast, return_value); // RETURN_VALUE FOR ECHO EXPAND (echo $?)
             if (return_value)
             {
+                /*
                 if (file == stdin)
                     fprintf(stderr, "Execute error TO COMPLETE\n");
                 else
+                    return freeAll(file, lex, ast, lex->error);
+                */
+                if (file != stdin)
                     return freeAll(file, lex, ast, lex->error);
             }
         }

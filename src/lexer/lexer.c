@@ -78,7 +78,7 @@ static char skip_space(struct lexer *lex)
 
 static void end_of_block_line_file(struct lexer *lex, char tmp)
 {
-    //printf("NEWLINE, SEMICOLON OR EOF\n");
+    // printf("NEWLINE, SEMICOLON OR EOF\n");
     struct token *tok = malloc(sizeof(struct token));
     tok->data = malloc(2);
     tok->data[0] = tmp;
@@ -92,22 +92,22 @@ static void end_of_block_line_file(struct lexer *lex, char tmp)
     lex->tok = tok;
 }
 
-//WHEN EXE IS KILL CLOSE THE FILE
+// WHEN EXE IS KILL CLOSE THE FILE
 void next_token(struct lexer *lex)
 {
-    if(lex->tok)
+    if (lex->tok)
         return;
 
-    //skip space types
+    // skip space types
     char tmp = skip_space(lex);
-    //if first char is newline return it as a token
+    // if first char is newline return it as a token
     if (tmp == '\n' || tmp == ';' || tmp == EOF)
     {
         end_of_block_line_file(lex, tmp);
         return;
     }
     ungetc(tmp, lex->filename);
-    //fseek(lex->filename, -1, SEEK_CUR);
+    // fseek(lex->filename, -1, SEEK_CUR);
 
     struct token *tok = malloc(sizeof(struct token));
     int len = 20;
@@ -115,7 +115,7 @@ void next_token(struct lexer *lex)
     tok->data = malloc(sizeof(char) * len);
 
     // curr = current character et prev = previous character
-    //char prev = '\0';
+    // char prev = '\0';
     char curr = '\0';
     // word flag, singlequote flag, doublequote flag
     int is_word = 0;
@@ -131,7 +131,7 @@ void next_token(struct lexer *lex)
             ungetc(curr, lex->filename);
             break;
         }
-        //CHECK IF NEED TO DOUBLE SIZE
+        // CHECK IF NEED TO DOUBLE SIZE
         len = test_data_full(&(tok->data), i, len);
 
         /*
@@ -178,13 +178,13 @@ void next_token(struct lexer *lex)
 
         else if (curr == ';' || curr == '\n')
         {
-            //fseek(lex->filename, -1, SEEK_CUR);
+            // fseek(lex->filename, -1, SEEK_CUR);
             ungetc(curr, lex->filename);
             break;
         }
 
         // rule 5
-        //TODO
+        // TODO
 
         /*else if (!in_quote && start_op(curr))
         {
@@ -220,7 +220,7 @@ void next_token(struct lexer *lex)
     tok->data[i] = '\0';
     findtype(tok, is_word);
     lex->tok = tok;
-    //puts(lex->tok->data);
+    // puts(lex->tok->data);
 }
 
 /*
@@ -242,10 +242,8 @@ int main(void)
         if (lex->tok->data[0] == '\n')
             printf("Token : \"\\n\"\t\tType : %d\n", lex->tok->type);
         else
-            printf("Token : \"%s\"\t\tType : %d\n", lex->tok->data, lex->tok->type);
-        free(lex->tok->data);
-        free(lex->tok);
-        lex->tok = NULL;
+            printf("Token : \"%s\"\t\tType : %d\n", lex->tok->data,
+lex->tok->type); free(lex->tok->data); free(lex->tok); lex->tok = NULL;
         next_token(lex);
     }
     free_lexer(lex);
