@@ -1,1 +1,1 @@
-if true then false else true fi
+if true ;then false; else true; fi
