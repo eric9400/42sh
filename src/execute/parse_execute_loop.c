@@ -7,16 +7,20 @@
 #include "parser.h"
 #include "execute.h"
 
+static struct flags *global_flags = NULL; 
+
 static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
 {
     free_lexer(lex);
     free_node(ast);
     fclose(file);
+    free(global_flags);
     return error;
 }
 
 int parse_execute_loop(FILE *file, struct flags *flags)
 {
+    global_flags = flags;
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
@@ -63,7 +67,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             printf("42sh> ");
         fflush(stdout);
     }
-    free(flags);
     if (lex->error)
         return freeAll(file, lex, ast, lex->error);
     return freeAll(file, lex, ast, return_value);

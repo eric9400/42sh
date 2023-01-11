@@ -24,12 +24,14 @@ int func_if(struct ast *ast, int return_value)
 
 int func_list(struct ast *ast, int return_value)
 {
-    size_t size = ast->data->ast_list->size;
+    size_t size = ast->data->ast_list->size - 1;
+    
     for (size_t i = 0; i < size; i++)
-    {
-        if (execute(ast->data->ast_list->cmd_if[i], return_value) != 0)
+        execute(ast->data->ast_list->cmd_if[i], return_value);
+    
+    // only check last return code from the command
+    if (execute(ast->data->ast_list->cmd_if[size], return_value) != 0)
             return 2;
-    }
     return 0;
 }
 

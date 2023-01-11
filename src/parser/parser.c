@@ -196,7 +196,7 @@ static struct ast *simple_command(struct lexer *lex)
 static char *element(struct lexer *lex)
 {
     peek_token(lex);
-    if (lex->tok && lex->tok->type == WORD))
+    if (lex->tok && lex->tok->type == WORD)
     {
         char *word = strdup(lex->tok->data);
         free_token(lex);
@@ -269,6 +269,7 @@ static struct ast *else_clause(struct lexer *lex)
     }
     else if(!strcmp(lex->tok->data, "elif"))
     {
+        free(lex->tok->data);
         lex->tok->data = strdup("if");
         return rule_if(lex,1);
     }
