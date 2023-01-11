@@ -10,7 +10,7 @@ nc='\033[0m'
 test_lex_parse()
 {
     echo "$2" > "$REF_OUT"
-    ./42sh -cp "$1" > "$TEST_OUT"
+    ./42sh -p "$1" > "$TEST_OUT"
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $( echo "$var" | wc -c) -gt 1 ]; then
         echo "$red    |  $1    ->    $2:      NAN!"

@@ -178,7 +178,7 @@ static struct ast *simple_command(struct lexer *lex)
 static char *element(struct lexer *lex)
 {
     peek_token(lex);
-    if (lex->tok->type == WORD || lex->tok->type == S_QUOTE)
+    if (lex->tok && (lex->tok->type == WORD || lex->tok->type == S_QUOTE))
     {
         char *word = strdup(lex->tok->data);
         free_token(lex);

@@ -91,25 +91,19 @@ static char skip_space(struct lexer *lex)
     return tmp;
 }
 
-static void newline(struct lexer *lex, char tmp)
+static void end_of_block_line_file(struct lexer *lex, char tmp)
 {
+    //printf("NEWLINE, SEMICOLON OR EOF\n");
     struct token *tok = malloc(sizeof(struct token));
     tok->data = malloc(2);
     tok->data[0] = tmp;
     tok->data[1] = '\0';
     if (tmp == '\n')
         tok->type = NEWLINE;
-    else
+    else if (tmp == ';')
         tok->type = SEMICOLON;
-    lex->tok = tok;
-}
-
-static void end_of_file(struct lexer *lex)
-{
-    struct token *tok = malloc(sizeof(struct token));
-    tok->data = malloc(1);
-    tok->data[0] = '\0';
-    tok->type = END_OF_FILE;
+    else
+        tok->type = END_OF_FILE;
     lex->tok = tok;
 }
 
@@ -122,14 +116,9 @@ void next_token(struct lexer *lex)
     //skip space types
     char tmp = skip_space(lex);
     //if first char is newline return it as a token
-    if (tmp == EOF)
+    if (tmp == '\n' || tmp == ';' || tmp == EOF)
     {
-        end_of_file(lex);
-        return;
-    }
-    if (tmp == '\n' || tmp == ';')
-    {
-        newline(lex, tmp);
+        end_of_block_line_file(lex, tmp);
         return;
     }
     ungetc(tmp, lex->filename);
@@ -152,9 +141,9 @@ void next_token(struct lexer *lex)
     {
         curr = fgetc(lex->filename);
 
-        if (curr == '\0' || curr == EOF)
+        if (curr == EOF)
         {
-            fseek(lex->filename, -1, SEEK_CUR);
+            ungetc(curr, lex->filename);
             break;
         }
         //CHECK IF NEED TO DOUBLE SIZE
@@ -231,10 +220,7 @@ void next_token(struct lexer *lex)
                 curr = fgetc(lex->filename);
             free(tok->data);
             free(tok);
-            if (curr == EOF)
-                end_of_file(lex);
-            else if (curr == '\n')
-                newline(lex, curr);
+            end_of_block_line_file(lex, curr);
             return;
         }
 
@@ -245,16 +231,17 @@ void next_token(struct lexer *lex)
         }
         i++;
     }
-    if (curr == '\0' || curr == EOF)
+    /*if (curr == EOF)
     {
+        fprintf(stderr, "ERROR LEXER: TOKEN IS NULL\n");
         lex->tok = NULL;
         return;
-    }
+    }*/
     tok->data = realloc(tok->data, i + 1);
     tok->data[i] = '\0';
     findtype(tok, is_word);
     lex->tok = tok;
-    puts(lex->tok->data);
+    //puts(lex->tok->data);
 }
 
 /*

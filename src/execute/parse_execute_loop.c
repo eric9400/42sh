@@ -39,7 +39,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
         else
         {
             if (p)
-                pretty_print(ast, 0);
+                ugly_print(ast);
             // if (ast != SPECIFIC_AST_FOR_END_OF_LINE (FOR EXAMPLE))
             return_value = execute(ast, return_value); //RETURN_VALUE FOR ECHO EXPAND (echo $?)
             if (return_value)
