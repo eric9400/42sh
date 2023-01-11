@@ -254,6 +254,7 @@ void next_token(struct lexer *lex)
     tok->data[i] = '\0';
     findtype(tok, is_word);
     lex->tok = tok;
+    puts(lex->tok->data);
 }
 
 /*

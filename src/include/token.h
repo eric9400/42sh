@@ -22,10 +22,10 @@ enum tok_type
     SEMICOLON,
     NEWLINE,
     S_QUOTE,
-    D_QUOTE
+    D_QUOTE,
     
     WORD,
-    ASSIGNEMENT_WORD
+    ASSIGNEMENT_WORD,
 
     END_OF_FILE,
 

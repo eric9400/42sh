@@ -22,7 +22,8 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     int p = flags->p;
     free(flags);
     int return_value = 0;
-    printf("42sh> ");
+    //if (file == stdin)
+     //   printf("42sh> ");
     while (1) // RAJOUTER UN ETAT D'AST POUR QUAND 
     {
         ast = input(lex);
@@ -50,7 +51,8 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             }
         }
         free_node(ast);
-        printf("42sh> ");
+        if (file == stdin)
+            printf("42sh> ");
         fflush(stdout);
     }
     if (lex->error)

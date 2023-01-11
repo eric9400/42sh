@@ -32,7 +32,8 @@ int main(int argc, char **argv)
         free(flags);
         return 2;
     }
-    free(filename);
 
-    return parse_execute_loop(file, flags);
+    int res = parse_execute_loop(file, flags);
+    free(filename);
+    return res;
 }
