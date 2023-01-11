@@ -20,12 +20,16 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
+    /*
     if (file == stdin)
         printf("42sh$ ");
+    */
     // RAJOUTER UN ETAT D'AST POUR QUAND 
     while (1)
     {
         ast = input(lex);
+        if (lex->error == 0 && !ast)
+            break;
         if (lex->error)
         {
             if (file == stdin)
@@ -49,6 +53,11 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 break;
             }
             // if (ast != SPECIFIC_AST_FOR_END_OF_LINE (FOR EXAMPLE))
+            if (ast->type == AST_CMD && ast->data->ast_cmd->arg->data[0][0] == '\0')
+            {
+                free_node(ast);
+                continue;
+            }
             return_value = execute(ast, return_value); //RETURN_VALUE FOR ECHO EXPAND (echo $?)
             if (return_value)
             {
@@ -59,8 +68,10 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             }
         }
         free_node(ast);
+        /*
         if (file == stdin)
             printf("42sh$ ");
+        */
         fflush(stdout);
     }
     free(flags);
