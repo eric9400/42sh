@@ -45,6 +45,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             if (flags->u)
             {
                 ugly_print(ast);
+                printf("\n");
                 break;
             }
             // if (ast != SPECIFIC_AST_FOR_END_OF_LINE (FOR EXAMPLE))
