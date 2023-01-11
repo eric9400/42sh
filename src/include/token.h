@@ -4,7 +4,7 @@
 enum tok_type
 {
     //conditional tokens
-    IF,
+    /*IF,
     ELSE,
     THEN,
     ELIF,
@@ -16,13 +16,13 @@ enum tok_type
     DONE,
     UNTIL,
     FOR,
-    IN,
+    IN,*/
 
     //syntax 
     SEMICOLON,
     NEWLINE,
-    S_QUOTE,
-    D_QUOTE,
+    /*S_QUOTE,
+    D_QUOTE,*/
     
     WORD,
     ASSIGNEMENT_WORD,
