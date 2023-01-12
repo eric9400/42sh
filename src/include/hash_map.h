@@ -17,8 +17,6 @@ struct hash_map
     size_t size;
 };
 
-size_t hash(const char *str);
-
 struct hash_map *hash_map_init(size_t size);
 void hash_map_free(struct hash_map *hash_map);
 

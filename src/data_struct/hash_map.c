@@ -4,6 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+static size_t hash(const char *key)
+{
+    size_t i = 0;
+    size_t hash = 0;
+
+    for (i = 0; key[i] != '\0'; ++i)
+        hash += key[i];
+    hash += i;
+
+    return hash;
+}
+
 struct hash_map *hash_map_init(size_t size)
 {
     struct hash_map *hm = malloc(sizeof(struct hash_map));
