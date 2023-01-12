@@ -8,6 +8,7 @@
 #include "utils.h"
 
 static struct flags *global_flags = NULL;
+struct hash_map *hashmap = NULL;
 
 static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
 {
@@ -15,6 +16,7 @@ static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
     free_node(ast);
     fclose(file);
     free(global_flags);
+    hash_map_free(hashmap);
     return error;
 }
 
@@ -24,6 +26,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
+    hashmap = hmap_init(10);
     /*
     if (file == stdin)
         printf("42sh$ ");
