@@ -10,7 +10,6 @@
 #include "hash_map.h"
 
 static struct flags *global_flags = NULL;
-struct hash_map *hashmap = NULL;
 
 static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
 {
@@ -28,8 +27,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
-    hashmap = hash_map_init(20);
-    hash_map_insert(hashmap, "a", "echo bonjour");
     // hash_map_insert_basics(hashmap);
     /*
     if (file == stdin)
