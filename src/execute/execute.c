@@ -7,69 +7,70 @@
 
 #include "ast.h"
 #include "builtin.h"
+#include "hash_map.h"
 
 int execute(struct ast *ast, int return_value);
 static int func_if(struct ast *ast, int return_value);
 static int func_list(struct ast *ast, int return_value);
 static int check_builtin(char **str, int return_value);
 static int func_cmd(struct ast *ast, int return_value);
-static int func_while(struct ast *ast, int return_value);
+/*static int func_while(struct ast *ast, int return_value);
 static int func_until(struct ast *ast, int return_value);
 static int func_for(struct ast *ast, int return_value);
-static int func_operation(struct ast *ast, int return_value);
+static int func_operation(struct ast *ast, int return_value);*/
 
-//int func_operation(struct ast *ast, int return_value)
 
-struct hash_map *hashmap = NULL;
-
-int is_still_variable(char c)
+int is_still_variable(char str)
 {
-    return (str[i] <= 'z' && str[i] >= 'a') || (str[i] <= 'Z' && str[i] >= 'A') || (str[i] <= '9' && str[i] >= '0') || str[i] == '_';
+    return (str <= 'z' && str >= 'a') || (str <= 'Z' && str >= 'A') || (str <= '9' && str >= '0') || str == '_';
 }
 
 static void expandinho(char **str)
 {
+    if (!(*str))
+        return;
     size_t len = strlen(*str);
     char *new = malloc(len + 1);
     int lenvar = 0;
     int single_quote = 0;
     char *hkey = NULL;
-    char *value = NULL;
+    const char *value = NULL;
     int indnew = 0;
+    int copylen = len;
     for (size_t i = 0; i < len; i++, indnew++)
     {
-        if (str[i] == '$' && !single_quote)
+        if ((*str)[i] == '$' && !single_quote)
         {
-            while (is_still_variable(str[i + lenvar + 1]))
+            while (is_still_variable((*str)[i + lenvar + 1]))
                 lenvar++;
-            hkey = strndup(str + i + 1, lenvar - 1);
+            lenvar++;
+            hkey = strndup(*str + i + 1, lenvar - 1);
             value = hash_map_get(hashmap, hkey);
             free(hkey);
             if (!value)
-            {
-                new = realloc(len + 1 - lenvar);
-                len -= lenvar;
-            }
+                new = realloc(new, copylen - 1 - lenvar);
             else
             {
-                new = realloc(new, len + 1 - lenvar + strlen(value));
-                len = len - lenvar + strlen(value);
-                for (int j = 0; j < strlen(value); j++, indnew++)
+                copylen = copylen - lenvar + strlen(value);
+                new = realloc(new, copylen + 1);
+                for (size_t j = 0; j < strlen(value); j++, indnew++)
                     new[indnew] = value[j];
-                lenvar = 0;
+                indnew--;
             }
             i += lenvar - 1;
+            indnew--;
         }
         else
-            new[indnew] = str[i];
-        if (str[i] == ''')
+            new[indnew] = (*str)[i];
+        if ((*str)[i] == '\'')
             single_quote = !single_quote;
+        lenvar = 0;
     }
     new[indnew] = '\0';
     free(*str);
     *str = new;
 }
-
+/*
 static int func_while(struct ast *ast, int return_value)
 {
     int res = 0;
@@ -95,7 +96,7 @@ static int func_for(struct ast *ast, int return_value)
         res = execute(ast->data->ast_for->for_body);
     }
     return res;
-}
+}*/
 
 static int func_if(struct ast *ast, int return_value)
 {
@@ -168,14 +169,14 @@ int execute(struct ast *ast, int return_value)
         return func_list(ast, return_value);
     case AST_CMD:
         return func_cmd(ast, return_value);
-    case AST_WHILE:
+    /*case AST_WHILE:
         return func_while(ast, return_value);
     case AST_UNTIL:
         return func_until(ast, return_value);
     case AST_FOR:
         return func_for(ast, return_value);
     case AST_OP:
-        return func_operation(ast, return_value);
+        return func_operation(ast, return_value);*/
     default:
         return 19;
         // ADD NEW AST EXECUTE HERE

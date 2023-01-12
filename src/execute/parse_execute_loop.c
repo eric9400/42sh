@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ast.h"
 #include "execute.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
+#include "hash_map.h"
 
 static struct flags *global_flags = NULL;
 struct hash_map *hashmap = NULL;
@@ -26,7 +28,8 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
-    hashmap = hmap_init(10);
+    hashmap = hash_map_init(10);
+    hash_map_insert(hashmap, "a", "diznut");
     /*
     if (file == stdin)
         printf("42sh$ ");
