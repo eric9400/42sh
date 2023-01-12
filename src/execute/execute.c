@@ -25,6 +25,54 @@ int is_still_variable(char str)
     return (str <= 'z' && str >= 'a') || (str <= 'Z' && str >= 'A') || (str <= '9' && str >= '0') || str == '_';
 }
 
+static char *is_special_var(char *str)
+{
+    if (!strcmp(str, "@"))
+    {
+       return hash_map_get(hashmap, str); 
+    }
+    else if (!strcmp(str, "*"))
+    {
+
+    }
+    else if (!strcmp(str, "?"))
+    {
+
+    }
+    else if (!strcmp(str, "$"))
+    {
+
+    }
+    else if (atoi(str) != 0)
+    {
+
+    }
+    else if (!strcmp(str, "#"))
+    {
+
+    }
+    else if (!strcmp(str, "RANDOM"))
+    {
+
+    }
+    else if (!strcmp(str, "UID"))
+    {
+
+    }
+    else if (!strcmp(str, "OLDPWD"))
+    {
+
+    }
+    else if (!strcmp(str, "PWD"))
+    {
+
+    }
+    else if (!strcmp(str, "IFS"))
+    {
+
+    }
+}
+
 static void expandinho(char **str)
 {
     if (!(*str))
@@ -45,7 +93,8 @@ static void expandinho(char **str)
                 lenvar++;
             lenvar++;
             hkey = strndup(*str + i + 1, lenvar - 1);
-            value = hash_map_get(hashmap, hkey);
+            if ((value = is_special_var(hkey)) == NULL)
+                value = strdup(hash_map_get(hashmap, hkey));
             free(hkey);
             if (!value)
                 new = realloc(new, copylen - 1 - lenvar);
@@ -59,6 +108,7 @@ static void expandinho(char **str)
             }
             i += lenvar - 1;
             indnew--;
+            free(value);
         }
         else
             new[indnew] = (*str)[i];
