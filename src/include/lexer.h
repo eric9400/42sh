@@ -12,6 +12,18 @@ struct lexer
     int error;
 };
 
+struct lex_flags
+{
+    int is_word;
+    int in_squote;
+    int in_dquote;
+    int was_operator;
+    int in_variable;
+    int is_ionumber;
+};
+
+struct lex_flags *init_lex_flags(void);
+
 struct lexer *init_lexer(FILE *file);
 void free_lexer(struct lexer *lex);
 void next_token(struct lexer *lex);

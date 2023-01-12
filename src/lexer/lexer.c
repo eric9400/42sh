@@ -29,6 +29,16 @@ struct lexer *init_lexer(FILE *file)
     return lex;
 }
 
+struct lex_flags *init_lex_flags(void)
+{
+    int is_word = 0;
+    int in_squote = 0;
+    int in_dquote = 0;
+    int was_operator = 0;
+    int in_variable = 0;
+    int is_ionumber = 0;
+}
+
 void free_lexer(struct lexer *lex)
 {
     if (lex->tok != NULL)
@@ -46,13 +56,15 @@ static int test_data_full(char **data, int i, int len)
     return len;
 }
 
-static void findtype(struct token *tok, int is_word, int is_operator)
+static void findtype(struct token *tok, struct lex_flags *flags)
 {
     if (!tok->data)
         return;
-    else if (is_operator)
+    else if (flags->is_ionumber)
+        tok->type = IONUMBER;
+    else if (flags->was_operator)
         tok->type = OPERATOR;
-    else if (is_word)
+    else if (flags->is_word)
         tok->type = WORD;
     else
         tok->type = WORD;
@@ -62,7 +74,7 @@ static void findtype(struct token *tok, int is_word, int is_operator)
  * if prev and curr can be associated : return new char
  * else return curr
  */
-char is_operator(char p, char c)
+static int is_operator(char p, char c)
 {
     return (p == '|' && c == '|') || (p == '&' && c == '&')
             || (p == '>' && c == '>') || (p == '>' && c == '&')
@@ -70,9 +82,17 @@ char is_operator(char p, char c)
             || (p == '<' && c == '>');
 }
 
-char start_operator(char c)
+static int start_operator(char c)
 {
     return c == '!' || c == '|' || c == '&' || c == '>' || c == '<';
+}
+
+static int is_number(char *str)
+{
+    int is_num = 1;
+    for (size_t i = 0; str[i] != '\0' && is_num; i++)
+        is_num = (str[i] >= '0' && str[i] <= '9');
+    return is_num;
 }
 
 static int my_isspace(char c)
@@ -130,14 +150,11 @@ void next_token(struct lexer *lex)
     char prev = '\0';
     char curr = '\0';
     // word flag, singlequote flag, doublequote flag, operator flag
-    int is_word = 0;
-    int in_squote = 0;
-    int in_dquote = 0;
-    int was_operator = 0;
+    struct lex_flags *flags = init_lex_flags();
 
     if (start_operator(tmp))
     {
-        was_operator = 1;
+        flags->was_operator = 1;
         tok->data[i] = tmp;
     }
     else
@@ -156,7 +173,7 @@ void next_token(struct lexer *lex)
         // CHECK IF NEED TO DOUBLE SIZE
         len = test_data_full(&(tok->data), i, len);
 
-        if (!in_squote && !in_dquote && was_operator)
+        if (!flags->in_squote && !flags->in_dquote && flags->was_operator)
         {
             if (is_operator(prev, curr))
                 tok->data[i] = curr;
@@ -165,48 +182,63 @@ void next_token(struct lexer *lex)
             break;
         }
 
-        else if (in_squote)
+        else if (flags->in_squote)
         {
             if (curr == '\'')
-                in_squote = 0;
+                flags->in_squote = 0;
             tok->data[i] = curr;
         }
 
-        else if (in_dquote)
+        else if (flags->in_dquote)
         {
             if (curr == '\"')
-                in_dquote = 0;
+                flags->in_dquote = 0;
             tok->data[i] = curr;
         }
 
         else if (curr == '\'')
         {
-            in_squote = 1;
+            flags->in_squote = 1;
             tok->data[i] = curr;
         }
 
         else if (curr == '\"')
         {
-            in_dquote = 1;
+            flags->in_dquote = 1;
             tok->data[i] = curr;
         }
 
         else if (curr == '\\')
         {
-            tok->data[i] = curr;
             curr = fgetc(lex->filename);
             tok->data[i] = curr;
             break;
         }
-        /*
-        else if (curr == '$' || curr == '`')
-        {
-            //TODO
-        }
-        */
 
-        else if (!in_squote && !in_dquote && start_operator(curr))
+        else if (curr == '}' && flags->in_variable)
         {
+            flags->in_variable = 0;
+            tok->data[i] = curr;
+        }
+
+        else if (curr == '$') //|| curr == '`')
+        {
+            tok->data[i] = curr;
+            curr = fgetc(lex->filename);
+            if (curr == '{')
+            {
+                i++;
+                tok->data[i] = curr;
+                flags->in_variable = 1;
+            }
+            else
+                ungetc(curr, lex->filename);
+        }
+
+        else if (!flags->in_squote && !flags->in_dquote && start_operator(curr))
+        {
+            if (is_number(tok->data))
+                flags->is_ionumber = ;
             ungetc(curr, lex->filename);
             break;
         }
@@ -219,7 +251,7 @@ void next_token(struct lexer *lex)
         else if (my_isspace(curr))
             break; // RETURN TOKEN WITHOUT BLANK
 
-        else if (is_word)
+        else if (flags->is_word)
             tok->data[i] = curr;
 
         else if (curr == '#')
@@ -235,14 +267,14 @@ void next_token(struct lexer *lex)
 
         else
         {
-            is_word = 1;
+            flags->is_word = 1;
             tok->data[i] = curr;
         }
         i++;
     }
     tok->data = realloc(tok->data, i + 1);
     tok->data[i] = '\0';
-    findtype(tok, is_word, was_operator);
+    findtype(tok, flags);
     lex->tok = tok;
     //puts(lex->tok->data);
 }
