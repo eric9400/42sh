@@ -3,6 +3,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct ast_cmd *init_cmd(void);
+struct ast_list *init_list(size_t capacity);
+struct ast_if *init_if(void);
+/*static struct ast_for *init_for(void);
+static struct ast_while *init_while(void);
+static struct ast_until *init_until(void);
+static struct ast_and *init_and(void);
+static struct ast_or *init_or(void);
+static struct ast_not *init_not(void);
+static struct ast_redirect *init_redirect(void);
+static struct ast_redirect *init_pipe(void);*/
+
+void *init_ast(enum ast_type type, size_t capacity)
+{
+    if (type == AST_CMD)
+        return init_cmd();
+    else if (type == AST_IF)
+        return init_if();
+    else if (type == AST_LIST)
+        return init_list(capacity);
+    return NULL;
+    // ADD NEW AST INIT HERE
+}
+
 struct ast_cmd *init_cmd(void)
 {
     struct ast_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));

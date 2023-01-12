@@ -91,3 +91,60 @@ void ugly_print(struct ast *tree)
         }
     }
 }
+/*
+static void print_if(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_list(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_cmd(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_for(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_while(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_until(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_and(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_or(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_not(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_redirect(struct ast *ast)
+{
+    //TODO
+}
+
+static void print_pipe(struct ast *ast)
+{
+    //TODO
+}*/
+
+// ADD NEW AST PRINT HERE
