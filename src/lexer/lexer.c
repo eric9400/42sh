@@ -46,10 +46,12 @@ static int test_data_full(char **data, int i, int len)
     return len;
 }
 
-static void findtype(struct token *tok, int is_word)
+static void findtype(struct token *tok, int is_word, int is_operator)
 {
     if (!tok->data)
         return;
+    else if (is_operator)
+        tok->type = OPERATOR;
     else if (is_word)
         tok->type = WORD;
     else
@@ -60,12 +62,18 @@ static void findtype(struct token *tok, int is_word)
  * if prev and curr can be associated : return new char
  * else return curr
  */
-/*
-char is_operator(char prev, char curr)
+char is_operator(char p, char c)
 {
-    // TODO
+    return (p == '|' && c == '|') || (p == '&' && c == '&')
+            || (p == '>' && c == '>') || (p == '>' && c == '&')
+            || (p == '<' && c == '&') || (p == '>' && c == '|')
+            || (p == '<' && c == '>');
 }
-*/
+
+char start_operator(char c)
+{
+    return c == '!' || c == '|' || c == '&' || c == '>' || c == '<';
+}
 
 static int my_isspace(char c)
 {
@@ -112,24 +120,32 @@ void next_token(struct lexer *lex)
         end_of_block_line_file(lex, tmp);
         return;
     }
-    ungetc(tmp, lex->filename);
-    // fseek(lex->filename, -1, SEEK_CUR);
 
-    struct token *tok = malloc(sizeof(struct token));
+    struct token *tok = calloc(1, sizeof(struct token));
     int len = 20;
     int i = 0;
-    tok->data = malloc(sizeof(char) * len);
+    tok->data = calloc(len, sizeof(char));
 
     // curr = current character et prev = previous character
-    // char prev = '\0';
+    char prev = '\0';
     char curr = '\0';
-    // word flag, singlequote flag, doublequote flag
+    // word flag, singlequote flag, doublequote flag, operator flag
     int is_word = 0;
     int in_squote = 0;
     int in_dquote = 0;
+    int was_operator = 0;
+
+    if (start_operator(tmp))
+    {
+        was_operator = 1;
+        tok->data[i] = tmp;
+    }
+    else
+        ungetc(tmp, lex->filename);
 
     while (1)
     {
+        prev = curr;
         curr = fgetc(lex->filename);
 
         if (curr == EOF)
@@ -140,15 +156,16 @@ void next_token(struct lexer *lex)
         // CHECK IF NEED TO DOUBLE SIZE
         len = test_data_full(&(tok->data), i, len);
 
-        /*
-        else if (!in_squote && !in_dquote && was_operator)
+        if (!in_squote && !in_dquote && was_operator)
         {
-            // char curr = is_operator(prev, curr);
-            puts("TODO");
+            if (is_operator(prev, curr))
+                tok->data[i] = curr;
+            else
+                ungetc(curr, lex->filename);
+            break;
         }
-        */
 
-        if (in_squote)
+        else if (in_squote)
         {
             if (curr == '\'')
                 in_squote = 0;
@@ -181,23 +198,24 @@ void next_token(struct lexer *lex)
             tok->data[i] = curr;
             break;
         }
-
-        else if (curr == ';' || curr == '\n')
+        /*
+        else if (curr == '$' || curr == '`')
         {
-            // fseek(lex->filename, -1, SEEK_CUR);
+            //TODO
+        }
+        */
+
+        else if (!in_squote && !in_dquote && start_operator(curr))
+        {
             ungetc(curr, lex->filename);
             break;
         }
 
-        // rule 5
-        // TODO
-
-        /*else if (!in_quote && start_op(curr))
+        else if (curr == ';' || curr == '\n')
         {
-            //TODO
-            // RETURN TOKEN
-        }*/
-
+            ungetc(curr, lex->filename);
+            break;
+        }
         else if (my_isspace(curr))
             break; // RETURN TOKEN WITHOUT BLANK
 
@@ -207,7 +225,7 @@ void next_token(struct lexer *lex)
         else if (curr == '#')
         {
             curr = fgetc(lex->filename);
-            while (curr != '\n' && curr != '\0' && curr != EOF)
+            while (curr != '\n' && curr != EOF)
                 curr = fgetc(lex->filename);
             free(tok->data);
             free(tok);
@@ -224,7 +242,7 @@ void next_token(struct lexer *lex)
     }
     tok->data = realloc(tok->data, i + 1);
     tok->data[i] = '\0';
-    findtype(tok, is_word);
+    findtype(tok, is_word, was_operator);
     lex->tok = tok;
     //puts(lex->tok->data);
 }
