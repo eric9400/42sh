@@ -120,18 +120,14 @@ static void compound_list2(struct lexer *lex, struct ast_list *list)
         return;
     free_token(lex);
 
-    //if (lex->tok->type == NEWLINE)
-    //{
-        new_lines(lex);
-        struct ast *node = and_or(lex);
-        if (!node)
-        {
-            lex->error = 0;
-            return;
-        }
-        add_to_list(list, node);
-    //}
-    // case of SEMICOLON
+    new_lines(lex);
+    struct ast *node = and_or(lex);
+    if (!node)
+    {
+        lex->error = 0;
+        return;
+    }
+    add_to_list(list, node);
 
     compound_list2(lex, list);
 }

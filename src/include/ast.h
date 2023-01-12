@@ -7,7 +7,17 @@ enum ast_type
 {
     AST_LIST,
     AST_IF,
-    AST_CMD
+    AST_CMD,
+
+    AST_FOR,
+    AST_WHILE,
+    AST_UNTIL,
+
+    AST_AND,
+    AST_OR,
+    AST_NOT,
+
+    AST_REDIRECT
 };
 
 struct ast_cmd
@@ -29,11 +39,79 @@ struct ast_if
     struct ast *else_body;
 };
 
+
+struct ast_for
+{
+    char *var;
+    struct ast *for_list;
+    struct ast *for_body;
+};
+
+struct ast_while
+{
+    struct ast *condition;
+    struct ast *while_body;
+};
+
+struct ast_until
+{
+    struct ast *condition;
+    struct ast *until_body;
+};
+
+struct ast_and
+{
+    struct ast *left;
+    struct ast *right;
+};
+
+struct ast_or
+{
+    struct ast *left;
+    struct ast *right;
+};
+
+struct ast_not
+{
+    struct ast *node;
+};
+
+struct ast_redirect
+{
+    char *type;
+    struct ast *left;
+    struct ast *right;
+};
+
+struct ast_pipe
+{
+    struct ast *left;
+    struct ast *right;
+};
+
+
+//struct ast
+//{
+    /* data */
+//};
+
+
 union ast_union
 {
     struct ast_cmd *ast_cmd;
     struct ast_list *ast_list;
     struct ast_if *ast_if;
+
+    struct ast_for *ast_for;
+    struct ast_while *ast_while;
+    struct ast_until *ast_until;
+
+    struct ast_and *ast_and;
+    struct ast_or *ast_or;
+    struct ast_not *ast_not;
+
+    struct ast_cmd *ast_redirect;
+    struct ast_pipe *ast_pipe;
 };
 
 struct ast
@@ -42,16 +120,7 @@ struct ast
     union ast_union *data;
 };
 
-struct ast_cmd *init_cmd(void);
-struct ast_list *init_list(size_t capacity);
-struct ast_if *init_if(void);
-
 void add_to_list(struct ast_list *list, struct ast *node);
 struct ast *convert_node_ast(enum ast_type type, void *node);
-
-void free_node(struct ast *ast);
-
-void pretty_print(struct ast *tree, int tab);
-void ugly_print(struct ast *tree);
 
 #endif /* AST_H */
