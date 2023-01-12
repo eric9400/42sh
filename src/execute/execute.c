@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,9 +22,26 @@ static int func_cmd(struct ast *ast, int return_value);
   static int func_operation(struct ast *ast, int return_value);*/
 
 
-int is_still_variable(char str)
+int is_still_variable(char *str, int *lenvar)
 {
-    return (str <= 'z' && str >= 'a') || (str <= 'Z' && str >= 'A') || (str <= '9' && str >= '0') || str == '_';
+    int i = 0;
+    while (str[i] != '\0' && !isspace(str[i]))
+    {
+        if ((str[i] <= 'z' && str[i] >= 'a') || (str[i] <= 'Z' && str[i] >= 'A') || (str[i] <= '9' && str[i] >= '0') || str[i] == '_')
+        {
+            i++;
+            continue;
+        }
+        else if (i == 0 && ((*str == '@') || (*str == '?') || (*str == '$') || (*str == '#') || (*str == '*')) && *(str + 1) == '\0')
+        {
+            *lenvar = 2;
+            return 5;
+        }
+        else
+            return 0;
+    }
+    *lenvar = i + 1;
+    return 1;
 }
 
 static char *is_special_var(char *str, int return_value)
@@ -31,7 +49,10 @@ static char *is_special_var(char *str, int return_value)
     char buf[1000];
     if (!strcmp(str, "@") || !strcmp(str, "*") || atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD") || !strcmp(str, "IFS"))
     {
-        return strdup(hash_map_get(hashmap, str));
+        const char *res = hash_map_get(hashmap, str);
+        if (!res)
+            return NULL;
+        return strdup(res);
     }
     else if (!strcmp(str, "?"))
     {
@@ -46,7 +67,7 @@ static char *is_special_var(char *str, int return_value)
     else if (!strcmp(str, "RANDOM"))
     {
         srand(time(NULL));
-        int temp = rand();
+        int temp = rand() % 32768;
         sprintf(buf, "%d", temp);
         return strdup(buf);
     }
@@ -79,17 +100,18 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
     char *hkey = NULL;
     char *value = NULL;
     int copylen = len;
-    int nb_expand = 0;
+    int isv = 0;
     for (size_t i = 0; i < len; i++, indnew++)
     {
         if ((*str)[i] == '$' && !single_quote)
         {
-            while (is_still_variable((*str)[i + lenvar + 1]))
-                lenvar++;
-            lenvar++;
-            hkey = strndup(*str + i + 1, lenvar - 1);
-            if ((value = is_special_var(hkey, return_value)) == NULL)
-                value = hashmap_get_copy(hashmap, hkey);
+            isv = is_still_variable(*str + i + 1, &lenvar);
+            if (isv == 5 || isv == 1)
+            {
+                hkey = strndup(*str + i + 1, lenvar - 1);
+                if ((value = is_special_var(hkey, return_value)) == NULL)
+                    value = hashmap_get_copy(hashmap, hkey);
+            }
             free(hkey);
             if (!value)
             {
@@ -104,13 +126,12 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
                 new = realloc(new, copylen + 1);
                 for (size_t j = 0; j < strlen(value); j++, indnew++)
                     new[indnew] = value[j];
-                indnew--;
-                nb_expand++;
                 marker[ind_marker]++;
             }
             i += lenvar - 1;
             indnew--;
             free(value);
+            value = NULL;
         }
         else
             new[indnew] = (*str)[i];
@@ -118,7 +139,7 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
             single_quote = !single_quote;
         lenvar = 0;
     }
-    new[indnew + nb_expand] = '\0';
+    new[indnew] = '\0';
     free(*str);
     *str = new;
 }

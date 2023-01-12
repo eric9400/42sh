@@ -51,8 +51,8 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
         struct pair_list *q = malloc(sizeof(struct pair_list));
         if (!q)
             return false;
-        q->key = key;
-        q->value = value;
+        q->key = strdup(key);
+        q->value = strdup(value);
         q->next = NULL;
         hash_map->data[i] = q;
     }
@@ -66,13 +66,20 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
             struct pair_list *p = malloc(sizeof(struct pair_list));
             if (!p)
                 return false;
-            p->key = key;
-            p->value = value;
+            p->key = strdup(key);
+            p->value = strdup(value);
             p->next = hash_map->data[i];
             hash_map->data[i] = p;
         }
     }
     return true;
+}
+
+static void free_pair(struct pair_list *pair)
+{
+    free(pair->key);
+    free(pair->value);
+    free(pair);
 }
 
 void hash_map_free(struct hash_map *hash_map)
@@ -85,7 +92,7 @@ void hash_map_free(struct hash_map *hash_map)
         while (hash_map->data[i])
         {
             l = l->next;
-            free(hash_map->data[i]);
+            free_pair(hash_map->data[i]);
             hash_map->data[i] = l;
         }
     }

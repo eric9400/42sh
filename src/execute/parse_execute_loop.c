@@ -24,11 +24,10 @@ static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
 
 void hash_map_init_basic(void)
 {
-    hashmap = hash_map_init(20);
     char pwd[1000];
     getcwd(pwd, sizeof(pwd));
-    hash_map_insert(hashmap, "PWD", strdup(pwd));
-    hash_map_insert(hashmap, "OLDPWD", strdup(pwd));
+    hash_map_insert(hashmap, "PWD", pwd);
+    hash_map_insert(hashmap, "OLDPWD", pwd);
     hash_map_insert(hashmap, "IFS", " \t\n");
 }
 

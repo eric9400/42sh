@@ -6,7 +6,7 @@
 
 struct pair_list
 {
-    const char *key;
+    char *key;
     char *value;
     struct pair_list *next;
 };

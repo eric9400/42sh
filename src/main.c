@@ -16,8 +16,8 @@ int main(int argc, char **argv)
     FILE *file = NULL;
 
     // parsing arguments
-    BaBaJi(argc, argv, &filename, flags);
-
+    if (BaBaJi(argc, argv, &filename, flags) != 0)
+        return 2;
     // switch of file type
     if (flags->c)
         file = fmemopen(filename, strlen(filename), "r");

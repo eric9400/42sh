@@ -21,7 +21,7 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     hashmap = hash_map_init(20);
     if (argc == 0)
         return 0;
-    int i = 0;
+    int i = 1;
     for (; i < argc; i++)
     {
         if (argv[i][0] == '-')
@@ -56,8 +56,7 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     }
 
     hash_map_insert(hashmap, "#", buf);
-
-    hash_map_insert(hashmap, "@", buf);
-    hash_map_insert(hashmap, "*", buf);
+    //hash_map_insert(hashmap, "@", buf);
+    //hash_map_insert(hashmap, "*", buf);
     return 0;
 }
