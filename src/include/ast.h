@@ -90,12 +90,6 @@ struct ast_pipe
 };
 
 
-//struct ast
-//{
-    /* data */
-//};
-
-
 union ast_union
 {
     struct ast_cmd *ast_cmd;
