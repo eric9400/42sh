@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "ast.h"
 #include "execute.h"
@@ -22,15 +23,23 @@ static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
     return error;
 }
 
+void hash_map_init_basic(void)
+{
+    hashmap = hash_map_init(20);
+    char pwd[1000];
+    getcwd(pwd, sizeof(pwd));
+    hash_map_insert(hashmap, "PWD", strdup(pwd));
+    hash_map_insert(hashmap, "OLDPWD", strdup(pwd));
+    hash_map_insert(hashmap, "IFS", " \t\n");
+}
+
 int parse_execute_loop(FILE *file, struct flags *flags)
 {
     global_flags = flags;
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
-    hashmap = hash_map_init(20);
-    hash_map_insert(hashmap, "a", "echo bonjour");
-    // hash_map_insert_basics(hashmap);
+    hash_map_init_basic();
     /*
     if (file == stdin)
         printf("42sh$ ");
