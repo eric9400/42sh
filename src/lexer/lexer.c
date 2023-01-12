@@ -5,6 +5,12 @@
 
 #include "token.h"
 
+void peek_token(struct lexer *lex)
+{
+    if (!lex->tok)
+        next_token(lex);
+}
+
 void free_token(struct lexer *lex)
 {
     free(lex->tok->data);
@@ -220,7 +226,7 @@ void next_token(struct lexer *lex)
     tok->data[i] = '\0';
     findtype(tok, is_word);
     lex->tok = tok;
-    // puts(lex->tok->data);
+    //puts(lex->tok->data);
 }
 
 /*

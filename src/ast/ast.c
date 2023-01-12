@@ -61,6 +61,32 @@ void free_node(struct ast *ast)
     free(ast);
 }
 
+/*
+ *convert any type of ast into a general ast
+ */
+struct ast *convert_node_ast(enum ast_type type, void *node)
+{
+    struct ast *ast_node = calloc(1, sizeof(struct ast));
+    ast_node->data = calloc(1, sizeof(union ast_union));
+    ast_node->type = type;
+
+    if (type == AST_LIST)
+        ast_node->data->ast_list = (struct ast_list *)node;
+    if (type == AST_CMD)
+        ast_node->data->ast_cmd = (struct ast_cmd *)node;
+    if (type == AST_IF)
+        ast_node->data->ast_if = (struct ast_if *)node;
+    // ADD NEW AST CONVERT HERE
+
+    return ast_node;
+}
+
+void add_to_list(struct ast_list *list, struct ast *node)
+{
+    list->cmd_if[list->size] = node;
+    list->size++;
+}
+
 static void print_tab(int tab)
 {
     for (int t = 0; t < tab; t++)
@@ -75,7 +101,7 @@ void pretty_print(struct ast *tree, int tab)
     else if (tree->type == AST_IF)
     {
         printf("if (");
-        pretty_print(tree->data->ast_if->condition, 0);
+        pretty_print(tree->data->ast_if->condition, tab + 1);
         printf("); then\n");
         pretty_print(tree->data->ast_if->then, tab + 1);
         printf("\n");
@@ -94,14 +120,18 @@ void pretty_print(struct ast *tree, int tab)
     }
     else if (tree->type == AST_LIST)
     {
-        printf("list \n{\n");
+        printf("list \n");
+        print_tab(tab);
+        printf("{\n");
         pretty_print(tree->data->ast_list->cmd_if[0], tab + 1);
         for (size_t i = 1; i < tree->data->ast_list->size; i++)
         {
             printf(";\n");
             pretty_print(tree->data->ast_list->cmd_if[i], tab + 1);
         }
-        printf("\n}");
+        printf("\n");
+        print_tab(tab);
+        printf("}");
     }
     // ADD NEW AST PRINT HERE
 }

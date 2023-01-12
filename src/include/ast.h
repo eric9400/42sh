@@ -46,6 +46,9 @@ struct ast_cmd *init_cmd(void);
 struct ast_list *init_list(size_t capacity);
 struct ast_if *init_if(void);
 
+void add_to_list(struct ast_list *list, struct ast *node);
+struct ast *convert_node_ast(enum ast_type type, void *node);
+
 void free_node(struct ast *ast);
 
 void pretty_print(struct ast *tree, int tab);

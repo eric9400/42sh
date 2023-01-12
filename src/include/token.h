@@ -44,6 +44,6 @@ struct token
     char *data;
 };
 
-//FREE TOKEN IS IN "lexer.h" FOR PRACTICAL REASONS
+//ALL TOKEN FUNCTIONS ARE IN "lexer.h" FOR PRACTICAL REASONS
 
 #endif /*TOKEN_H*/
