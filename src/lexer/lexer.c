@@ -62,34 +62,39 @@ static void end_of_block_line_file(struct lexer *lex, char tmp)
 
 static void quote(struct lexer *lex, struct lex_flags *flags, struct token *tok, char curr)
 {
-    if (flags->in_squote)
+    if (curr == '\\')
+    {
+        tok->data[flags->i] = curr;
+        curr = fgetc(lex->filename);
+        if (curr == EOF)
+        {
+            ungetc(curr, lex->filename);
+            return;
+        }
+        else if (curr == '\n' && flags->in_dquote)
+        {
+            flags->i--;
+            return;
+        }
+        flags->i++;
+    }
+    else if (flags->in_squote)
     {
         if (curr == '\'')
-            flags->in_dquote = 0;
-        tok->data[flags->i] = curr;
+            flags->in_squote = 0;
     }
     else if (flags->in_dquote)
     {
         if (curr == '\"')
             flags->in_dquote = 0;
-        tok->data[flags->i] = curr;
     }
     else if (curr == '\'')
-    {
         flags->in_squote = 1;
-        tok->data[flags->i] = curr;
-    }
+
     else if (curr == '\"')
-    {
         flags->in_dquote = 1;
-        tok->data[flags->i] = curr;
-    }
-    else if (curr == '\\')
-    {
-        curr = fgetc(lex->filename);
-        tok->data[flags->i] = curr;
-        flags->found_backslash = 1;
-    }
+    
+    tok->data[flags->i] = curr;
 }
 
 static void comments(struct lexer *lex, struct token *tok)
@@ -97,10 +102,14 @@ static void comments(struct lexer *lex, struct token *tok)
     char curr = fgetc(lex->filename);
     while (curr != '\n' && curr != EOF)
         curr = fgetc(lex->filename);
-    free(tok->data);
-    free(tok);
-    end_of_block_line_file(lex, curr);
-    return;
+    if (tok->data[0] == '\0')
+    {
+        free(tok->data);
+        free(tok);
+        end_of_block_line_file(lex, curr);
+        return;
+    }
+    ungetc(curr, lex->filename);
 }
 
 static void rule_5(struct lexer *lex, struct token *tok, struct lex_flags *flags, char curr)
@@ -117,7 +126,7 @@ static void rule_5(struct lexer *lex, struct token *tok, struct lex_flags *flags
         ungetc(curr, lex->filename);
 }
 
-static void sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags);
+static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags);
 // WHEN EXE IS KILL CLOSE THE FILE
 void next_token(struct lexer *lex)
 {
@@ -150,7 +159,11 @@ void next_token(struct lexer *lex)
     else
         ungetc(tmp, lex->filename);
     
-    sub_next_token(lex, tok, curr, flags);
+    if (sub_next_token(lex, tok, curr, flags))
+    {
+        free(flags);
+        return;
+    }
 
     tok->data = realloc(tok->data, flags->i + 1);
     tok->data[flags->i] = '\0';
@@ -160,7 +173,11 @@ void next_token(struct lexer *lex)
     //puts(lex->tok->data);
 }
 
-static void sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags)
+/*
+*return 1 if there was a comment so that the rest of next_token is not executed
+*else return 0
+*/
+static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags)
 {
     while (1)
     {
@@ -215,7 +232,10 @@ static void sub_next_token(struct lexer *lex, struct token *tok, char curr, stru
             tok->data[flags->i] = curr;
 
         else if (curr == '#')
+        {
             comments(lex, tok);
+            return 1;
+        }
 
         else
         {
@@ -224,6 +244,7 @@ static void sub_next_token(struct lexer *lex, struct token *tok, char curr, stru
         }
         flags->i++;
     }
+    return 0;
 }
 
 /*int main(int argc, char *argv[])

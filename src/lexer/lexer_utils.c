@@ -19,7 +19,7 @@ void findtype(struct token *tok, struct lex_flags *flags)
 {
     if (!tok->data)
         return;
-    else if (!flags->found_backslash && flags->is_ionumber)
+    else if (/*!flags->found_backslash && */flags->is_ionumber)
         tok->type = IONUMBER;
     else if (flags->was_operator)
         tok->type = OPERATOR;
