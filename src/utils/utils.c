@@ -45,7 +45,6 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
         *filename = strdup(argv[i++]);
         break;
     }
-
     int count = 1;
     char buf[1000] = { 0 };
     for (; i < argc; i++)
@@ -55,7 +54,6 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
         count++;
     }
     hash_map_insert(hashmap, "#", buf);
-    //hash_map_insert(hashmap, "@", buf);
-    //hash_map_insert(hashmap, "*", buf);
+    BaBaJi_JuNiOr(argv, i, argc);
     return 0;
 }
