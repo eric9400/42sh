@@ -23,12 +23,15 @@ static int func_cmd(struct ast *ast, int return_value);
 
 /*
  * \return 0 if expand name is valid else return 1
- * lenvar will contain the size of the expand var name + 1 ('$') 
+ * lenvar will contain the size of the expand var name + 1 ('$')
  */
 static int is_still_variable(char *str, int *lenvar)
 {
     // detecting special var
-    if (str[0] != '\0' && ((str[0] == '@') || (str[0] == '?') || (str[0] == '$') || (str[0] == '#') || (str[0] == '*')) && str[1] == '\0')
+    if (str[0] != '\0'
+        && ((str[0] == '@') || (str[0] == '?') || (str[0] == '$')
+            || (str[0] == '#') || (str[0] == '*'))
+        && str[1] == '\0')
     {
         *lenvar = 2;
         return 0;
@@ -38,10 +41,8 @@ static int is_still_variable(char *str, int *lenvar)
     int res = 0;
     while (str[i] != '\0' && !isspace(str[i]) && str[i] != '$')
     {
-        if ((str[i] >= 'a' && str[i] <= 'z')
-                || (str[i] >= 'A' && str[i] <= 'Z')
-                || (str[i] >= '0' && str[i] <= '9')
-                || str[i] == '_')
+        if ((str[i] >= 'a' && str[i] <= 'z') || (str[i] >= 'A' && str[i] <= 'Z')
+            || (str[i] >= '0' && str[i] <= '9') || str[i] == '_')
             i++;
         else
         {
@@ -57,7 +58,9 @@ static int is_still_variable(char *str, int *lenvar)
 static char *is_special_var(char *str, int return_value)
 {
     char buf[1000];
-    if (!strcmp(str, "@") || !strcmp(str, "*") || atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD") || !strcmp(str, "IFS"))
+    if (!strcmp(str, "@") || !strcmp(str, "*") || atoi(str) != 0
+        || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
+        || !strcmp(str, "IFS"))
     {
         const char *res = hash_map_get(hashmap, str);
         if (!res)
@@ -99,7 +102,16 @@ static char *hashmap_get_copy(struct hash_map *hashmap, char *hkey)
     return strdup(res);
 }
 
-static void expandinho(char **str, int return_value, int *marker, size_t ind_marker)
+static void expandinho_junior(size_t *i, int *lenvar, int *indnew, char **value)
+{
+    *i += *lenvar - 1;
+    (*indnew)--;
+    free(*value);
+    *value = NULL;
+}
+
+static void expandinho(char **str, int return_value, int *marker,
+        size_t ind_marker)
 {
     if (!(*str))
         return;
@@ -113,7 +125,6 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
     int single_quote = 0;
 
     // temporary variable
-    int isv = 0;
     int lenvar = 0;
     size_t value_len = 0;
     char *hkey = NULL;
@@ -123,9 +134,8 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
     {
         if ((*str)[i] == '$' && !single_quote)
         {
-            isv = is_still_variable(*str + i + 1, &lenvar);
-            // we found matching expand
-            if (isv == 0)
+            if (is_still_variable(*str + i + 1, &lenvar) == 0)
+                // we found matching expand
             {
                 // lenvar == strlen(name var to expand) + '$'
                 hkey = strndup(*str + i + 1, lenvar - 1);
@@ -150,10 +160,7 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
                     new[indnew] = value[j];
                 marker[ind_marker]++;
             }
-            i += lenvar - 1;
-            indnew--;
-            free(value);
-            value = NULL;
+            expandinho_junior(&i, &lenvar, &indnew, &value);
         }
         else
             new[indnew] = (*str)[i];
@@ -187,8 +194,9 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
    int res = 0;
    for (size_t i = 0; i < ast->data->ast_cmd->arg->size; i++)
    {
-   hash_map_insert(hashmap, ast->data->ast_for->var, ast->data->ast_for->for_list->data->ast_cmd->arg[i]);
-   res = execute(ast->data->ast_for->for_body);
+   hash_map_insert(hashmap, ast->data->ast_for->var,
+   ast->data->ast_for->for_list->data->ast_cmd->arg[i]); res =
+   execute(ast->data->ast_for->for_body);
    }
    return res;
    }*/
@@ -273,7 +281,8 @@ static int func_cmd(struct ast *ast, int return_value)
     int *marker = calloc(size, sizeof(int));
     // check for expand
     for (size_t i = 0; i < size; i++)
-        expandinho(&(ast->data->ast_cmd->arg->data[i]), return_value, marker, i);
+        expandinho(&(ast->data->ast_cmd->arg->data[i]), return_value, marker,
+                i);
 
     // split when expanded
     split_vector(marker, ast);
