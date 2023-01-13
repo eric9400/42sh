@@ -270,7 +270,7 @@ static inline void split_vector(int *marker, struct ast *ast)
         else
             v = vector_append(v, strdup(data[i]));
     }
-    vector_append(v, NULL);
+    v = vector_append(v, NULL);
     vector_destroy(ast->data->ast_cmd->arg);
     ast->data->ast_cmd->arg = v;
 }
