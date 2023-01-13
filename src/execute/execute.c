@@ -21,27 +21,37 @@ static int func_cmd(struct ast *ast, int return_value);
   static int func_for(struct ast *ast, int return_value);
   static int func_operation(struct ast *ast, int return_value);*/
 
-
-int is_still_variable(char *str, int *lenvar)
+/*
+ * \return 0 if expand name is valid else return 1
+ * lenvar will contain the size of the expand var name + 1 ('$') 
+ */
+static int is_still_variable(char *str, int *lenvar)
 {
-    int i = 0;
-    while (str[i] != '\0' && !isspace(str[i]))
+    // detecting special var
+    if (str[0] != '\0' && ((str[0] == '@') || (str[0] == '?') || (str[0] == '$') || (str[0] == '#') || (str[0] == '*')) && str[1] == '\0')
     {
-        if ((str[i] <= 'z' && str[i] >= 'a') || (str[i] <= 'Z' && str[i] >= 'A') || (str[i] <= '9' && str[i] >= '0') || str[i] == '_')
-        {
-            i++;
-            continue;
-        }
-        else if (i == 0 && ((*str == '@') || (*str == '?') || (*str == '$') || (*str == '#') || (*str == '*')) && *(str + 1) == '\0')
-        {
-            *lenvar = 2;
-            return 5;
-        }
-        else
-            return 0;
+        *lenvar = 2;
+        return 0;
     }
+
+    int i = 0;
+    int res = 0;
+    while (str[i] != '\0' && !isspace(str[i]) && str[i] != '$')
+    {
+        if ((str[i] >= 'a' && str[i] <= 'z')
+                || (str[i] >= 'A' && str[i] <= 'Z')
+                || (str[i] >= '0' && str[i] <= '9')
+                || str[i] == '_')
+            i++;
+        else
+        {
+            res = 1;
+            break;
+        }
+    }
+    // return when no problem
     *lenvar = i + 1;
-    return 1;
+    return res;
 }
 
 static char *is_special_var(char *str, int return_value)
@@ -67,6 +77,7 @@ static char *is_special_var(char *str, int return_value)
     else if (!strcmp(str, "RANDOM"))
     {
         srand(time(NULL));
+        // max random possible
         int temp = rand() % 32768;
         sprintf(buf, "%d", temp);
         return strdup(buf);
@@ -92,39 +103,50 @@ static void expandinho(char **str, int return_value, int *marker, size_t ind_mar
 {
     if (!(*str))
         return;
+
+    // new string after expand
     size_t len = strlen(*str);
     char *new = malloc(len + 1);
-    int lenvar = 0;
     int indnew = 0;
+
+    int new_len = len;
     int single_quote = 0;
+
+    // temporary variable
+    int isv = 0;
+    int lenvar = 0;
+    size_t value_len = 0;
     char *hkey = NULL;
     char *value = NULL;
-    int copylen = len;
-    int isv = 0;
+
     for (size_t i = 0; i < len; i++, indnew++)
     {
         if ((*str)[i] == '$' && !single_quote)
         {
             isv = is_still_variable(*str + i + 1, &lenvar);
-            if (isv == 5 || isv == 1)
+            // we found matching expand
+            if (isv == 0)
             {
+                // lenvar == strlen(name var to expand) + '$'
                 hkey = strndup(*str + i + 1, lenvar - 1);
                 if ((value = is_special_var(hkey, return_value)) == NULL)
                     value = hashmap_get_copy(hashmap, hkey);
+                free(hkey);
             }
-            free(hkey);
+            // no matching expand
             if (!value)
             {
-                if (copylen - lenvar > 0)
-                    new = realloc(new, copylen - lenvar - 1);
+                if (new_len - lenvar > 0)
+                    new = realloc(new, new_len - lenvar + 1);
                 else
                     new = realloc(new, 1);
             }
             else
             {
-                copylen = copylen - lenvar + strlen(value);
-                new = realloc(new, copylen + 1);
-                for (size_t j = 0; j < strlen(value); j++, indnew++)
+                value_len = strlen(value);
+                new_len = new_len - lenvar + value_len;
+                new = realloc(new, new_len + 1);
+                for (size_t j = 0; j < value_len; j++, indnew++)
                     new[indnew] = value[j];
                 marker[ind_marker]++;
             }
