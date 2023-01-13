@@ -58,7 +58,7 @@ struct ast *input(struct lexer *lex)
     {
         free_token(lex);
         struct ast_cmd *cmd = init_cmd();
-        vector_append(cmd->arg, strdup(""));
+        vector_append(cmd->arg, strdup("")); // faire la modif
         return convert_node_ast(AST_CMD, cmd);
     }
 
@@ -125,9 +125,106 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
     list2(lex, exec_tree);
 }
 
+/*struct ast *and_or_loop(struct lexer *lex)
+{
+    peek_token(lex);
+
+    if (lex->tok->type != WORD)
+        return NULL;
+    
+    if (!strcmp(lex->tok->data, "&&"))
+    {
+        free_token(lex);
+        struct ast_and *new = init_and();
+        new_lines(lex);
+        struct ast *pipe2 = pipeline(lex);
+        if (!pipe2)
+        {
+            free_ast(new);
+            return error_handler(lex, 1, "Error and_or_loop: NO MATCHING PATERN\n");
+        }
+        new->right = pipe2;
+        struct ast *res = and_or_loop(lex);
+    }
+    else if (!strcmp(lex->tok->data, "||"))
+    {    
+        free_token(lex);
+        struct ast_or *new = init_or();
+        new->left = pipe;
+        new_lines(lex);
+        struct ast *pipe2 = pipeline(lex);
+        if (!pipe2)
+        {
+            free_ast(new);
+            free_ast(pipe);
+            return error_handler(lex, 1, "Error and_or: NO MATCHING PATERN\n");
+        }
+        new->right = pipe2;
+    }
+}*/
+
 struct ast *and_or(struct lexer *lex)
 {
-    return pipeline(lex);
+    struct ast *pipe = pipeline(lex);
+    struct ast *parent = NULL;
+    struct ast *child = NULL;
+
+    peek_token(lex);
+
+    if (lex->tok->type != WORD)
+        return pipe;
+
+    while (1)
+    {
+        if (!strcmp(lex->tok->data, "&&"))
+        {
+            free_token(lex);
+            struct ast_and *new = init_and();
+
+            if (!child)
+                new->left = pipe;
+            else
+                new->left = parent;
+            
+            new_lines(lex);
+            struct ast *pipe2 = pipeline(lex);
+            if (!pipe2)
+            {
+                free_ast(new);
+                free_ast(pipe);
+                return error_handler(lex, 1, "Error and_or: NO MATCHING PATERN\n");
+            }
+            new->right = pipe2;
+            child = new->left;
+            parent = convert_node_ast(AST_AND,new);
+        }
+        else if (!strcmp(lex->tok->data, "||"))
+        {    
+            free_token(lex);
+            struct ast_or *new = init_or();
+            
+            if (!child)
+                new->left = pipe;
+            else
+                new->left = parent;
+
+            new_lines(lex);
+            struct ast *pipe2 = pipeline(lex);
+            if (!pipe2)
+            {
+                free_ast(new);
+                free_ast(pipe);
+                return error_handler(lex, 1, "Error and_or: NO MATCHING PATERN\n");
+            }
+            new->right = pipe2;
+            child = new->left;
+            parent = convert_node_ast(AST_OR,new);
+        }
+        else
+            break;
+    }
+            
+    //return pipeline(lex);
 }
 
 static struct ast *pipeline(struct lexer *lex)
@@ -141,12 +238,289 @@ static struct ast *command(struct lexer *lex)
 
     if (!cmd)
     {
-        cmd = shell_command(lex);
+        struct ast_sh_cmd *sh_cmd = shell_command(lex);
 
-        if (!cmd)
+        if (!sh_cmd)
             return error_handler(lex, 0, "ERROR");
             //flag print is set to 0 to not print the error message
+
+        struct ast *redir = redirection(lex);
+
+        while (redir)
+        {
+            sh_cmd->redir[sh_cmd->size_redir] = redir;
+            sh_cmd->size_redir++;
+            redir = redirection(lex);
+        }
+
+        return convert_node_ast(AST_SH_CMD, sh_cmd);
     }
 
     return cmd;
+}
+
+struct ast_prefix *prefix(struct lexer *lex)
+{
+    peek_token(lex);
+
+    struct ast_prefix *prefix = init_prefix();
+
+    if(lex->tok->type == ASSIGNEMENT_WORD)
+    {
+        prefix->assign_word = strdup(lex->tok->data);
+        return convert_node_ast(AST_PREFIX,prefix);
+    }
+
+    struct ast *redir = redirection(lex);
+
+    if (!redir)
+    {
+        free_node(convert_node_ast(AST_PREFIX, prefix));
+        return NULL;
+    }
+
+    prefix->redir = redir;
+
+    return convert_node_ast(AST_PREFIX,prefix);
+}
+
+static struct ast *redirection(struct lexer *lex)
+{
+    peek_token(lex);
+
+    int io_number; // 0 if no ionumber specified 1 otherwise
+
+    struct ast_redir *redir = init_redir();
+
+    if (lex->tok->type == IO_NUMBER)
+    {
+        redir->io_number = strdup(lex->tok->data);
+        free_token(lex);
+        peek_token(lex);
+        io_number = 1;
+    }
+
+    if (lex->tok->type != WORD)
+    {
+        if(io_number)
+            lex->error = 2;
+        return NULL;
+    }
+
+    char *redir = lex->tok->data;
+
+    if (strcmp(">", redir))
+        redir->type = S_RIGHT;
+    else if (strcmp("<", redir))
+        redir->type = S_LEFT;
+    else if (strcmp(">>", redir))
+        redir->type = D_RIGHT;
+    else if (strcmp(">&", redir))
+        redir->type = RIGHT_AND;
+    else if (strcmp("<&", redir))
+        redir->type = LEFT_AND;
+    else if (strcmp(">|", redir))
+        redir->type = RIGHT_PIP; 
+    else if (strcmp("<>", redir))
+        redir->type = LEFT_RIGHT;
+    else
+    {
+        if(io_number)
+            lex->error = 2;
+        free_node(redir);
+        return NULL;        
+    } 
+
+    free_token(lex);
+    peek_token(lex);
+
+    if (lex->tok->type != WORD)
+    {
+        if(io_number)
+            lex->error = 2;
+        free_node(redir);
+        return NULL;
+    }
+
+    redir->exit_file = strdup(lex->tok->data);
+    free_token(lex);
+
+    return convert_node_ast(AST_REDIR, redir);
+}
+
+static struct ast *rule_while(struct lexer *lex)
+{
+    peek_token(lex);
+    if (strcmp("while", lex->tok->data) != 0)
+        return NULL;
+    free_token(lex);
+
+    struct ast_while *while_node = init_while();
+
+    while_node->condition = compound_list(lex);
+    if (!while_node->condition || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(lex, 1,
+                    "Error rule_while: NO MATCHING PATERN after \"while\"");
+    }
+
+    next_token(lex);
+    if (strcmp("do", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(lex, 1, "Error rule_while: \"do\" IS MISSING");
+    }
+    free_token(lex);
+
+    while_node->while_body = compound_list(lex);
+    if (!while_node->while_body || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(
+            lex, 1, "Error rule_while: NO MATCHING PATERN after \"do\"");
+    }
+
+    next_token(lex);
+    if (lex->error == 2 || strcmp("done", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(lex, 1, "Error rule_while: \"done\" IS MISSING");
+    }
+    free_token(lex);
+
+    return convert_node_ast(AST_WHILE, while_node);
+}
+
+static struct ast *rule_until(struct lexer *lex)
+{
+    peek_token(lex);
+    if (strcmp("until", lex->tok->data) != 0)
+        return NULL;
+    free_token(lex);
+
+    struct ast_until *until_node = init_until();
+
+    until_node->condition = compound_list(lex);
+    if (!until_node->condition || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(lex, 1,
+                    "Error rule_until: NO MATCHING PATERN after \"until\"");
+    }
+
+    next_token(lex);
+    if (strcmp("do", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(lex, 1, "Error rule_until: \"do\" IS MISSING");
+    }
+    free_token(lex);
+
+    until_node->until_body = compound_list(lex);
+    if (!until_node->until_body || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(
+            lex, 1, "Error rule_until: NO MATCHING PATERN after \"do\"");
+    }
+
+    next_token(lex);
+    if (lex->error == 2 || strcmp("done", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(lex, 1, "Error rule_until: \"done\" IS MISSING");
+    }
+    free_token(lex);
+
+    return convert_node_ast(AST_UNTIL, until_node);
+}
+
+static void *rule_for_error(struct ast_for *for_node, struct lexer *lex)
+{
+    free_node(convert_node_ast(AST_FOR, for_node));
+    lex->error = 2;
+    return NULL;
+}
+
+static void free_peek(struct lexer *lex)
+{
+    free_token(lex);
+    peek_token(lex);
+    return;
+}
+
+struct ast *rule_for(struct lexer *lex)
+{
+    peek_token(lex);
+
+    if (lex->tok->type != WORD || !strcmp("for", lex->tok->data))
+        return NULL;
+
+    struct ast_for *for_node = init_for();
+
+    free_peek(lex);
+
+    if (lex->tok->type != WORD)
+        return rule_for_error(for_node, lex);
+
+    for_node->var = strdup(lex->tok->data);
+    free_peek(lex);
+
+    if (lex->tok->type == SEMICOLON)
+        free_peek(lex);
+    else if (lex->tok->type == NEWLINE)
+    {
+        free_peek(lex);
+
+        new_lines(lex);
+
+        if (lex->tok->type != WORD)
+            return rule_for_error(for_node, lex);
+
+        if (strcmp("do", lex->tok->data))
+        {
+
+            if (strcmp("in", lex->tok->data))
+                return rule_for_error(for_node, lex);
+
+            free_peek(lex);
+
+            while(lex->tok->type == WORD)
+            {
+                vector_append(for_node->arg, lex->tok->data);
+                free_peek(lex);
+            }
+            vector_append(for_node->arg, NULL);
+
+            if (lex->tok->type != SEMICOLON)
+                return rule_for_error(for_node, lex);
+
+            free_token(lex);
+        }
+    }
+
+    next_token(lex);
+
+    if (lex->tok->type != WORD || strcmp("do", lex->tok->data))
+        return rule_for_error(for_node, lex);
+
+    free_token(lex);
+
+    for_node->for_list = compound_list(lex);
+
+    if (lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_FOR, for_node));
+        return NULL;
+    }
+
+    next_token(lex);
+
+    if(strcmp("done", lex->tok->data))
+        return rule_for_error(for_node, lex);
+
+    free_token(lex);
+
+    return convert_node_ast(AST_FOR,for_node);
 }

@@ -26,6 +26,7 @@ enum tok_type
     
     WORD,
     ASSIGNEMENT_WORD,
+    IO_NUMBER,
 
     END_OF_FILE,
 

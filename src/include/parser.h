@@ -13,6 +13,7 @@ struct ast *input(struct lexer *lex);
 struct ast *simple_command(struct lexer *lex);
 struct ast *shell_command(struct lexer *lex);
 struct ast *and_or(struct lexer *lex);
+struct ast_prefix *prefix(struct lexer *lex);
 
 // UTILS
 int is_shell_command(struct lexer *lex);

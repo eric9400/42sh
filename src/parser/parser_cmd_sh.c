@@ -13,7 +13,28 @@ static void compound_list2(struct lexer *lex, struct ast_list *list);
 
 struct ast *shell_command(struct lexer *lex)
 {
-    return rule_if(lex, 1);
+    struct ast *cmd_if = rule_if(lex, 1);
+
+    if (cmd_if)
+        return cmd_if;
+    
+    struct ast *cmd_while = rule_while(lex);
+
+    if (cmd_while)
+        return cmd_while;
+
+    struct ast *cmd_until = rule_until(lex);
+
+    if (cmd_until)
+        return cmd_until;
+
+    struct ast *cmd_for = rule_for(lex);
+
+    if (cmd_for)
+        return cmd_for;
+
+    lex->error = 2;
+    return NULL;
 }
 
 // is_if : 1 = if, 0 = elif
