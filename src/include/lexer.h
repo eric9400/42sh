@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "lexer_utils.h"
 #include "token.h"
 
 struct lexer
@@ -18,5 +19,6 @@ void next_token(struct lexer *lex);
 
 // FOR TOKEN
 void free_token(struct lexer *lex);
+void peek_token(struct lexer *lex);
 
 #endif /*LEXER_H*/

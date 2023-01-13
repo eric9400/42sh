@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include "ast.h"
+#include "lexer.h"
+#include "token.h"
 
 /*
  * \brief Parsing of inputs
