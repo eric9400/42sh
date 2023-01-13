@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "lexer_utils.h"
 #include "token.h"
 
 struct lexer

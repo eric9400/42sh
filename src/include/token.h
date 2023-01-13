@@ -21,6 +21,7 @@ enum tok_type
     //syntax 
     SEMICOLON,
     NEWLINE,
+    IONUMBER,
     /*S_QUOTE,
     D_QUOTE,*/
     
@@ -31,11 +32,12 @@ enum tok_type
 
 
     //all type of operators
-    OP_REDIRECTION,
+    OPERATOR
+    /*OP_REDIRECTION,
     OP_AND,
     OP_OR,
     OP_PIPE,
-    OP_NEGATION
+    OP_NEGATION*/
 };
 
 struct token
