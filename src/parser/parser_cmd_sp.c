@@ -7,8 +7,23 @@ struct ast *simple_command(struct lexer *lex);
 static struct ast *element(struct lexer *lex);
 //static void simple_command2(struct lexer *lex, struct ast_cmd *cmd);
 
+int is_shell_command(struct lexer *lex)
+{
+    char *data = lex->tok->data;
+    return strcmp("if", data) == 0 || strcmp("else", data) == 0
+        || strcmp("elif", data) == 0 || strcmp("then", data) == 0
+        || strcmp("fi", data) == 0 || strcmp("while", data) == 0 
+        || strcmp("until", data) == 0 || strcmp("for", data) == 0 
+        || strcmp("do", data) == 0 || strcmp("done", data) == 0;
+}
+
 struct ast *simple_command(struct lexer *lex)
 {
+    peek_token(lex);
+
+    if (is_shell_command(lex))
+        return NULL;
+
     struct ast_sp_cmd *cmd = init_ast(AST_SP_CMD, 0);
 
     struct ast *pref = prefix(lex);

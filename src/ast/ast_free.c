@@ -34,6 +34,14 @@ static void free_list(struct ast *ast)
     free(ast->data->ast_list);
 }
 
+static void free_sh_cmd(struct ast *ast)
+{
+    for (size_t i = 0; i < ast->data->ast_sh_cmd->size_redir; i++)
+        free_node(ast->data->ast_sh_cmd->redir[i]);
+    free_node(ast->data->ast_sh_cmd->cmd);
+    free(ast->data->ast_sh_cmd);
+}
+
 static void free_sp_cmd(struct ast *ast)
 {
     for (size_t i = 0; i < ast->data->ast_sp_cmd->size_prefix; i++)
@@ -97,10 +105,11 @@ static void free_until(struct ast *ast)
 static void free_for(struct ast *ast)
 {
     if (ast->data->ast_for->arg)
-        free(ast->data->ast_for->arg);
+        vector_destroy(ast->data->ast_for->arg);
     if (ast->data->ast_for->for_list)
         free_node(ast->data->ast_for->for_list);
-    vector_destroy(ast->data->ast_cmd->arg);
+    if (ast->data->ast_for->var)
+        free(ast->data->ast_for->var);
     free(ast->data->ast_for);
 }
 
@@ -193,6 +202,8 @@ void free_node(struct ast *ast)
         free_redir(ast);
     else if (ast->type == AST_SP_CMD)
         free_sp_cmd(ast);
+    else if (ast->type == AST_SH_CMD)
+        free_sh_cmd(ast);
     else if (ast->type == AST_ELEMENT)
         free_element(ast);
     else if (ast->type == AST_AND || ast->type == AST_OR)

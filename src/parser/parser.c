@@ -15,13 +15,7 @@ static struct ast *command(struct lexer *lex);
 /*
  * check if the current token is a shell command
  */
-int is_shell_command(struct lexer *lex)
-{
-    char *data = lex->tok->data;
-    return strcmp("if", data) == 0 || strcmp("else", data) == 0
-        || strcmp("elif", data) == 0 || strcmp("then", data) == 0
-        || strcmp("fi", data) == 0;
-}
+
 
 void new_lines(struct lexer *lex)
 {

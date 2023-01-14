@@ -265,7 +265,7 @@ struct ast *rule_for(struct lexer *lex)
 {
     peek_token(lex);
 
-    if (lex->tok->type != WORD || !strcmp("for", lex->tok->data))
+    if (lex->tok->type != WORD || strcmp("for", lex->tok->data))
         return NULL;
 
     struct ast_for *for_node = init_ast(AST_FOR, 0);
@@ -280,10 +280,8 @@ struct ast *rule_for(struct lexer *lex)
 
     if (lex->tok->type == SEMICOLON)
         free_peek(lex);
-    else if (lex->tok->type == NEWLINE)
+    else
     {
-        free_peek(lex);
-
         new_lines(lex);
 
         if (lex->tok->type != WORD)
@@ -299,12 +297,12 @@ struct ast *rule_for(struct lexer *lex)
 
             while(lex->tok->type == WORD)
             {
-                vector_append(for_node->arg, lex->tok->data);
+                vector_append(for_node->arg, strdup(lex->tok->data));
                 free_peek(lex);
             }
-            vector_append(for_node->arg, NULL);
+            //vector_append(for_node->arg, NULL);
 
-            if (lex->tok->type != SEMICOLON)
+            if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
                 return rule_for_error(for_node, lex);
 
             free_token(lex);
@@ -312,6 +310,9 @@ struct ast *rule_for(struct lexer *lex)
     }
 
     next_token(lex);
+
+    if (lex->tok->type == NEWLINE)
+        new_lines(lex);
 
     if (lex->tok->type != WORD || strcmp("do", lex->tok->data))
         return rule_for_error(for_node, lex);
