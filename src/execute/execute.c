@@ -9,20 +9,18 @@
 
 #include "ast.h"
 #include "builtin.h"
+#include "execute_tools.h"
 #include "hash_map.h"
 
 int execute(struct ast *ast, int return_value);
 static int func_if(struct ast *ast, int return_value);
 static int func_list(struct ast *ast, int return_value);
-static int check_builtin(char **str, int return_value);
 static int func_cmd(struct ast *ast, int return_value);
 /*static int func_while(struct ast *ast, int return_value);
   static int func_until(struct ast *ast, int return_value);
   static int func_for(struct ast *ast, int return_value);
   static int func_operation(struct ast *ast, int return_value);*/
 
-
-static char **expand_temp = NULL;
 /*
  * \return 0 if expand name is valid else return 1
  * lenvar will contain the size of the expand var name + 1 ('$')
@@ -43,8 +41,7 @@ static int is_still_variable(char *str, int *lenvar)
     int res = 0;
     while (str[i] != '\0' && !isspace(str[i]) && str[i] != '$')
     {
-        if ((str[i] >= 'a' && str[i] <= 'z') || (str[i] >= 'A' && str[i] <= 'Z')
-            || (str[i] >= '0' && str[i] <= '9') || str[i] == '_')
+        if (is_char_variable(str[i]))
             i++;
         else
         {
@@ -100,68 +97,72 @@ static char *is_special_var(char *str, int return_value)
     return NULL;
 }
 
-static char *hashmap_get_copy(struct hash_map *hashmap, char *hkey)
+/*
+ * S'occupe de append dans v les mots un a un selon les cas
+static void expandinho_senior_aux(struct vector **v, char *s)
 {
-    const char *res = hash_map_get(hashmap, hkey);
-    if (res == NULL)
-        return NULL;
-    return strdup(res);
-}
-
-static void expandinho_senior(struct vector **v)
-{
-    size_t len_vector = ast->data->ast_cmd->arg->size;
-    struct vector *new = vector_init(len_vector + 1);
-    char **data = ast->data->ast_cmd->arg->data;
     int in_double_quotes = 0;
     int in_single_quotes = 0;
-    int len = 0;
-    for (size_t i = 0; i < len_vector - 1; i++)
+    size_t len = strlen(s);
+    size_t i = 0;
+    for (size_t j = 0; j < len; j++)
     {
-        len = strlen(data[i]);
-        for (size_t j = 0; j < len; j++)
+        if (s[j] == '\'')
+            in_single_quotes = !in_single_quotes;
+        else if (s[j] == '"')
+            in_double_quotes = !in_double_quotes;
+        else if (s[j] == '$')
         {
-            if (data[i][j] == '$')
+            if (s[j + 1] != '\0' && !in_single_quotes)
             {
                 j++;
-                if (data[i][j] != '\0' && !in_single_quotes)
+                if (s[j] == '@')
                 {
-                    if (data[i][j] == '@')
-                    {
-                        if (!in_double_quotes) // $@
-                        {
-
-                        }
-                        else // "$@"
-                        {
-
-                        }
-                    }
-                    else if (data[i][j] == '*')
-                    {
-                        if (!in_double_quotes) // $*
-                        {
-
-                        }
-                        else // "$*"
-                        {
-
-                        }
-                    }
+                    // $@
+                    if (!in_double_quotes)
+                        split_no_quote(v);
+                    // "$@"
+                    else
+                        split_quote_at(v);
+                }
+                else if (s[j] == '*')
+                {
+                    // $*
+                    if (!in_double_quotes)
+                        split_no_quote(v);
+                    // "$*" ok
+                    else
+                        split_quote_star(v);
                 }
             }
-            else if (data[i][j] == '\'')
-                in_single_quotes = !in_single_quotes;
-            else if (data[i][j] == '"')
-                in_double_quotes = !in_double_quotes;
         }
-        in_double_quotes = 0;
-        in_single_quotes = 0;
+        else
+        {
+
+        }
     }
-    new = vector_append(v, NULL);
+
+}
+
+ * Preparsing for the cases $@ and $*
+static void expandinho_senior(struct ast *ast)
+{
+    struct vector **v = &ast->data->ast_cmd->arg;
+    size_t len_vector = ast->data->ast_cmd->arg->size - 1;
+    struct vector *new = vector_init(len_vector);
+    char **data = ast->data->ast_cmd->arg->data;
+    size_t len = 0;
+    for (size_t i = 0; i < len_vector; i++)
+    {
+        char *temp = strdup(data[i]);
+        expandinho_senior_aux(v, temp);
+        free(temp);
+    }
+    new = vector_append(new, NULL);
     vector_destroy(*v);
     *v = new;
 }
+*/
 
 static void expandinho_junior(size_t *i, int *lenvar, int *indnew, char **value)
 {
@@ -252,14 +253,14 @@ static void expandinho(char **str, int return_value, int *marker,
 
    static int func_for(struct ast *ast, int return_value)
    {
-       int res = 0;
-       for (size_t i = 0; i < ast->data->ast_cmd->arg->size; i++)
-       {
-           hash_map_insert(hashmap, ast->data->ast_for->var,
-           ast->data->ast_for->for_list->data->ast_cmd->arg[i]); res =
-           execute(ast->data->ast_for->for_body);
-       }
-       return res;
+   int res = 0;
+   for (size_t i = 0; i < ast->data->ast_cmd->arg->size; i++)
+   {
+   hash_map_insert(hashmap, ast->data->ast_for->var,
+   ast->data->ast_for->for_list->data->ast_cmd->arg[i]); res =
+   execute(ast->data->ast_for->for_body);
+   }
+   return res;
    }*/
 
 static int func_if(struct ast *ast, int return_value)
@@ -283,65 +284,12 @@ static int func_list(struct ast *ast, int return_value)
     return 0;
 }
 
-static int check_builtin(char **str, int return_value)
-{
-    if (!strcmp(str[0], "true"))
-        return 0;
-    if (!strcmp(str[0], "false"))
-        return 1;
-    if (!strcmp(str[0], "echo"))
-        return echo(str, return_value);
-    return 3;
-}
-
-static void split_and_append(struct vector **v, char *s)
-{
-    size_t i = 0;
-    size_t start = 0;
-    while (s[i] != '\0')
-    {
-        if (s[i] == ' ' && i - start > 0)
-        {
-            char *copy = strndup(s + start, i - start);
-            *v = vector_append(*v, copy);
-            start = i + 1;
-        }
-        else if (s[i] == ' ')
-            start++;
-        i++;
-    }
-    if (i - start > 0)
-        *v = vector_append(*v, strndup(s + start, i - start));
-    free(s);
-}
-
-static inline void split_vector(int *marker, struct ast *ast)
-{
-    size_t len = ast->data->ast_cmd->arg->size;
-    struct vector *v = vector_init(len + 1);
-    char **data = ast->data->ast_cmd->arg->data;
-    for (size_t i = 0; i < len - 1; i++)
-    {
-        // case when we expanded
-        if (marker[i])
-        {
-            char *temp = strdup(data[i]);
-            split_and_append(&v, temp);
-        }
-        else
-            v = vector_append(v, strdup(data[i]));
-    }
-    v = vector_append(v, NULL);
-    vector_destroy(ast->data->ast_cmd->arg);
-    ast->data->ast_cmd->arg = v;
-}
-
 static int func_cmd(struct ast *ast, int return_value)
 {
     size_t size = ast->data->ast_cmd->arg->size;
     int *marker = calloc(size, sizeof(int));
     //CALL NEW FUNCTION TO EXPAND $@ OR $* AND REARRANGE VECTOR
-    expandinho_senior(&ast->data->ast_cmd->arg);
+    // expandinho_senior(ast);
 
     // check for expand
     for (size_t i = 0; i < size; i++)

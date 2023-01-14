@@ -159,3 +159,11 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
     }
     return false;
 }
+
+char *hashmap_get_copy(struct hash_map *hashmap, char *hkey)
+{
+    const char *res = hash_map_get(hashmap, hkey);
+    if (res == NULL)
+        return NULL;
+    return strdup(res);
+}

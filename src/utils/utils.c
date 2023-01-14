@@ -54,6 +54,5 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
         count++;
     }
     hash_map_insert(hashmap, "#", buf);
-    BaBaJi_JuNiOr(argv, i, argc);
     return 0;
 }

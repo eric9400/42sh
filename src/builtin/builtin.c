@@ -108,3 +108,14 @@ int echo(char **s, int return_value)
     fflush(stdout);
     return 0;
 }
+
+int check_builtin(char **str, int return_value)
+{
+    if (!strcmp(str[0], "true"))
+        return 0;
+    if (!strcmp(str[0], "false"))
+        return 1;
+    if (!strcmp(str[0], "echo"))
+        return echo(str, return_value);
+    return 3;
+}

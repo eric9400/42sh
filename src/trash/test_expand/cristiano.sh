@@ -1,1 +1,1 @@
-echo "salut $1 à toi $1$2 !"
+echo "salut a tous $@!"
