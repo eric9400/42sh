@@ -42,7 +42,7 @@ struct ast *error_handler(struct lexer *lex, int print, char *error_message)
     char var = error_message[0];
     var++;
     if (print)
-        printf("%s\n", error_message);
+        fprintf(stderr, "%s\n", error_message);
     return NULL;
 }
 

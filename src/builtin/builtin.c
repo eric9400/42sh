@@ -3,11 +3,11 @@
 
 #include "vector.h"
 
-static size_t print_special_char(int f_e, char c, int in_d_quotes)
+static size_t print_special_char(int f_e, char c, int in_d_quotes, int in_s_quotes)
 {
     if (!f_e)
     {
-        if (in_d_quotes)
+        if (in_d_quotes || in_s_quotes)
             printf("\\");
         printf("%c", c);
         return 1;
@@ -48,11 +48,9 @@ static void print_echo(int f_n, int f_e, struct vector *v)
                 in_d_quotes = !in_d_quotes;
                 continue;
             }
-            else if (in_s_quotes)
-                printf("%c", s[j]);
             // we have to expand everything from here
             else if (s[j] == '\\')
-                j += print_special_char(f_e, s[j + 1], in_d_quotes);
+                j += print_special_char(f_e, s[j + 1], in_d_quotes, in_s_quotes);
             else
                 printf("%c", s[j]);
         }

@@ -43,6 +43,20 @@ test_stdin()
     fi
 }
 
+
+test_error()
+{
+    echo "$1" | bash --posix > "$REF_OUT"
+    ./42sh -c "$1"
+    echo $? > "$TEST_OUT"
+    var=$(diff "$REF_OUT" "$TEST_OUT")
+    if [ $( echo "$var" | wc -c) -gt 1 ]; then
+        echo "$red     NAN!     |  $1"
+    else
+        echo "$green      OK      |  $1"
+    fi
+}
+
 test_error()
 {
     echo "$2" > "$REF_OUT"
@@ -55,7 +69,6 @@ test_error()
         echo "$green      OK      |  $1"
     fi
 }
-
 
 echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 echo $blue "@@@@@@@@@@@@@@@@@TEST SUITE@@@@@@@@@@@@@@@@@"
@@ -87,6 +100,7 @@ test_stdin "test_shell/test_parser/test8.sh"
 test_stdin "test_shell/test_parser/test9.sh"
 test_stdin "test_shell/test_parser/test10.sh"
 test_stdin "test_shell/test_parser/test11.sh"
+echo
 echo $blue "ALL INPUT"
 test_input "echo foo bar"
 test_input "echo foo ; echo bar"
@@ -110,6 +124,33 @@ test_input "echo \"je suis une chauve souris\""
 test_input "echo 2>a"
 test_input "echo \2>a"
 test_input "echo 2\>a"
+test_input "echo \"\\n\""
+test_input "echo -e '\n'"
+test_input "echo -E \n"
+test_input "echo -E \"\n\""
+test_input "echo -E '\n'"
+echo
+echo $blue "AMOUNG SUS"
+test_error "if"
+test_error "if true; echo toto; fi"
+test_error "coucou"
+test_error "coucou;"
+test_error "echo world; coucou; echo foo"
+test_error "echo world; echo foo; coucou"
+test_error "if gg; then okkqqqqyy;"
+test_error "if thtrue then; fi"
+test_error "if true; then echo fi"
+test_error "if ; fi"
+test_error "if; if ; if ; if ; then; fi"
+test_error "if ; else; coucou"
+test_error "if ; then echo ok ; fi"
+test_error "if true; then; echo ko; fi"
+test_error "if ;\n true; then; flase; fi;fi;fi;fi"
+test_error "if ;\n\n\n\ntrue;\n then echo okqyyy; fi"
+test_error "then; fi;"
+test_error "echo if; if echo"
+test_error "if true; then false; elif true; then true; else false;"
+test_error "if true;;;;;;;;;then false; fi"
 echo
 echo
 echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
