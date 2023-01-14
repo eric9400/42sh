@@ -68,7 +68,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 continue;
             }
             return_value = execute(
-                ast, return_value); // RETURN_VALUE FOR ECHO EXPAND (echo $?)
+                ast, return_value);
             if (return_value)
             {
                 /*
@@ -78,7 +78,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                     return freeAll(file, lex, ast, lex->error);
                 */
                 if (file != stdin)
-                    return freeAll(file, lex, ast, lex->error);
+                    return freeAll(file, lex, ast, return_value);
             }
         }
         free_node(ast);
