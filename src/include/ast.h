@@ -77,8 +77,8 @@ struct ast_if
 struct ast_for
 {
     char *var;
-    struct ast *for_list;
     struct vector *arg;
+    struct ast *for_list;
 };
 
 struct ast_while

@@ -35,10 +35,19 @@ int execute(struct ast *ast, int return_value);
 static int func_if(struct ast *ast, int return_value);
 static int func_list(struct ast *ast, int return_value);
 static int func_cmd(struct ast *ast, int return_value);
-/*static int func_while(struct ast *ast, int return_value);
-  static int func_until(struct ast *ast, int return_value);
-  static int func_for(struct ast *ast, int return_value);
-  static int func_operation(struct ast *ast, int return_value);*/
+static int func_while(struct ast *ast, int return_value);
+static int func_until(struct ast *ast, int return_value);
+static int func_for(struct ast *ast, int return_value);
+static int func_and(struct ast *ast, int return_value);
+static int func_or(struct ast *ast, int return_value);
+static int func_not(struct ast *ast, int return_value);
+
+static int func_prefix(struct ast *ast, int return_value);
+static int func_redir(struct ast *ast, int return_value);
+static int func_pipe(struct ast *ast, int return_value);
+static int func_element(struct ast *ast, int return_value);
+static int func_sp_cmd(struct ast *ast, int return_value);
+static int func_sh_cmd(struct ast *ast, int return_value);
 
 /*
  * \return 0 if expand name is valid else return 1
@@ -77,11 +86,7 @@ static char *is_special_var(char *str, int return_value)
 {
     char buf[1000];
 
-    /*if (!strcmp(str, "@") || !strcmp(str, "*"))
-    {
-
-    }
-    else */
+    /*if (!strcmp(str, "@") || !strcmp(str, "*")){}else */
     if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
         || !strcmp(str, "IFS"))
     {
@@ -254,34 +259,62 @@ static void expandinho(char **str, int return_value, int *marker,
     free(*str);
     *str = new;
 }
-/*
-   static int func_while(struct ast *ast, int return_value)
-   {
-   int res = 0;
-   while ((res = execute(ast, return_value)) == 0)
-   res = execute(ast->data->ast_while->while_body, return_value);
-   return res;
-   }
 
-   static int func_until(struct ast *ast, int return_value)
-   {
-   int res = 0;
-   while ((res = execute(ast, return_value)) != 0)
-   res = execute(ast->data->ast_until->until_body, return_value);
-   return res;
-   }
+static int func_while(struct ast *ast, int return_value)
+{
+    int res = 0;
+    while (!execute(ast->data->ast_while->condition, return_value))
+        res = execute(ast->data->ast_while->while_body, return_value);
+    return res;    
+}
 
-   static int func_for(struct ast *ast, int return_value)
-   {
-   int res = 0;
-   for (size_t i = 0; i < ast->data->ast_cmd->arg->size; i++)
-   {
-   hash_map_insert(hashmap, ast->data->ast_for->var,
-   ast->data->ast_for->for_list->data->ast_cmd->arg[i]); res =
-   execute(ast->data->ast_for->for_body);
-   }
-   return res;
-   }*/
+static int func_until(struct ast *ast, int return_value)
+{
+    int res = 0;
+    while (execute(ast->data->ast_until->condition, return_value))
+        res = execute(ast->data->ast_until->until_body, return_value);
+    return res;
+}
+
+static int func_for(struct ast *ast, int return_value)
+{
+    int res = 0;
+    for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)
+    {
+        hash_map_insert(hashmap, ast->data->ast_for->var, ast->data->ast_for->arg->data[i]); 
+        res = execute(ast->data->ast_for->for_list, return_value);
+    }
+    return res;
+}
+
+static int func_and(struct ast *ast, int return_value)
+{
+    int left = execute(ast->data->ast_and->left);
+    if (left)
+        return left;
+    return execute(ast->data->ast_and->right);
+}
+
+static int func_or(struct ast *ast, int return_value)
+{
+    int left = execute(ast->data->ast_or->left);
+    if (!left)
+        return 0;
+    return execute(ast->data->ast_or->right);
+}
+
+static int func_not(struct ast *ast, int return_value)
+{
+    return !execute(ast->data->ast_not->node, return_value);
+}
+
+static int func_prefix(struct ast *ast, int return_value)
+{
+    if (ast != NULL)
+        return execute(ast->data->ast_prefix->redir, return_value);
+    //ASSIGNMENT WORD
+    return 0;
+}
 
 static int func_if(struct ast *ast, int return_value)
 {
@@ -362,14 +395,30 @@ int execute(struct ast *ast, int return_value)
             return func_list(ast, return_value);
         case AST_CMD:
             return func_cmd(ast, return_value);
-            /*case AST_WHILE:
-              return func_while(ast, return_value);
-              case AST_UNTIL:
-              return func_until(ast, return_value);
-              case AST_FOR:
-              return func_for(ast, return_value);
-              case AST_OP:
-              return func_operation(ast, return_value);*/
+        case AST_WHILE:
+            return func_while(ast, return_value);
+        case AST_UNTIL:
+            return func_until(ast, return_value);
+        case AST_FOR:
+            return func_for(ast, return_value);
+        case AST_AND:
+            return func_and(ast, return_value);
+        case AST_OR:
+            return func_or(ast, return_value);
+        case AST_NOT:
+            return func_not(ast, return_value);
+        case AST_PREFIX:
+            return func_prefix(ast, return_value);
+        case AST_REDIR:
+            return func_redir(ast, return_value);
+        case AST_PIPE:
+            return func_pipe(ast, return_value);
+        case AST_ELEMENT:
+            return func_element(ast, return_value);
+        case AST_SP_CMD:
+            return func_sp_cmd(ast, return_value);
+        case AST_SH_CMD:
+            return func_sh_cmd(ast, return_value);       
         default:
             return 19;
             // ADD NEW AST EXECUTE HERE
