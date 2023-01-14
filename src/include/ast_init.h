@@ -14,5 +14,10 @@ struct ast_redir *init_redir(void);
 struct ast_element *init_element(void);
 struct ast_sp_cmd *init_sp_cmd(void);
 struct ast_sh_cmd *init_sh_cmd(void);
+struct ast_for *init_for(void);
+struct ast_and *init_and(void);
+struct ast_or *init_or(void);
+struct ast_pipe *init_pipe(void);
+struct ast_not *init_not(void);
 
 #endif /* AST_INIT_H */

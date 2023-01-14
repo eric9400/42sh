@@ -19,6 +19,7 @@ enum ast_type
 
     AST_PREFIX,
     AST_REDIR,
+    AST_PIPE,
     AST_ELEMENT,
     AST_SP_CMD,
     AST_SH_CMD
@@ -42,7 +43,7 @@ struct ast_sp_cmd
 {
     size_t size_prefix;
     size_t size_element;
-    struct ast_prefix **cmd_prefix;
+    struct ast **cmd_prefix;
     char *word;
     struct ast **cmd_element;
 };

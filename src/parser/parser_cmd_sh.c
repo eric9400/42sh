@@ -10,6 +10,9 @@ static struct ast *rule_if(struct lexer *lex, int opt);
 static struct ast *else_clause(struct lexer *lex);
 static struct ast *compound_list(struct lexer *lex);
 static void compound_list2(struct lexer *lex, struct ast_list *list);
+static struct ast *rule_while(struct lexer *lex);
+static struct ast *rule_until(struct lexer *lex);
+static struct ast *rule_for(struct lexer *lex);
 
 struct ast *shell_command(struct lexer *lex)
 {
@@ -151,4 +154,181 @@ static void compound_list2(struct lexer *lex, struct ast_list *list)
     add_to_list(list, node);
 
     compound_list2(lex, list);
+}
+
+static struct ast *rule_while(struct lexer *lex)
+{
+    peek_token(lex);
+    if (strcmp("while", lex->tok->data) != 0)
+        return NULL;
+    free_token(lex);
+
+    struct ast_while *while_node = init_while();
+
+    while_node->condition = compound_list(lex);
+    if (!while_node->condition || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(lex, 1,
+                    "Error rule_while: NO MATCHING PATERN after \"while\"");
+    }
+
+    next_token(lex);
+    if (strcmp("do", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(lex, 1, "Error rule_while: \"do\" IS MISSING");
+    }
+    free_token(lex);
+
+    while_node->while_body = compound_list(lex);
+    if (!while_node->while_body || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(
+            lex, 1, "Error rule_while: NO MATCHING PATERN after \"do\"");
+    }
+
+    next_token(lex);
+    if (lex->error == 2 || strcmp("done", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_WHILE, while_node));
+        return error_handler(lex, 1, "Error rule_while: \"done\" IS MISSING");
+    }
+    free_token(lex);
+
+    return convert_node_ast(AST_WHILE, while_node);
+}
+
+static struct ast *rule_until(struct lexer *lex)
+{
+    peek_token(lex);
+    if (strcmp("until", lex->tok->data) != 0)
+        return NULL;
+    free_token(lex);
+
+    struct ast_until *until_node = init_until();
+
+    until_node->condition = compound_list(lex);
+    if (!until_node->condition || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(lex, 1,
+                    "Error rule_until: NO MATCHING PATERN after \"until\"");
+    }
+
+    next_token(lex);
+    if (strcmp("do", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(lex, 1, "Error rule_until: \"do\" IS MISSING");
+    }
+    free_token(lex);
+
+    until_node->until_body = compound_list(lex);
+    if (!until_node->until_body || lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(
+            lex, 1, "Error rule_until: NO MATCHING PATERN after \"do\"");
+    }
+
+    next_token(lex);
+    if (lex->error == 2 || strcmp("done", lex->tok->data) != 0)
+    {
+        free_node(convert_node_ast(AST_UNTIL, until_node));
+        return error_handler(lex, 1, "Error rule_until: \"done\" IS MISSING");
+    }
+    free_token(lex);
+
+    return convert_node_ast(AST_UNTIL, until_node);
+}
+
+static void *rule_for_error(struct ast_for *for_node, struct lexer *lex)
+{
+    free_node(convert_node_ast(AST_FOR, for_node));
+    lex->error = 2;
+    return NULL;
+}
+
+static void free_peek(struct lexer *lex)
+{
+    free_token(lex);
+    peek_token(lex);
+    return;
+}
+
+struct ast *rule_for(struct lexer *lex)
+{
+    peek_token(lex);
+
+    if (lex->tok->type != WORD || !strcmp("for", lex->tok->data))
+        return NULL;
+
+    struct ast_for *for_node = init_for();
+
+    free_peek(lex);
+
+    if (lex->tok->type != WORD)
+        return rule_for_error(for_node, lex);
+
+    for_node->var = strdup(lex->tok->data);
+    free_peek(lex);
+
+    if (lex->tok->type == SEMICOLON)
+        free_peek(lex);
+    else if (lex->tok->type == NEWLINE)
+    {
+        free_peek(lex);
+
+        new_lines(lex);
+
+        if (lex->tok->type != WORD)
+            return rule_for_error(for_node, lex);
+
+        if (strcmp("do", lex->tok->data))
+        {
+
+            if (strcmp("in", lex->tok->data))
+                return rule_for_error(for_node, lex);
+
+            free_peek(lex);
+
+            while(lex->tok->type == WORD)
+            {
+                vector_append(for_node->arg, lex->tok->data);
+                free_peek(lex);
+            }
+            vector_append(for_node->arg, NULL);
+
+            if (lex->tok->type != SEMICOLON)
+                return rule_for_error(for_node, lex);
+
+            free_token(lex);
+        }
+    }
+
+    next_token(lex);
+
+    if (lex->tok->type != WORD || strcmp("do", lex->tok->data))
+        return rule_for_error(for_node, lex);
+
+    free_token(lex);
+
+    for_node->for_list = compound_list(lex);
+
+    if (lex->error == 2)
+    {
+        free_node(convert_node_ast(AST_FOR, for_node));
+        return NULL;
+    }
+
+    next_token(lex);
+
+    if(strcmp("done", lex->tok->data))
+        return rule_for_error(for_node, lex);
+
+    free_token(lex);
+
+    return convert_node_ast(AST_FOR,for_node);
 }

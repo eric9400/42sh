@@ -9,7 +9,7 @@ static struct ast *element(struct lexer *lex);
 
 struct ast *simple_command(struct lexer *lex)
 {
-    struct ast_sp_cmd *cmd = init_cmd();
+    struct ast_sp_cmd *cmd = init_sp_cmd();
 
     struct ast *pref = prefix(lex);
 
@@ -23,7 +23,7 @@ struct ast *simple_command(struct lexer *lex)
     peek_token(lex);
 
     if (lex->tok->type != WORD)
-        return cmd;
+        return convert_node_ast(AST_SP_CMD, cmd);
 
     cmd->word = strdup(lex->tok->data);
 
@@ -92,13 +92,4 @@ static struct ast *element(struct lexer *lex)
     
     free_node(convert_node_ast(AST_ELEMENT,elmt));
     return NULL;
-
-    /*peek_token(lex);
-    if (lex->tok && lex->tok->type == WORD)
-    {
-        char *word = strdup(lex->tok->data);
-        free_token(lex);
-        return word;
-    }
-    return NULL;*/
 }

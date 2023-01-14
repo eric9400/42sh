@@ -25,9 +25,15 @@ static void free_list(struct ast *ast)
 static void free_sp_cmd(struct ast *ast)
 {
     for (size_t i = 0; i < ast->data->ast_sp_cmd->size_prefix; i++)
-        free_node(ast->data->ast_sp_cmd->cmd_prefix[i]);
+    {
+        struct ast *tmp = convert_node_ast(AST_PREFIX, ast->data->ast_sp_cmd->cmd_prefix[i]);
+        free_node(tmp);
+    }
     for (size_t i = 0; i < ast->data->ast_sp_cmd->size_element; i++)
-        free_node(ast->data->ast_sp_cmd->cmd_element[i]);
+    {
+        struct ast *tmp = convert_node_ast(AST_ELEMENT, ast->data->ast_sp_cmd->cmd_element[i]);
+        free_node(tmp);
+    }
     free(ast->data->ast_sp_cmd->word);
     free(ast->data->ast_sp_cmd->cmd_prefix);
     free(ast->data->ast_sp_cmd->cmd_element);
@@ -85,15 +91,6 @@ static void free_for(struct ast *ast)
     free(ast->data->ast_for);
 }
 
-static void free_prefix(struct ast *ast)
-{
-    if (ast->data->ast_prefix->assign_word)
-        free(ast->data->ast_prefix->assign_word);
-    if (ast->data->ast_prefix->redir)
-        free_node(ast->data->ast_prefix->redir);
-    free(ast->data->ast_prefix);
-}
-
 static void free_element(struct ast *ast)
 {
     if (ast->data->ast_element->word)
@@ -103,46 +100,63 @@ static void free_element(struct ast *ast)
     free(ast->data->ast_element);
 }
 
-/*
-static void free_for(struct ast *ast)
-{
-    //TODO
-}
-
-static void free_while(struct ast *ast)
-{
-    //TODO
-}
-
-static void free_until(struct ast *ast)
-{
-    //TODO
-}
-
-static void free_and(struct ast *ast)
-{
-    //TODO
-}
-
-static void free_or(struct ast *ast)
-{
-    //TODO
-}
-
 static void free_not(struct ast *ast)
 {
-    //TODO
+    if (ast->data->ast_not->node)
+        free_node(ast->data->ast_not->node);
+    free(ast->data->ast_not);
 }
 
-static void free_redirect(struct ast *ast)
+static void free_ast_tree(struct ast *tree)
 {
-    //TODO
+    while(tree)
+    {
+        struct ast *tmp = NULL;
+        if (tree->type == AST_AND)
+        {
+            tmp = tree->data->ast_and->left;
+            if (tree->data->ast_and->right)
+                free_node(tree->data->ast_and->right);
+        }
+        else if (tree->type == AST_OR)
+        {
+            tmp = tree->data->ast_or->left;
+            if (tree->data->ast_or->right)
+                free_node(tree->data->ast_or->right);
+        }
+
+        if (tree)
+            free_node(tree);
+        tree = tmp;
+    }
 }
 
-static void free_pipe(struct ast *ast)
+static void free_ast_tree_junior(struct ast *tree)
 {
-    //TODO
-}*/
+    while(tree)
+    {
+        struct ast *tmp = NULL;
+
+        if (tree->type == AST_NOT)
+        {
+            free_node(tree);
+            break;
+        }
+
+        tmp = tree->data->ast_pipe->left;
+        if (tree->data->ast_pipe->right)
+            free_node(tree->data->ast_pipe->right);
+        if (tree)
+            free_node(tree);
+        if (!tmp)
+            break;
+
+        if (tmp->type == AST_PIPE)
+            tree = (convert_node_ast(AST_PIPE, tmp));
+        else 
+            tree = (convert_node_ast(AST_NOT, tmp));
+    }
+}
 
 void free_node(struct ast *ast)
 {
@@ -168,6 +182,13 @@ void free_node(struct ast *ast)
         free_sp_cmd(ast);
     else if (ast->type == AST_ELEMENT)
         free_element(ast);
+    else if (ast->type == AST_AND || ast->type == AST_OR)
+        free_ast_tree(ast);
+    else if (ast->type == AST_PIPE)
+        free_ast_tree_junior(ast);
+    else if (ast->type == AST_NOT)
+        free_not(ast);
+
     free(ast->data);
     free(ast);
 }

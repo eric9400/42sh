@@ -34,6 +34,14 @@ struct ast *convert_node_ast(enum ast_type type, void *node)
         ast_node->data->ast_sp_cmd = (struct ast_sp_cmd *)node;
     if (type == AST_SH_CMD)
         ast_node->data->ast_sh_cmd = (struct ast_sh_cmd *)node;
+    if (type == AST_AND)
+        ast_node->data->ast_and = (struct ast_and *)node;
+    if (type == AST_OR)
+        ast_node->data->ast_or = (struct ast_or *)node;
+    if (type == AST_NOT)
+        ast_node->data->ast_not = (struct ast_not *)node;
+    if (type == AST_PIPE)
+        ast_node->data->ast_pipe = (struct ast_pipe *)node;
     // ADD NEW AST CONVERT HERE
 
     return ast_node;

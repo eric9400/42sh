@@ -88,13 +88,44 @@ struct ast_element *init_element(void)
     return ast_element;
 }
 
-static struct ast_for *init_for(void)
+struct ast_for *init_for(void)
 {
     struct ast_for *ast_for = calloc(1, sizeof(struct ast_for));
-    ast_for->arg = NULL;
+    ast_for->var = NULL;
     ast_for->for_list = NULL;
-    ast_for->var = vector_init(10);
+    ast_for->arg = vector_init(10);
     return ast_for;
+}
+
+struct ast_and *init_and(void)
+{
+    struct ast_and *ast_and = calloc(1, sizeof(struct ast_and));
+    ast_and->left = NULL;
+    ast_and->right = NULL;
+    return ast_and;
+}
+
+struct ast_or *init_or(void)
+{
+    struct ast_or *ast_or = calloc(1, sizeof(struct ast_or));
+    ast_or->left = NULL;
+    ast_or->right = NULL;
+    return ast_or;
+}
+
+struct ast_not *init_not(void)
+{
+    struct ast_not *ast_not = calloc(1, sizeof(struct ast_not));
+    ast_not->node = NULL;
+    return ast_not;
+}
+
+struct ast_pipe *init_pipe(void)
+{
+    struct ast_pipe *ast_pipe = calloc(1, sizeof(struct ast_pipe));
+    ast_pipe->left = NULL;
+    ast_pipe->right = NULL;
+    return ast_pipe;
 }
 
 /*
