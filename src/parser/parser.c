@@ -65,7 +65,7 @@ struct ast *input(struct lexer *lex)
     struct ast *exec_tree = list(lex);
     if (lex->error == 2)
     {
-        error_handler(lex, 1, "Error input: NO MATCHING PATERN\n");
+        error_handler(lex, 1, "Error input: NO MATCHING PATERN");
         return exec_tree;
     }
 
@@ -88,7 +88,7 @@ static struct ast *list(struct lexer *lex)
         add_to_list(exec_tree, head_cmd);
     if (lex->error == 2)
     {
-        error_handler(lex, 1, "Error input: NO MATCHING PATERN\n");
+        error_handler(lex, 1, "Error input: NO MATCHING PATERN");
         return convert_node_ast(AST_LIST, exec_tree);
     }
 
