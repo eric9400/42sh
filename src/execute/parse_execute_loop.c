@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "ast.h"
 #include "execute.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
+#include "hash_map.h"
 
 static struct flags *global_flags = NULL;
 
@@ -15,7 +18,17 @@ static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
     free_node(ast);
     fclose(file);
     free(global_flags);
+    hash_map_free(hashmap);
     return error;
+}
+
+void hash_map_init_basic(void)
+{
+    char pwd[1000];
+    getcwd(pwd, sizeof(pwd));
+    hash_map_insert(hashmap, "PWD", pwd);
+    hash_map_insert(hashmap, "OLDPWD", pwd);
+    hash_map_insert(hashmap, "IFS", " \t\n");
 }
 
 int parse_execute_loop(FILE *file, struct flags *flags)
@@ -24,6 +37,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
+    hash_map_init_basic();
     /*
     if (file == stdin)
         printf("42sh$ ");

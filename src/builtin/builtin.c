@@ -3,7 +3,7 @@
 
 #include "vector.h"
 
-size_t print_special_char(int f_e, char c)
+static size_t print_special_char(int f_e, char c)
 {
     if (!f_e)
     {
@@ -27,7 +27,7 @@ size_t print_special_char(int f_e, char c)
     return res;
 }
 
-void print_echo(int f_n, int f_e, struct vector *v)
+static void print_echo(int f_n, int f_e, struct vector *v)
 {
     for (size_t i = 0; i < v->size; i++)
     {
@@ -48,7 +48,7 @@ void print_echo(int f_n, int f_e, struct vector *v)
         printf("\n");
 }
 
-int is_flag(char *s, int *f_n, int *f_e)
+static int is_flag(char *s, int *f_n, int *f_e)
 {
     if (!s)
         return 1;
@@ -107,4 +107,15 @@ int echo(char **s, int return_value)
     vector_destroy(v);
     fflush(stdout);
     return 0;
+}
+
+int check_builtin(char **str, int return_value)
+{
+    if (!strcmp(str[0], "true"))
+        return 0;
+    if (!strcmp(str[0], "false"))
+        return 1;
+    if (!strcmp(str[0], "echo"))
+        return echo(str, return_value);
+    return 3;
 }

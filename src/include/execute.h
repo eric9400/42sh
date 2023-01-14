@@ -6,4 +6,3 @@
 int execute(struct ast *ast, int return_value);
 
 #endif /* EXECUTE_H */
-

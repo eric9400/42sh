@@ -7,50 +7,52 @@
 #include <unistd.h>
 
 #include "ast.h"
-#include "lexer.h"
-#include "token.h"
+#include "hash_map.h"
+
+struct hash_map *hashmap = NULL;
 
 /*
  * \brief Parsing of inputs
- * \details auto parsing
  * \param argc argv from main, filename *.sh, d_opt to know which flags set
- * \return 0 if no args, 0 if -c, 1 if -p, 2 if both
+ * \return 0 if no error, 2 otherwise
  */
 int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
 {
-    if (argc == 1)
+    hashmap = hash_map_init(20);
+    if (argc == 0)
         return 0;
-
-    int opt;
-    while ((opt = getopt(argc, argv, ":cpu")) != -1)
+    int i = 1;
+    for (; i < argc; i++)
     {
-        switch (opt)
+        if (argv[i][0] == '-')
         {
-        case 'c':
-            flags->c = 1;
-            break;
-        case 'p':
-            flags->p = 1;
-            break;
-        case 'u':
-            flags->u = 1;
-            break;
-        case ':':
-            return 2;
-            // errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
-        case '?':
-            return 2;
-            // errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
+            for (int k = 1; argv[i][k]; k++)
+            {
+                if (argv[i][k] == 'c')
+                    flags->c = 1;
+                else if (argv[i][k] == 'u')
+                    flags->u = 1;
+                else if (argv[i][k] == 'p')
+                    flags->p = 1;
+                else
+                    return 2;
+            }
+            if (!flags->c)
+                continue;
+            if (++i >= argc)
+                return 2;
         }
+        *filename = strdup(argv[i++]);
+        break;
     }
-    if (argc - optind == 1)
+    int count = 1;
+    char buf[1000] = { 0 };
+    for (; i < argc; i++)
     {
-        *filename = strdup(argv[optind]);
-        return 0;
+        sprintf(buf, "%d", count);
+        hash_map_insert(hashmap, buf, argv[i]);
+        count++;
     }
-    else if ((argc == 2 && flags->p) || argc == 1)
-        return 0;
-    else
-        return 2;
-    // errx(2,"Usage : 42sh [OPTIONS] [SCRIPT] [ARGUMENTS ...]\n");
+    hash_map_insert(hashmap, "#", buf);
+    return 0;
 }
