@@ -57,7 +57,7 @@ struct ast *input(struct lexer *lex)
     if (lex->tok->type == NEWLINE) // Si on a une ligne vide
     {
         free_token(lex);
-        struct ast_cmd *cmd = init_cmd();
+        struct ast_cmd *cmd = init_ast(AST_CMD, 0);
         vector_append(cmd->arg, strdup("")); // faire la modif
         return convert_node_ast(AST_CMD, cmd);
     }
@@ -81,7 +81,7 @@ struct ast *input(struct lexer *lex)
 
 static struct ast *list(struct lexer *lex)
 {
-    struct ast_list *exec_tree = init_list(SIZE);
+    struct ast_list *exec_tree = init_ast(AST_LIST, SIZE);
 
     struct ast *head_cmd = and_or(lex);
     if (head_cmd != NULL)
@@ -128,7 +128,7 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
 static void and_condition(struct lexer *lex, struct ast *parent, int child, struct ast *pipe)
 {
     free_token(lex);
-    struct ast_and *new = init_and();
+    struct ast_and *new = init_ast(AST_AND, 0);
     if (!child)
         new->left = pipe;
     else
@@ -151,7 +151,7 @@ static void and_condition(struct lexer *lex, struct ast *parent, int child, stru
 static void or_condition(struct lexer *lex, struct ast *parent, int child, struct ast *pipe)
 {
     free_token(lex);
-    struct ast_or *new = init_or();
+    struct ast_or *new = init_ast(AST_OR, 0);
     
     if (!child)
         new->left = pipe;
@@ -216,7 +216,7 @@ static struct ast *pipeline(struct lexer *lex)
     if (lex->tok->type == WORD && !strcmp(lex->tok->data, "!"))
     {    
         free_token(lex);
-        not = init_not();
+        not = init_ast(AST_NOT, 0);
     }
 
     struct ast *cmd = command(lex);
@@ -257,7 +257,7 @@ static struct ast *pipeline(struct lexer *lex)
             return NULL;
         }
 
-        struct ast_pipe *pipe = init_pipe();
+        struct ast_pipe *pipe = init_ast(AST_PIPE, 0);
 
         pipe->left = parent;
         pipe->right = cmd2;
@@ -280,7 +280,7 @@ static struct ast *command(struct lexer *lex)
             return error_handler(lex, 0, "ERROR");
             //flag print is set to 0 to not print the error message
 
-        struct ast_sh_cmd *sh_cmd = init_sh_cmd();
+        struct ast_sh_cmd *sh_cmd = init_ast(AST_SH_CMD, 0);
         sh_cmd->cmd = tmp_cmd;
         struct ast *redir = redirection(lex);
 
@@ -301,7 +301,7 @@ struct ast *prefix(struct lexer *lex)
 {
     peek_token(lex);
 
-    struct ast_prefix *pref = init_prefix();
+    struct ast_prefix *pref = init_ast(AST_PREFIX, 0);
 
     if(lex->tok->type == ASSIGNEMENT_WORD)
     {
@@ -328,7 +328,7 @@ struct ast *redirection(struct lexer *lex)
 
     int io_number; // 0 if no ionumber specified 1 otherwise
 
-    struct ast_redir *redir = init_redir();
+    struct ast_redir *redir = init_ast(AST_REDIR, 0);
 
     if (lex->tok->type == IO_NUMBER)
     {
@@ -340,30 +340,31 @@ struct ast *redirection(struct lexer *lex)
 
     if (lex->tok->type != WORD)
     {
-        if(io_number)
+        if(!io_number)
             lex->error = 2;
+        free_node(convert_node_ast(AST_REDIR, redir));
         return NULL;
     }
 
     char *data = lex->tok->data;
 
-    if (strcmp(">", data))
+    if (!strcmp(">", data))
         redir->type = S_RIGHT;
-    else if (strcmp("<", data))
+    else if (!strcmp("<", data))
         redir->type = S_LEFT;
-    else if (strcmp(">>", data))
+    else if (!strcmp(">>", data))
         redir->type = D_RIGHT;
-    else if (strcmp(">&", data))
+    else if (!strcmp(">&", data))
         redir->type = RIGHT_AND;
-    else if (strcmp("<&", data))
+    else if (!strcmp("<&", data))
         redir->type = LEFT_AND;
-    else if (strcmp(">|", data))
+    else if (!strcmp(">|", data))
         redir->type = RIGHT_PIP; 
-    else if (strcmp("<>", data))
+    else if (!strcmp("<>", data))
         redir->type = LEFT_RIGHT;
     else
     {
-        if(io_number)
+        if(!io_number)
             lex->error = 2;
         free_node(convert_node_ast(AST_REDIR, redir));
         return NULL;        

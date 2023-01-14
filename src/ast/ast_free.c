@@ -15,20 +15,6 @@ static void free_not(struct ast *ast);
 static void free_redirect(struct ast *ast);
 static void free_pipe(struct ast *ast);*/
 
-void free_node(struct ast *ast)
-{
-    if (!ast)
-        return;
-    if (ast->type == AST_IF)
-        free_if(ast);
-    else if (ast->type == AST_LIST)
-        free_list(ast);
-    else if (ast->type == AST_CMD)
-        free_cmd(ast);
-    free(ast->data);
-    free(ast);
-}
-
 static void free_if(struct ast *ast)
 {
     if (ast->data->ast_if->condition)
@@ -52,17 +38,18 @@ static void free_sp_cmd(struct ast *ast)
 {
     for (size_t i = 0; i < ast->data->ast_sp_cmd->size_prefix; i++)
     {
-        struct ast *tmp = convert_node_ast(AST_PREFIX, ast->data->ast_sp_cmd->cmd_prefix[i]);
+        struct ast *tmp = ast->data->ast_sp_cmd->cmd_prefix[i];
         free_node(tmp);
     }
     for (size_t i = 0; i < ast->data->ast_sp_cmd->size_element; i++)
     {
-        struct ast *tmp = convert_node_ast(AST_ELEMENT, ast->data->ast_sp_cmd->cmd_element[i]);
+        struct ast *tmp = ast->data->ast_sp_cmd->cmd_element[i];
         free_node(tmp);
     }
     free(ast->data->ast_sp_cmd->word);
     free(ast->data->ast_sp_cmd->cmd_prefix);
     free(ast->data->ast_sp_cmd->cmd_element);
+    free(ast->data->ast_sp_cmd);
 }
     
 static void free_cmd(struct ast *ast)

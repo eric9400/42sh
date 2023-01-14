@@ -9,7 +9,7 @@ static struct ast *element(struct lexer *lex);
 
 struct ast *simple_command(struct lexer *lex)
 {
-    struct ast_sp_cmd *cmd = init_sp_cmd();
+    struct ast_sp_cmd *cmd = init_ast(AST_SP_CMD, 0);
 
     struct ast *pref = prefix(lex);
 
@@ -76,7 +76,7 @@ static struct ast *element(struct lexer *lex)
 {
     peek_token(lex);
 
-    struct ast_element *elmt = init_element();
+    struct ast_element *elmt = init_ast(AST_ELEMENT, 0);
 
     if (lex->tok->type == WORD)
     {

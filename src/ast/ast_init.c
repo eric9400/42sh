@@ -3,17 +3,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct ast_cmd *init_cmd(void);
-struct ast_list *init_list(size_t capacity);
-struct ast_if *init_if(void);
-/*static struct ast_for *init_for(void);
+static struct ast_cmd *init_cmd(void);
+static struct ast_list *init_list(size_t capacity);
+static struct ast_if *init_if(void);
+static struct ast_for *init_for(void);
 static struct ast_while *init_while(void);
 static struct ast_until *init_until(void);
 static struct ast_and *init_and(void);
 static struct ast_or *init_or(void);
 static struct ast_not *init_not(void);
-static struct ast_redirect *init_redirect(void);
-static struct ast_redirect *init_pipe(void);*/
+static struct ast_redir *init_redir(void);
+static struct ast_pipe *init_pipe(void);
+static struct ast_prefix *init_prefix(void);
+static struct ast_element *init_element(void);
+static struct ast_sp_cmd *init_sp_cmd(void);
+static struct ast_sh_cmd *init_sh_cmd(void);
 
 void *init_ast(enum ast_type type, size_t capacity)
 {
@@ -23,21 +27,46 @@ void *init_ast(enum ast_type type, size_t capacity)
         return init_if();
     else if (type == AST_LIST)
         return init_list(capacity);
+    else if (type == AST_FOR)
+        return init_for();
+    else if (type == AST_WHILE)
+        return init_while();
+    else if (type == AST_UNTIL)
+        return init_until();
+    else if (type == AST_AND)
+        return init_and();
+    else if (type == AST_OR)
+        return init_or();
+    else if (type == AST_NOT)
+        return init_not();
+    else if (type == AST_REDIR)
+        return init_redir();
+    else if (type == AST_PIPE)
+        return init_pipe();
+    else if (type == AST_PREFIX)
+        return init_prefix();
+    else if (type == AST_ELEMENT)
+        return init_element();
+    else if (type == AST_SP_CMD)
+        return init_sp_cmd();
+    else if (type == AST_SH_CMD)
+        return init_sh_cmd();
     return NULL;
     // ADD NEW AST INIT HERE
+}
 
-struct ast_sp_cmd *init_sp_cmd(void)
+static struct ast_sp_cmd *init_sp_cmd(void)
 {
-    struct ast_sp_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));
+    struct ast_sp_cmd *ast_cmd = calloc(1, sizeof(struct ast_sp_cmd));
     ast_cmd->word = NULL;
-    ast_cmd->cmd_prefix = NULL;
-    ast_cmd->cmd_element = NULL;
+    ast_cmd->cmd_prefix = calloc(10, sizeof(struct ast_prefix *)); //CHANGE THIS WITH REALLOC
+    ast_cmd->cmd_element = calloc(10, sizeof(struct ast_element *)); //CHANGE THIS WITH REALLOC
     ast_cmd->size_prefix = 0;
     ast_cmd->size_element = 0;
     return ast_cmd;
 }
 
-struct ast_sh_cmd *init_sh_cmd(void)
+static struct ast_sh_cmd *init_sh_cmd(void)
 {
     struct ast_sh_cmd *cmd = calloc(1, sizeof(struct ast_sh_cmd));
     cmd->cmd = NULL;
@@ -46,14 +75,14 @@ struct ast_sh_cmd *init_sh_cmd(void)
     return cmd;
 }
 
-struct ast_cmd *init_cmd(void)
+static struct ast_cmd *init_cmd(void)
 {
     struct ast_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));
     ast_cmd->arg = vector_init(10);
     return ast_cmd;
 }
 
-struct ast_list *init_list(size_t capacity)
+static struct ast_list *init_list(size_t capacity)
 {
     struct ast_list *ast_list = calloc(1, sizeof(struct ast_list));
     ast_list->cmd_if = calloc(capacity, sizeof(struct ast *));
@@ -62,7 +91,7 @@ struct ast_list *init_list(size_t capacity)
     return ast_list;
 }
 
-struct ast_if *init_if(void)
+static struct ast_if *init_if(void)
 {
     struct ast_if *ast_if = calloc(1, sizeof(struct ast_if));
     ast_if->condition = NULL;
@@ -71,7 +100,7 @@ struct ast_if *init_if(void)
     return ast_if;
 }
 
-struct ast_while *init_while(void)
+static struct ast_while *init_while(void)
 {
     struct ast_while *ast_while = calloc(1, sizeof(struct ast_while));
     ast_while->condition = NULL;
@@ -79,7 +108,7 @@ struct ast_while *init_while(void)
     return ast_while;
 }
 
-struct ast_until *init_until(void)
+static struct ast_until *init_until(void)
 {
     struct ast_until *ast_until = calloc(1, sizeof(struct ast_until));
     ast_until->condition = NULL;
@@ -87,7 +116,7 @@ struct ast_until *init_until(void)
     return ast_until;
 }
 
-struct ast_prefix *init_prefix(void)
+static struct ast_prefix *init_prefix(void)
 {
     struct ast_prefix *ast_prefix = calloc(1, sizeof(struct ast_prefix));
     ast_prefix->assign_word = NULL;
@@ -95,7 +124,7 @@ struct ast_prefix *init_prefix(void)
     return ast_prefix;
 }
 
-struct ast_redir *init_redir(void)
+static struct ast_redir *init_redir(void)
 {
     struct ast_redir *ast_redir = calloc(1, sizeof(struct ast_redir));
     ast_redir->io_number = NULL;
@@ -103,7 +132,7 @@ struct ast_redir *init_redir(void)
     return ast_redir;
 }
 
-struct ast_element *init_element(void)
+static struct ast_element *init_element(void)
 {
     struct ast_element *ast_element = calloc(1, sizeof(struct ast_element));
     ast_element->word = NULL;
@@ -111,7 +140,7 @@ struct ast_element *init_element(void)
     return ast_element;
 }
 
-struct ast_for *init_for(void)
+static struct ast_for *init_for(void)
 {
     struct ast_for *ast_for = calloc(1, sizeof(struct ast_for));
     ast_for->var = NULL;
@@ -120,7 +149,7 @@ struct ast_for *init_for(void)
     return ast_for;
 }
 
-struct ast_and *init_and(void)
+static struct ast_and *init_and(void)
 {
     struct ast_and *ast_and = calloc(1, sizeof(struct ast_and));
     ast_and->left = NULL;
@@ -128,7 +157,7 @@ struct ast_and *init_and(void)
     return ast_and;
 }
 
-struct ast_or *init_or(void)
+static struct ast_or *init_or(void)
 {
     struct ast_or *ast_or = calloc(1, sizeof(struct ast_or));
     ast_or->left = NULL;
@@ -136,44 +165,18 @@ struct ast_or *init_or(void)
     return ast_or;
 }
 
-struct ast_not *init_not(void)
+static struct ast_not *init_not(void)
 {
     struct ast_not *ast_not = calloc(1, sizeof(struct ast_not));
     ast_not->node = NULL;
     return ast_not;
 }
 
-struct ast_pipe *init_pipe(void)
+static struct ast_pipe *init_pipe(void)
 {
     struct ast_pipe *ast_pipe = calloc(1, sizeof(struct ast_pipe));
     ast_pipe->left = NULL;
     ast_pipe->right = NULL;
     return ast_pipe;
 }
-
-/*
-static struct ast_and *init_and(void)
-{
-    //TODO
-    return NULL;
-}
-
-static struct ast_or *init_or(void)
-{
-    //TODO
-    return NULL;
-}
-
-static struct ast_not *init_not(void)
-{
-    //TODO
-    return NULL;
-}
-
-static struct ast_redirect *init_pipe(void)
-{
-    //TODO
-    return NULL;
-}
-*/
 // ADD NEW AST INIT HERE
