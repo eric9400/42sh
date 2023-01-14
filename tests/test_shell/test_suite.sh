@@ -46,24 +46,12 @@ test_stdin()
 
 test_error()
 {
-    echo "$1" | bash --posix > "$REF_OUT"
-    ./42sh -c "$1"
+    echo "$1" | bash --posix > /dev/null 2>&1
+    echo $? > "$REF_OUT"
+    ./42sh -c "$1" > /dev/null 2>&1
     echo $? > "$TEST_OUT"
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $( echo "$var" | wc -c) -gt 1 ]; then
-        echo "$red     NAN!     |  $1"
-    else
-        echo "$green      OK      |  $1"
-    fi
-}
-
-test_error()
-{
-    echo "$2" > "$REF_OUT"
-    echo "$1" | ./42sh
-    echo $? > "$TEST_OUT"
-    var=$(diff "$REF_OUT" "$TEST_OUT")
-    if [ $var -ne $2 ]; then
         echo "$red     NAN!     |  $1"
     else
         echo "$green      OK      |  $1"
