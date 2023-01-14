@@ -3,6 +3,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static void free_if(struct ast *ast);
+static void free_list(struct ast *ast);
+static void free_cmd(struct ast *ast);
+/*static void free_for(struct ast *ast);
+static void free_while(struct ast *ast);
+static void free_until(struct ast *ast);
+static void free_and(struct ast *ast);
+static void free_or(struct ast *ast);
+static void free_not(struct ast *ast);
+static void free_redirect(struct ast *ast);
+static void free_pipe(struct ast *ast);*/
+
+void free_node(struct ast *ast)
+{
+    if (!ast)
+        return;
+    if (ast->type == AST_IF)
+        free_if(ast);
+    else if (ast->type == AST_LIST)
+        free_list(ast);
+    else if (ast->type == AST_CMD)
+        free_cmd(ast);
+    free(ast->data);
+    free(ast);
+}
+
 static void free_if(struct ast *ast)
 {
     if (ast->data->ast_if->condition)

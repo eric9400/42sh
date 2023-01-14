@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "token.h"
-
 void peek_token(struct lexer *lex)
 {
     if (!lex->tok)
@@ -36,42 +34,6 @@ void free_lexer(struct lexer *lex)
     free(lex);
 }
 
-static int test_data_full(char **data, int i, int len)
-{
-    if (i >= len)
-    {
-        len *= 2;
-        *data = realloc(*data, len);
-    }
-    return len;
-}
-
-static void findtype(struct token *tok, int is_word)
-{
-    if (!tok->data)
-        return;
-    else if (is_word)
-        tok->type = WORD;
-    else
-        tok->type = WORD;
-}
-
-/*
- * if prev and curr can be associated : return new char
- * else return curr
- */
-/*
-char is_operator(char prev, char curr)
-{
-    // TODO
-}
-*/
-
-static int my_isspace(char c)
-{
-    return c == ' ' || c == '\t';
-}
-
 static char skip_space(struct lexer *lex)
 {
     // ephemere char to skip <space> type
@@ -98,6 +60,73 @@ static void end_of_block_line_file(struct lexer *lex, char tmp)
     lex->tok = tok;
 }
 
+static void quote(struct lexer *lex, struct lex_flags *flags, struct token *tok, char curr)
+{
+    if (curr == '\\')
+    {
+        tok->data[flags->i] = curr;
+        curr = fgetc(lex->filename);
+        if (curr == EOF)
+        {
+            ungetc(curr, lex->filename);
+            return;
+        }
+        else if (curr == '\n' && flags->in_dquote)
+        {
+            flags->i--;
+            return;
+        }
+        flags->i++;
+    }
+    else if (flags->in_squote)
+    {
+        if (curr == '\'')
+            flags->in_squote = 0;
+    }
+    else if (flags->in_dquote)
+    {
+        if (curr == '\"')
+            flags->in_dquote = 0;
+    }
+    else if (curr == '\'')
+        flags->in_squote = 1;
+
+    else if (curr == '\"')
+        flags->in_dquote = 1;
+    
+    tok->data[flags->i] = curr;
+}
+
+static void comments(struct lexer *lex, struct token *tok)
+{
+    char curr = fgetc(lex->filename);
+    while (curr != '\n' && curr != EOF)
+        curr = fgetc(lex->filename);
+    if (tok->data[0] == '\0')
+    {
+        free(tok->data);
+        free(tok);
+        end_of_block_line_file(lex, curr);
+        return;
+    }
+    ungetc(curr, lex->filename);
+}
+
+static void rule_5(struct lexer *lex, struct token *tok, struct lex_flags *flags, char curr)
+{
+    tok->data[flags->i] = curr;
+    curr = fgetc(lex->filename);
+    if (curr == '{')
+    {
+        flags->i++;
+        tok->data[flags->i] = curr;
+        flags->in_variable = 1;
+    }
+    else
+        ungetc(curr, lex->filename);
+}
+
+static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags);
 // WHEN EXE IS KILL CLOSE THE FILE
 void next_token(struct lexer *lex)
 {
@@ -112,24 +141,48 @@ void next_token(struct lexer *lex)
         end_of_block_line_file(lex, tmp);
         return;
     }
-    ungetc(tmp, lex->filename);
-    // fseek(lex->filename, -1, SEEK_CUR);
 
-    struct token *tok = malloc(sizeof(struct token));
-    int len = 20;
-    int i = 0;
-    tok->data = malloc(sizeof(char) * len);
+    struct token *tok = calloc(1, sizeof(struct token));
+    struct lex_flags *flags = init_lex_flags(20);
+    tok->data = calloc(flags->len, sizeof(char));
 
-    // curr = current character et prev = previous character
-    // char prev = '\0';
-    char curr = '\0';
-    // word flag, singlequote flag, doublequote flag
-    int is_word = 0;
-    int in_squote = 0;
-    int in_dquote = 0;
+    // curr = current character
+    char curr = tmp;
+    // word flag, singlequote flag, doublequote flag, operator flag
 
+    if (start_operator(curr))
+    {
+        flags->was_operator = 1;
+        tok->data[flags->i] = curr;
+        flags->i++;
+    }
+    else
+        ungetc(tmp, lex->filename);
+    
+    if (sub_next_token(lex, tok, curr, flags))
+    {
+        free(flags);
+        return;
+    }
+
+    tok->data = realloc(tok->data, flags->i + 1);
+    tok->data[flags->i] = '\0';
+    findtype(tok, flags);
+    lex->tok = tok;
+    free(flags);
+    //puts(lex->tok->data);
+}
+
+/*
+*return 1 if there was a comment so that the rest of next_token is not executed
+*else return 0
+*/
+static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags)
+{
     while (1)
     {
+        // previous character
+        char prev = curr;
         curr = fgetc(lex->filename);
 
         if (curr == EOF)
@@ -138,101 +191,67 @@ void next_token(struct lexer *lex)
             break;
         }
         // CHECK IF NEED TO DOUBLE SIZE
-        len = test_data_full(&(tok->data), i, len);
+        flags->len = test_data_full(&(tok->data), flags->i, flags->len);
 
-        /*
-        else if (!in_squote && !in_dquote && was_operator)
+        if (!flags->in_squote && !flags->in_dquote && flags->was_operator)
         {
-            // char curr = is_operator(prev, curr);
-            puts("TODO");
-        }
-        */
-
-        if (in_squote)
-        {
-            if (curr == '\'')
-                in_squote = 0;
-            tok->data[i] = curr;
+            if (is_operator(prev, curr))
+            {
+                tok->data[flags->i] = curr;
+                flags->i++;
+            }
+            else
+                ungetc(curr, lex->filename);
+            break;
         }
 
-        else if (in_dquote)
-        {
-            if (curr == '\"')
-                in_dquote = 0;
-            tok->data[i] = curr;
-        }
+        else if (flags->in_squote || flags->in_dquote
+                 || curr == '\'' || curr == '\"' || curr == '\\')
+            quote(lex, flags, tok, curr);
 
-        else if (curr == '\'')
-        {
-            in_squote = 1;
-            tok->data[i] = curr;
-        }
+        else if (curr == '$') //|| curr == '`')
+            rule_5(lex, tok, flags, curr);
 
-        else if (curr == '\"')
+        else if (!flags->in_squote && !flags->in_dquote && start_operator(curr))
         {
-            in_dquote = 1;
-            tok->data[i] = curr;
-        }
-
-        else if (curr == '\\')
-        {
-            tok->data[i] = curr;
-            curr = fgetc(lex->filename);
-            tok->data[i] = curr;
+            if (is_number(tok->data))
+                flags->is_ionumber = 1;
+            ungetc(curr, lex->filename);
             break;
         }
 
         else if (curr == ';' || curr == '\n')
         {
-            // fseek(lex->filename, -1, SEEK_CUR);
             ungetc(curr, lex->filename);
             break;
         }
-
-        // rule 5
-        // TODO
-
-        /*else if (!in_quote && start_op(curr))
-        {
-            //TODO
-            // RETURN TOKEN
-        }*/
-
         else if (my_isspace(curr))
             break; // RETURN TOKEN WITHOUT BLANK
 
-        else if (is_word)
-            tok->data[i] = curr;
+        else if (flags->is_word)
+            tok->data[flags->i] = curr;
 
         else if (curr == '#')
         {
-            curr = fgetc(lex->filename);
-            while (curr != '\n' && curr != '\0' && curr != EOF)
-                curr = fgetc(lex->filename);
-            free(tok->data);
-            free(tok);
-            end_of_block_line_file(lex, curr);
-            return;
+            comments(lex, tok);
+            return 1;
         }
 
         else
         {
-            is_word = 1;
-            tok->data[i] = curr;
+            flags->is_word = 1;
+            tok->data[flags->i] = curr;
         }
-        i++;
+        flags->i++;
     }
-    tok->data = realloc(tok->data, i + 1);
-    tok->data[i] = '\0';
-    findtype(tok, is_word);
-    lex->tok = tok;
-    //puts(lex->tok->data);
+    return 0;
 }
 
-/*
-int main(void)
+/*int main(int argc, char *argv[])
 {
-    FILE *ipf = fopen("test.sh", "r");
+    if (argc != 2)
+        printf("sale merde\n");
+    FILE *ipf = fopen(argv[1], "r");
     if (!ipf)
         return -1;
 
@@ -242,14 +261,17 @@ int main(void)
     {
         if (lex->tok->type == END_OF_FILE)
         {
-            printf("Token : \"EOF\"\t\tType : %d\n", lex->tok->type);
+            printf("Token : EOF\t\tType : %d\n", lex->tok->type);
             break;
         }
         if (lex->tok->data[0] == '\n')
-            printf("Token : \"\\n\"\t\tType : %d\n", lex->tok->type);
+            printf("Token : \\n\t\tType : %d\n", lex->tok->type);
         else
-            printf("Token : \"%s\"\t\tType : %d\n", lex->tok->data,
-lex->tok->type); free(lex->tok->data); free(lex->tok); lex->tok = NULL;
+            printf("Token : %s\t\tType : %d\n", lex->tok->data,
+                   lex->tok->type);
+        free(lex->tok->data);
+        free(lex->tok);
+        lex->tok = NULL;
         next_token(lex);
     }
     free_lexer(lex);
