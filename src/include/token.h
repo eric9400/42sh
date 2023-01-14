@@ -3,13 +3,13 @@
 
 enum tok_type
 {
-    //conditional tokens
+    // conditional tokens
     /*IF,
     ELSE,
     THEN,
     ELIF,
     FI,
-    
+
     // loop
     WHILE,
     DO,
@@ -18,20 +18,19 @@ enum tok_type
     FOR,
     IN,*/
 
-    //syntax 
+    // syntax
     SEMICOLON,
     NEWLINE,
     IONUMBER,
     /*S_QUOTE,
     D_QUOTE,*/
-    
+
     WORD,
     ASSIGNEMENT_WORD,
 
     END_OF_FILE,
 
-
-    //all type of operators
+    // all type of operators
     OPERATOR
     /*OP_REDIRECTION,
     OP_AND,
@@ -46,6 +45,6 @@ struct token
     char *data;
 };
 
-//ALL TOKEN FUNCTIONS ARE IN "lexer.h" FOR PRACTICAL REASONS
+// ALL TOKEN FUNCTIONS ARE IN "lexer.h" FOR PRACTICAL REASONS
 
 #endif /*TOKEN_H*/

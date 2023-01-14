@@ -7,7 +7,7 @@ struct vector
 {
     size_t size;
     size_t capacity;
-    char **data;        
+    char **data;
 };
 
 struct vector *vector_init(size_t n);

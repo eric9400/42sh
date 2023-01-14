@@ -1,7 +1,7 @@
-#include "parser.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include "parser.h"
 
 #define SIZE 100
 
@@ -101,7 +101,7 @@ static struct ast *compound_list(struct lexer *lex)
     peek_token(lex);
     if (lex->tok->type == SEMICOLON)
         free_token(lex);
-    
+
     new_lines(lex);
 
     // multiple command

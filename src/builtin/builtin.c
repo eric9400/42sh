@@ -3,7 +3,8 @@
 
 #include "vector.h"
 
-static size_t print_special_char(int f_e, char c, int in_d_quotes, int in_s_quotes)
+static size_t print_special_char(int f_e, char c, int in_d_quotes,
+                                 int in_s_quotes)
 {
     if (!f_e)
     {
@@ -31,8 +32,8 @@ static size_t print_special_char(int f_e, char c, int in_d_quotes, int in_s_quot
 
 static void print_echo(int f_n, int f_e, struct vector *v)
 {
-    int in_s_quotes= 0;
-    int in_d_quotes= 0;
+    int in_s_quotes = 0;
+    int in_d_quotes = 0;
     for (size_t i = 0; i < v->size; i++)
     {
         char *s = v->data[i];
@@ -50,7 +51,8 @@ static void print_echo(int f_n, int f_e, struct vector *v)
             }
             // we have to expand everything from here
             else if (s[j] == '\\')
-                j += print_special_char(f_e, s[j + 1], in_d_quotes, in_s_quotes);
+                j +=
+                    print_special_char(f_e, s[j + 1], in_d_quotes, in_s_quotes);
             else
                 printf("%c", s[j]);
         }

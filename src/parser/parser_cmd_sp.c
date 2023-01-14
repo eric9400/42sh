@@ -1,7 +1,7 @@
-#include "parser.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include "parser.h"
 
 struct ast *simple_command(struct lexer *lex);
 static char *element(struct lexer *lex);

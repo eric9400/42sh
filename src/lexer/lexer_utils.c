@@ -19,7 +19,7 @@ void findtype(struct token *tok, struct lex_flags *flags)
 {
     if (!tok->data)
         return;
-    else if (/*!flags->found_backslash && */flags->is_ionumber)
+    else if (/*!flags->found_backslash && */ flags->is_ionumber)
         tok->type = IONUMBER;
     else if (flags->was_operator)
         tok->type = OPERATOR;
@@ -46,9 +46,9 @@ int test_data_full(char **data, int i, int len)
 int is_operator(char p, char c)
 {
     return (p == '|' && c == '|') || (p == '&' && c == '&')
-            || (p == '>' && c == '>') || (p == '>' && c == '&')
-            || (p == '<' && c == '&') || (p == '>' && c == '|')
-            || (p == '<' && c == '>');
+        || (p == '>' && c == '>') || (p == '>' && c == '&')
+        || (p == '<' && c == '&') || (p == '>' && c == '|')
+        || (p == '<' && c == '>');
 }
 
 int start_operator(char c)

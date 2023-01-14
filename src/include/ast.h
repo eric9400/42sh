@@ -39,7 +39,6 @@ struct ast_if
     struct ast *else_body;
 };
 
-
 struct ast_for
 {
     char *var;
@@ -88,7 +87,6 @@ struct ast_pipe
     struct ast *left;
     struct ast *right;
 };
-
 
 union ast_union
 {

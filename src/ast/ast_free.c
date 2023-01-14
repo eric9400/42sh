@@ -51,7 +51,7 @@ static void free_list(struct ast *ast)
 static void free_cmd(struct ast *ast)
 {
     vector_destroy(ast->data->ast_cmd->arg);
-        free(ast->data->ast_cmd);
+    free(ast->data->ast_cmd);
 }
 /*
 static void free_for(struct ast *ast)

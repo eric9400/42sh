@@ -67,8 +67,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 free_node(ast);
                 continue;
             }
-            return_value = execute(
-                ast, return_value);
+            return_value = execute(ast, return_value);
             if (return_value)
             {
                 /*
