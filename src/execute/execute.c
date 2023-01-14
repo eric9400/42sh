@@ -8,6 +8,25 @@
 #include "ast.h"
 #include "builtin.h"
 
+static char buf[] = 
+"     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣾⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀\n\
+⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡟⠁⣰⣿⣿⣿⡿⠿⠻⠿⣿⣿⣿⣿⣧\n\
+⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⠏⠀⣴⣿⣿⣿⠉⠀⠀⠀⠀⠀⠈⢻⣿⣿⣇\n\
+⠀⠀⠀⠀⢀⣠⣼⣿⣿⡏⠀⢠⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⡀\n\
+⠀⠀⠀⣰⣿⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡇\n\
+⠀⠀⢰⣿⣿⡿⣿⣿⣿⡇⠀⠘⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⢀⣸⣿⣿⣿⠁\n\
+⠀⠀⣿⣿⣿⠁⣿⣿⣿⡇⠀⠀⠻⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⠃\n\
+⠀⢰⣿⣿⡇⠀⣿⣿⣿⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁\n\
+⠀⢸⣿⣿⡇⠀⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠉⠛⠛⠛⠉⢉⣿⣿\n\
+⠀⢸⣿⣿⣇⠀⣿⣿⣿⠀⠀⠀⠀⠀⢀⣤⣤⣤⡀⠀⠀⢸⣿⣿⣿⣷⣦\n\
+⠀⠀⢻⣿⣿⣶⣿⣿⣿⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣦⡀⠀⠉⠉⠻⣿⣿⡇\n\
+⠀⠀⠀⠛⠿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠈⠹⣿⣿⣇⣀⠀⣠⣾⣿⣿⡇\n\
+⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣿⣿⣦⣤⣤⣤⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟\n\
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠻⢿⣿⣿⣿⣿⣿⣿⠿⠋⠉⠛⠋⠉⠉⠁\n\
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀"
+;
+
 int execute(struct ast *ast, int return_value);
 int func_if(struct ast *ast, int return_value);
 int func_list(struct ast *ast, int return_value);
@@ -30,9 +49,7 @@ int func_list(struct ast *ast, int return_value)
         execute(ast->data->ast_list->cmd_if[i], return_value);
 
     // only check last return code from the command
-    if (execute(ast->data->ast_list->cmd_if[size], return_value) != 0)
-        return 2;
-    return 0;
+    return execute(ast->data->ast_list->cmd_if[size], return_value);
 }
 
 int check_builtin(char **str, int return_value)
@@ -43,20 +60,29 @@ int check_builtin(char **str, int return_value)
         return 1;
     if (!strcmp(str[0], "echo"))
         return echo(str, return_value);
-    return 3;
+    return -1;
 }
 
 int func_cmd(struct ast *ast, int return_value)
 {
     int code = check_builtin(ast->data->ast_cmd->arg->data, return_value);
-    if (code < 3)
+    if (code != -1)
         return code;
     int pid = fork();
+
     // child
     if (!pid)
     {
         execvp(ast->data->ast_cmd->arg->data[0], ast->data->ast_cmd->arg->data);
-        return 2;
+        if (errno == ENOENT)
+        {
+            fprintf(stderr, "%s\n", buf);
+            fprintf(stderr, "%s: command not found\n", ast->data->ast_cmd->arg->data[0]);
+            exit(127);
+        }
+        if (errno == ENOEXEC)
+            exit(126);
+        exit(2);
     }
     else
     {
