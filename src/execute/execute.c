@@ -58,11 +58,12 @@ static char *is_special_var(char *str, int return_value)
 {
     char buf[1000];
 
-    if (!strcmp(str, "@") || !strcmp(str, "*"))
+    /*if (!strcmp(str, "@") || !strcmp(str, "*"))
     {
 
     }
-    else if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
+    else */
+    if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
         || !strcmp(str, "IFS"))
     {
         const char *res = hash_map_get(hashmap, str);
