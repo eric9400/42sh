@@ -92,8 +92,10 @@ static struct ast *compound_list(struct lexer *lex)
     struct ast_list *list = init_list(SIZE);
     struct ast *node = and_or(lex);
     if (!node)
+    {
+        free_node(convert_node_ast(AST_LIST, list));
         return error_handler(lex, 1, "ERROR COMPOUND_LIST: NO MATCHIN PATTERN");
-
+    }
     add_to_list(list, node);
 
     compound_list2(lex, list);
