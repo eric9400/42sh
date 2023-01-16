@@ -17,12 +17,12 @@ enum ast_type
     AST_OR,
     AST_NOT,
 
-    AST_PREFIX,
+    //AST_PREFIX,
     AST_REDIR,
     AST_PIPE,
-    AST_ELEMENT,
-    AST_SP_CMD,
-    AST_SH_CMD
+    //AST_ELEMENT,
+    //AST_SP_CMD,
+    //AST_SH_CMD
 };
 
 enum redir_type
@@ -39,7 +39,7 @@ enum redir_type
     LEFT_RIGHT  // <>
 };
 
-struct ast_sp_cmd
+/*struct ast_sp_cmd
 {
     size_t size_prefix;
     size_t size_element;
@@ -53,18 +53,19 @@ struct ast_sh_cmd
     size_t size_redir;
     struct ast *cmd;
     struct ast **redir;
-};
-
-struct ast_cmd
-{
-    struct vector *arg;
-};
+};*/
 
 struct ast_list
 {
     size_t size;
     size_t capacity;
-    struct ast **cmd_if;
+    struct ast **cmd_if;//changer plus tard
+};
+
+struct ast_cmd
+{
+    struct vector *arg;
+    struct ast_list *redir;
 };
 
 struct ast_if
@@ -111,7 +112,7 @@ struct ast_not
 };
 
 // One of the two parameters is NULL
-struct ast_prefix
+/*struct ast_prefix
 {
     char *assign_word;
     struct ast *redir;
@@ -121,11 +122,11 @@ struct ast_element
 {
     char *word;
     struct ast *redir;
-};
+};*/
 
 struct ast_redir
 {
-    char *io_number;
+    int io_number;
     char *exit_file;
     enum redir_type type;
 };
@@ -140,8 +141,8 @@ struct ast_pipe
 union ast_union
 {
     struct ast_cmd *ast_cmd;
-    struct ast_sp_cmd *ast_sp_cmd;
-    struct ast_sh_cmd *ast_sh_cmd;
+    //struct ast_sp_cmd *ast_sp_cmd;
+    //struct ast_sh_cmd *ast_sh_cmd;
     struct ast_list *ast_list;
     struct ast_if *ast_if;
 
@@ -154,8 +155,8 @@ union ast_union
     struct ast_not *ast_not;
 
     struct ast_redir *ast_redir;
-    struct ast_prefix *ast_prefix;
-    struct ast_element *ast_element;
+    //struct ast_prefix *ast_prefix;
+    //struct ast_element *ast_element;
     struct ast_pipe *ast_pipe;
 };
 

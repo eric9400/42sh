@@ -86,16 +86,16 @@ void ugly_print(struct ast *ast)
         print_list(ast);
     else if (ast->type == AST_CMD)
         print_cmd(ast);
-    else if (ast->type == AST_PREFIX)
-        print_prefix(ast);
+    /*else if (ast->type == AST_PREFIX)
+        print_prefix(ast);*/
     else if (ast->type == AST_REDIR)
         print_redirect(ast);
-    else if (ast->type == AST_SP_CMD)
+    /*else if (ast->type == AST_SP_CMD)
         print_sp_cmd(ast);
     else if (ast->type == AST_SH_CMD)
         print_sh_cmd(ast);
     else if (ast->type == AST_ELEMENT)
-        print_element(ast);
+        print_element(ast);*/
     else if (ast->type == AST_AND)
         print_and(ast);
     else if (ast->type == AST_OR)
@@ -139,6 +139,7 @@ static void print_cmd(struct ast *ast)
     }
     for (size_t i = 0; i < v->size - 1; i++)
         printf("%s ", v->data[i]);
+    print_list(ast->data->ast_cmd->redir);
 }
 
 static void print_for(struct ast *ast)
@@ -190,6 +191,7 @@ static void print_not(struct ast *ast)
     ugly_print(ast->data->ast_not->node);
 }
 
+/*
 static void print_sp_cmd(struct ast *ast)
 {
     printf("sp_cmd : \n");
@@ -243,7 +245,7 @@ static void print_prefix(struct ast *ast)
         printf("%s ", ast->data->ast_prefix->assign_word);
     if (ast->data->ast_prefix->redir)
         ugly_print(ast->data->ast_prefix->redir);
-}
+}*/
 
 static void print_redirect(struct ast *ast)
 {

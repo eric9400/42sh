@@ -4,7 +4,6 @@
 #include "ast.h"
 #include "vector.h"
 
-void *init_ast(enum ast_type type, size_t capacity);
-
+void *init_ast(enum ast_type type);
 
 #endif /* AST_INIT_H */

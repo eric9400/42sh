@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static struct ast_cmd *init_cmd(void);
+#define SIZE 100
+
+static struct ast_cmd *init_cmd(size_t capacity);
 static struct ast_list *init_list(size_t capacity);
 static struct ast_if *init_if(void);
 static struct ast_for *init_for(void);
@@ -19,14 +21,14 @@ static struct ast_element *init_element(void);
 static struct ast_sp_cmd *init_sp_cmd(void);
 static struct ast_sh_cmd *init_sh_cmd(void);
 
-void *init_ast(enum ast_type type, size_t capacity)
+void *init_ast(enum ast_type type)
 {
     if (type == AST_CMD)
-        return init_cmd();
+        return init_cmd(SIZE);
     else if (type == AST_IF)
         return init_if();
     else if (type == AST_LIST)
-        return init_list(capacity);
+        return init_list(SIZE);
     else if (type == AST_FOR)
         return init_for();
     else if (type == AST_WHILE)
@@ -43,18 +45,19 @@ void *init_ast(enum ast_type type, size_t capacity)
         return init_redir();
     else if (type == AST_PIPE)
         return init_pipe();
-    else if (type == AST_PREFIX)
+    /*else if (type == AST_PREFIX)
         return init_prefix();
     else if (type == AST_ELEMENT)
         return init_element();
     else if (type == AST_SP_CMD)
         return init_sp_cmd();
     else if (type == AST_SH_CMD)
-        return init_sh_cmd();
+        return init_sh_cmd();*/
     return NULL;
     // ADD NEW AST INIT HERE
 }
 
+/*
 static struct ast_sp_cmd *init_sp_cmd(void)
 {
     struct ast_sp_cmd *ast_cmd = calloc(1, sizeof(struct ast_sp_cmd));
@@ -73,12 +76,13 @@ static struct ast_sh_cmd *init_sh_cmd(void)
     cmd->size_redir = 0;
     cmd->redir = NULL;
     return cmd;
-}
+}*/
 
-static struct ast_cmd *init_cmd(void)
+static struct ast_cmd *init_cmd(size_t capacity)
 {
     struct ast_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));
     ast_cmd->arg = vector_init(10);
+    struct ast_list *redir = init_list(capacity);
     return ast_cmd;
 }
 
@@ -116,29 +120,30 @@ static struct ast_until *init_until(void)
     return ast_until;
 }
 
+/*
 static struct ast_prefix *init_prefix(void)
 {
     struct ast_prefix *ast_prefix = calloc(1, sizeof(struct ast_prefix));
     ast_prefix->assign_word = NULL;
     ast_prefix->redir = NULL;
     return ast_prefix;
-}
+}*/
 
 static struct ast_redir *init_redir(void)
 {
     struct ast_redir *ast_redir = calloc(1, sizeof(struct ast_redir));
-    ast_redir->io_number = NULL;
+    ast_redir->io_number = -1;
     ast_redir->exit_file = NULL;
     return ast_redir;
 }
 
-static struct ast_element *init_element(void)
+/*static struct ast_element *init_element(void)
 {
     struct ast_element *ast_element = calloc(1, sizeof(struct ast_element));
     ast_element->word = NULL;
     ast_element->redir = NULL;
     return ast_element;
-}
+}*/
 
 static struct ast_for *init_for(void)
 {
