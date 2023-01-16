@@ -22,8 +22,12 @@ subdir('parser')
 subdir('utils')
 
 dependencies_temp = [
-  parser_lib,
+  ast_lib,
+  builtin_lib,
+  execute_lib,
   lexer_lib,
+  parser_lib,
+  utils_lib,
 ]
 
 exe = executable('42sh',
