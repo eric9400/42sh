@@ -13,7 +13,6 @@ struct ast *input(struct lexer *lex);
 struct ast *simple_command(struct lexer *lex);
 struct ast *shell_command(struct lexer *lex);
 struct ast *and_or(struct lexer *lex);
-struct ast *prefix(struct lexer *lex);
 struct ast *redirection(struct lexer *lex);
 
 // UTILS

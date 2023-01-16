@@ -3,18 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void free_if(struct ast *ast);
-static void free_list(struct ast *ast);
-static void free_cmd(struct ast *ast);
-/*static void free_for(struct ast *ast);
-static void free_while(struct ast *ast);
-static void free_until(struct ast *ast);
-static void free_and(struct ast *ast);
-static void free_or(struct ast *ast);
-static void free_not(struct ast *ast);
-static void free_redirect(struct ast *ast);
-static void free_pipe(struct ast *ast);*/
-
 static void free_if(struct ast *ast)
 {
     if (ast->data->ast_if->condition)
@@ -37,6 +25,7 @@ static void free_list(struct ast *ast)
 static void free_cmd(struct ast *ast)
 {
     vector_destroy(ast->data->ast_cmd->arg);
+    free_list(ast->data->ast_cmd->redir);
     free(ast->data->ast_cmd);
 }
 

@@ -48,7 +48,7 @@ static struct ast *rule_if(struct lexer *lex, int is_if)
         return NULL;
     free_token(lex);
 
-    struct ast_if *if_node = init_ast(AST_IF, 0);
+    struct ast_if *if_node = init_ast(AST_IF);
 
     if_node->condition = compound_list(lex); // list or cmd
     if (!if_node->condition || lex->error == 2)
@@ -113,7 +113,7 @@ static struct ast *compound_list(struct lexer *lex)
 {
     new_lines(lex); // will have stock the first token non new_line in lex
 
-    struct ast_list *list = init_ast(AST_LIST, SIZE);
+    struct ast_list *list = init_ast(AST_LIST);
     struct ast *node = and_or(lex);
     if (!node)
     {
@@ -166,7 +166,7 @@ static struct ast *rule_while(struct lexer *lex)
         return NULL;
     free_token(lex);
 
-    struct ast_while *while_node = init_ast(AST_WHILE, 0);
+    struct ast_while *while_node = init_ast(AST_WHILE);
 
     while_node->condition = compound_list(lex);
     if (!while_node->condition || lex->error == 2)
@@ -210,7 +210,7 @@ static struct ast *rule_until(struct lexer *lex)
         return NULL;
     free_token(lex);
 
-    struct ast_until *until_node = init_ast(AST_UNTIL, 0);
+    struct ast_until *until_node = init_ast(AST_UNTIL);
 
     until_node->condition = compound_list(lex);
     if (!until_node->condition || lex->error == 2)
@@ -268,7 +268,7 @@ struct ast *rule_for(struct lexer *lex)
     if (lex->tok->type != WORD || strcmp("for", lex->tok->data))
         return NULL;
 
-    struct ast_for *for_node = init_ast(AST_FOR, 0);
+    struct ast_for *for_node = init_ast(AST_FOR);
 
     free_peek(lex);
 

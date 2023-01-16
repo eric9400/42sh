@@ -3,14 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SIZE 100
-
 struct ast *input(struct lexer *lex);
 static struct ast *list(struct lexer *lex);
 static void list2(struct lexer *lex, struct ast_list *exec_tree);
 struct ast *and_or(struct lexer *lex);
 static struct ast *pipeline(struct lexer *lex);
 static struct ast *command(struct lexer *lex);
+static void command2(struct ast_list *redir_list, struct lexer *lex);
 
 /*
  * check if the current token is a shell command
@@ -49,7 +48,7 @@ struct ast *input(struct lexer *lex)
     if (lex->tok->type == NEWLINE) // Si on a une ligne vide
     {
         free_token(lex);
-        struct ast_cmd *cmd = init_ast(AST_CMD, 0);
+        struct ast_cmd *cmd = init_ast(AST_CMD);
         vector_append(cmd->arg, strdup("")); // faire la modif
         return convert_node_ast(AST_CMD, cmd);
     }
@@ -73,7 +72,7 @@ struct ast *input(struct lexer *lex)
 
 static struct ast *list(struct lexer *lex)
 {
-    struct ast_list *exec_tree = init_ast(AST_LIST, SIZE);
+    struct ast_list *exec_tree = init_ast(AST_LIST);
 
     struct ast *head_cmd = and_or(lex);
     if (head_cmd != NULL)
@@ -120,7 +119,7 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
 static void and_condition(struct lexer *lex, struct ast *parent, int child, struct ast *pipe)
 {
     free_token(lex);
-    struct ast_and *new = init_ast(AST_AND, 0);
+    struct ast_and *new = init_ast(AST_AND);
     if (!child)
         new->left = pipe;
     else
@@ -143,7 +142,7 @@ static void and_condition(struct lexer *lex, struct ast *parent, int child, stru
 static void or_condition(struct lexer *lex, struct ast *parent, int child, struct ast *pipe)
 {
     free_token(lex);
-    struct ast_or *new = init_ast(AST_OR, 0);
+    struct ast_or *new = init_ast(AST_OR);
     
     if (!child)
         new->left = pipe;
@@ -208,7 +207,7 @@ static struct ast *pipeline(struct lexer *lex)
     if (lex->tok->type == WORD && !strcmp(lex->tok->data, "!"))
     {    
         free_token(lex);
-        not = init_ast(AST_NOT, 0);
+        not = init_ast(AST_NOT);
     }
 
     struct ast *cmd = command(lex);
@@ -249,7 +248,7 @@ static struct ast *pipeline(struct lexer *lex)
             return NULL;
         }
 
-        struct ast_pipe *pipe = init_ast(AST_PIPE, 0);
+        struct ast_pipe *pipe = init_ast(AST_PIPE);
 
         pipe->left = parent;
         pipe->right = cmd2;
@@ -266,111 +265,91 @@ static struct ast *command(struct lexer *lex)
 
     if (!cmd)
     {
-        struct ast *tmp_cmd = shell_command(lex);
+        struct ast *cmd = shell_command(lex);
 
-        if (!tmp_cmd)
+        if (!cmd)
             return error_handler(lex, 0, "ERROR");
             //flag print is set to 0 to not print the error message
 
-        struct ast_sh_cmd *sh_cmd = init_ast(AST_SH_CMD, 0);
-        sh_cmd->cmd = tmp_cmd;
-        struct ast *redir = redirection(lex);
-
-        while (redir)
-        {
-            sh_cmd->redir[sh_cmd->size_redir] = redir;
-            sh_cmd->size_redir++;
-            redir = redirection(lex);
-        }
-
-        return convert_node_ast(AST_SH_CMD, sh_cmd);
+        command2(cmd->data->ast_cmd->redir, lex);
     }
-
     return cmd;
 }
 
-struct ast *prefix(struct lexer *lex)
+static void command2(struct ast_list *redir_list, struct lexer *lex)
 {
-    peek_token(lex);
-
-    struct ast_prefix *pref = init_ast(AST_PREFIX, 0);
-
-    if(lex->tok->type == ASSIGNEMENT_WORD)
-    {
-        pref->assign_word = strdup(lex->tok->data);
-        return convert_node_ast(AST_PREFIX,pref);
-    }
-
     struct ast *redir = redirection(lex);
-
     if (!redir)
+        return;
+    
+    add_to_list(redir_list, redir);
+    command2(redir_list, lex);
+}
+
+static void find_type_redir(struct lexer *lex, struct ast_redir *redir)
+{
+    if (!strcmp(">", lex->tok->data))
+        redir->type = S_RIGHT;
+    else if (!strcmp("<", lex->tok->data))
+        redir->type = S_LEFT;
+    else if (!strcmp(">>", lex->tok->data))
+        redir->type = D_RIGHT;
+    else if (!strcmp(">&", lex->tok->data))
+        redir->type = RIGHT_AND;
+    else if (!strcmp("<&", lex->tok->data))
+        redir->type = LEFT_AND;
+    else if (!strcmp(">|", lex->tok->data))
+        redir->type = RIGHT_PIP; 
+    else if (!strcmp("<>", lex->tok->data))
+        redir->type = LEFT_RIGHT;
+    else
     {
-        free_node(convert_node_ast(AST_PREFIX, pref));
-        return NULL;
+        if(redir->io_number != -1)
+            lex->error = 2;
+        free_node(convert_node_ast(AST_REDIR, redir));       
     }
+}
 
-    pref->redir = redir;
-
-    return convert_node_ast(AST_PREFIX,pref);
+static void default_ionb(struct lexer *lex, struct ast_redir *redir)
+{
+    if (lex->tok->data[0] == '>')
+        redir->io_number = 0;
+    else
+        redir->io_number = 1;
 }
 
 struct ast *redirection(struct lexer *lex)
 {
     peek_token(lex);
 
-    int io_number; // 0 if no ionumber specified 1 otherwise
-
-    struct ast_redir *redir = init_ast(AST_REDIR, 0);
+    struct ast_redir *redir = init_ast(AST_REDIR);
 
     if (lex->tok->type == IO_NUMBER)
     {
-        redir->io_number = strdup(lex->tok->data);
+        redir->io_number = atoi(lex->tok->data);
         free_token(lex);
         peek_token(lex);
-        io_number = 1;
     }
 
-    if (lex->tok->type != WORD)
+    if (lex->tok->type != OPERATOR)
     {
-        if(!io_number)
+        if(redir->io_number != -1)
             lex->error = 2;
         free_node(convert_node_ast(AST_REDIR, redir));
         return NULL;
     }
 
-    char *data = lex->tok->data;
-
-    if (!strcmp(">", data))
-        redir->type = S_RIGHT;
-    else if (!strcmp("<", data))
-        redir->type = S_LEFT;
-    else if (!strcmp(">>", data))
-        redir->type = D_RIGHT;
-    else if (!strcmp(">&", data))
-        redir->type = RIGHT_AND;
-    else if (!strcmp("<&", data))
-        redir->type = LEFT_AND;
-    else if (!strcmp(">|", data))
-        redir->type = RIGHT_PIP; 
-    else if (!strcmp("<>", data))
-        redir->type = LEFT_RIGHT;
-    else
-    {
-        if(!io_number)
-            lex->error = 2;
-        free_node(convert_node_ast(AST_REDIR, redir));
-        return NULL;        
-    } 
-
+    find_type_redir(lex, redir);
+    if (!redir)
+        return NULL;
+    
+    default_ionb(lex, redir);
     free_token(lex);
     peek_token(lex);
-
     if (lex->tok->type != WORD)
     {
-        if(io_number)
-            lex->error = 2;
         free_node(convert_node_ast(AST_REDIR, redir));
-        return NULL;
+        return error_handler(lex, 1, "ERROR REDIRECTION : LACK OF WORD");
     }
 
     redir->exit_file = strdup(lex->tok->data);

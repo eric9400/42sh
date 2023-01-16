@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static struct ast_cmd *init_cmd(void);
+#define SIZE 100
+
+static struct ast_cmd *init_cmd(size_t capacity);
 static struct ast_list *init_list(size_t capacity);
 static struct ast_if *init_if(void);
 static struct ast_for *init_for(void);
@@ -15,14 +17,14 @@ static struct ast_not *init_not(void);
 static struct ast_redir *init_redir(void);
 static struct ast_pipe *init_pipe(void);
 
-void *init_ast(enum ast_type type, size_t capacity)
+void *init_ast(enum ast_type type)
 {
     if (type == AST_CMD)
-        return init_cmd();
+        return init_cmd(SIZE);
     else if (type == AST_IF)
         return init_if();
     else if (type == AST_LIST)
-        return init_list(capacity);
+        return init_list(SIZE);
     else if (type == AST_FOR)
         return init_for();
     else if (type == AST_WHILE)
@@ -43,10 +45,11 @@ void *init_ast(enum ast_type type, size_t capacity)
     // ADD NEW AST INIT HERE
 }
 
-static struct ast_cmd *init_cmd(void)
+static struct ast_cmd *init_cmd(size_t capacity)
 {
     struct ast_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));
     ast_cmd->arg = vector_init(10);
+    struct ast_list *redir = init_list(capacity);
     return ast_cmd;
 }
 
@@ -87,7 +90,7 @@ static struct ast_until *init_until(void)
 static struct ast_redir *init_redir(void)
 {
     struct ast_redir *ast_redir = calloc(1, sizeof(struct ast_redir));
-    ast_redir->io_number = 0;
+    ast_redir->io_number = -1;
     ast_redir->exit_file = NULL;
     return ast_redir;
 }
