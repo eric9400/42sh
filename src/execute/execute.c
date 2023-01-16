@@ -111,7 +111,7 @@ static int func_list(struct ast *ast, int return_value)
     return execute(ast->data->ast_list->cmd_if[size], return_value);
 }
 
-static struct stock_fd *func_redir(struct ast_list *redir, int return_value)
+static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error)
 {
     struct stock_fd *stock_fd = NULL;
     int res = 0;
@@ -153,6 +153,7 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value)
     {
         fprintf(stderr, "redirection: something went wrong\n");
         destroy_stock_fd(stock_fd);
+        *error = 1;
         return NULL;
     }
     return stock_fd;
@@ -160,9 +161,10 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value)
 
 static int func_cmd(struct ast *ast, int return_value)
 {
-    struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value);
-    if (stock_fd == NULL)
-        return 1;
+    int error_redir = 0;
+    struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
+    if (stock_fd == NULL && error_redir != 0)
+        return error_redir;
     size_t size = ast->data->ast_cmd->arg->size;
     int *marker = calloc(size, sizeof(int));
     //CALL NEW FUNCTION TO EXPAND $@ OR $* AND REARRANGE VECTOR
@@ -203,6 +205,7 @@ static int func_cmd(struct ast *ast, int return_value)
         return WEXITSTATUS(status);
     }
     destroy_stock_fd(stock_fd);
+    return 0;
 }
 
 /*
@@ -234,9 +237,7 @@ int execute(struct ast *ast, int return_value)
             return func_or(ast, return_value);
         case AST_NOT:
             return func_not(ast, return_value);
-        /*case AST_REDIR:
-            return func_redir(ast, return_value);
-        case AST_PIPE:
+        /*case AST_PIPE:
             return func_pipe(ast, return_value);
         */default:
             return 19;

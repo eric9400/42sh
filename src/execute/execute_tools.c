@@ -15,7 +15,7 @@ void split_vector(int *marker, struct ast *ast)
     size_t len = ast->data->ast_cmd->arg->size;
     struct vector *v = vector_init(len + 1);
     char **data = ast->data->ast_cmd->arg->data;
-    for (size_t i = 0; i < len - 1; i++)
+    for (size_t i = 0; i < len; i++) ///BABABJIIIIIIIIIIIIIIi
     {
         // case when we expanded
         if (marker[i])

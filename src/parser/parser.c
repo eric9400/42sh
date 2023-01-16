@@ -312,7 +312,7 @@ static void find_type_redir(struct lexer *lex, struct ast_redir *redir)
 
 static void default_ionb(struct lexer *lex, struct ast_redir *redir)
 {
-    if (lex->tok->data[0] == '>')
+    if (lex->tok->data[0] == '<' || (lex->tok->data[0] == '<' && lex->tok->data[1] == '>') || (lex->tok->data[0] == '<' && lex->tok->data[1] == '&'))
         redir->io_number = 0;
     else
         redir->io_number = 1;

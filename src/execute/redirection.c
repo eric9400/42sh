@@ -33,10 +33,10 @@ static struct stock_fd *prepend_stock_fd(int old_fd, int new_fd, struct stock_fd
 // 1>toto.txt
 int redir_s_right(struct ast *ast, struct stock_fd **list)
 {
-    errno = 0;
-    int fd = atoi(ast->data->ast_redir->exit_file);
-    if (errno != 0) //FILE
-        fd = open(ast->data->ast_redir->exit_file, O_WRONLY | O_TRUNC | O_CREAT); 
+    int fd = atoi(ast->data->ast_redir->exit_file); //MIGHT CHANGE HERE IF exit_file == "0"
+    if (fd == 0) //FILE
+        //fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT, 00666); 
+        fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT | O_WRONLY); 
     if (fd == -1)
         return 1;
     int fd_dup = dup(ast->data->ast_redir->io_number);
@@ -56,7 +56,7 @@ int redir_s_left(struct ast *ast, struct stock_fd **list, int GDDN)
         if (GDDN) //IF EXPECT A NUMBER ON RIGHT SIDE (WHEN 1<&2)
             return 1;
         else
-            fd = open(ast->data->ast_redir->exit_file, O_RDONLY | O_APPEND);
+            fd = open(ast->data->ast_redir->exit_file, O_APPEND);
     }
     if (fd == -1)
         return 1;
@@ -73,7 +73,7 @@ int redir_d_right(struct ast *ast, struct stock_fd **list)
     errno = 0;
     int fd = atoi(ast->data->ast_redir->exit_file);
     if (errno != 0) 
-        fd = open(ast->data->ast_redir->exit_file, O_WRONLY | O_CREAT | O_APPEND);
+        fd = open(ast->data->ast_redir->exit_file, O_CREAT | O_APPEND, 00666);
     if (fd == -1)
         return 1;
     int fd_dup = dup(ast->data->ast_redir->io_number);
