@@ -35,8 +35,7 @@ int redir_s_right(struct ast *ast, struct stock_fd **list)
 {
     int fd = atoi(ast->data->ast_redir->exit_file); //MIGHT CHANGE HERE IF exit_file == "0"
     if (fd == 0) //FILE
-        fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT, 00666); 
-        //fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT | O_WRONLY); 
+        fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT | O_WRONLY, 00666); 
     if (fd == -1)
         return 1;
     int fd_dup = dup(ast->data->ast_redir->io_number);
