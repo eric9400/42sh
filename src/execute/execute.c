@@ -181,7 +181,10 @@ static int func_cmd(struct ast *ast, int return_value)
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, return_value);
     if (code != -1)
+    {
+        destroy_stock_fd(stock_fd);
         return code;
+    }
     int pid = fork();
 
     // child
