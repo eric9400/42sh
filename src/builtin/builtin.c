@@ -3,12 +3,17 @@
 
 #include "vector.h"
 
+static int is_backslashable(char c)
+{
+    return c == '\\' || c == '`';
+}
+
 static size_t print_special_char(int f_e, char c, int in_d_quotes,
                                  int in_s_quotes)
 {
     if (!f_e)
     {
-        if (in_d_quotes || in_s_quotes)
+        if (in_s_quotes || (in_d_quotes && !is_backslashable(c)))
             printf("\\");
         printf("%c", c);
         return 1;
