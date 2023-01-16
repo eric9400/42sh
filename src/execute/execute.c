@@ -43,11 +43,11 @@ static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
 
 static int func_prefix(struct ast *ast, int return_value);
-static int func_redir(struct ast *ast, int return_value);
-static int func_pipe(struct ast *ast, int return_value);
-static int func_element(struct ast *ast, int return_value);
-static int func_sp_cmd(struct ast *ast, int return_value);
-static int func_sh_cmd(struct ast *ast, int return_value);
+//static int func_redir(struct ast *ast, int return_value);
+//static int func_pipe(struct ast *ast, int return_value);
+//static int func_element(struct ast *ast, int return_value);
+//static int func_sp_cmd(struct ast *ast, int return_value);
+//static int func_sh_cmd(struct ast *ast, int return_value);
 
 /*
  * \return 0 if expand name is valid else return 1
@@ -289,18 +289,18 @@ static int func_for(struct ast *ast, int return_value)
 
 static int func_and(struct ast *ast, int return_value)
 {
-    int left = execute(ast->data->ast_and->left);
+    int left = execute(ast->data->ast_and->left, return_value);
     if (left)
         return left;
-    return execute(ast->data->ast_and->right);
+    return execute(ast->data->ast_and->right, return_value);
 }
 
 static int func_or(struct ast *ast, int return_value)
 {
-    int left = execute(ast->data->ast_or->left);
+    int left = execute(ast->data->ast_or->left, return_value);
     if (!left)
         return 0;
-    return execute(ast->data->ast_or->right);
+    return execute(ast->data->ast_or->right, return_value);
 }
 
 static int func_not(struct ast *ast, int return_value)
@@ -409,7 +409,7 @@ int execute(struct ast *ast, int return_value)
             return func_not(ast, return_value);
         case AST_PREFIX:
             return func_prefix(ast, return_value);
-        case AST_REDIR:
+        /*case AST_REDIR:
             return func_redir(ast, return_value);
         case AST_PIPE:
             return func_pipe(ast, return_value);
@@ -419,7 +419,7 @@ int execute(struct ast *ast, int return_value)
             return func_sp_cmd(ast, return_value);
         case AST_SH_CMD:
             return func_sh_cmd(ast, return_value);       
-        default:
+        */default:
             return 19;
             // ADD NEW AST EXECUTE HERE
     }
