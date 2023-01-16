@@ -42,12 +42,8 @@ static int func_and(struct ast *ast, int return_value);
 static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
 
-static int func_prefix(struct ast *ast, int return_value);
-static int func_redir(struct ast *ast, int return_value);
-static int func_pipe(struct ast *ast, int return_value);
-static int func_element(struct ast *ast, int return_value);
-static int func_sp_cmd(struct ast *ast, int return_value);
-static int func_sh_cmd(struct ast *ast, int return_value);
+//static int func_redir(struct ast *ast, int return_value);
+//static int func_pipe(struct ast *ast, int return_value);
 
 /*
  * \return 0 if expand name is valid else return 1
@@ -289,31 +285,23 @@ static int func_for(struct ast *ast, int return_value)
 
 static int func_and(struct ast *ast, int return_value)
 {
-    int left = execute(ast->data->ast_and->left);
+    int left = execute(ast->data->ast_and->left, return_value);
     if (left)
         return left;
-    return execute(ast->data->ast_and->right);
+    return execute(ast->data->ast_and->right, return_value);
 }
 
 static int func_or(struct ast *ast, int return_value)
 {
-    int left = execute(ast->data->ast_or->left);
+    int left = execute(ast->data->ast_or->left, return_value);
     if (!left)
         return 0;
-    return execute(ast->data->ast_or->right);
+    return execute(ast->data->ast_or->right, return_value);
 }
 
 static int func_not(struct ast *ast, int return_value)
 {
     return !execute(ast->data->ast_not->node, return_value);
-}
-
-static int func_prefix(struct ast *ast, int return_value)
-{
-    if (ast != NULL)
-        return execute(ast->data->ast_prefix->redir, return_value);
-    //ASSIGNMENT WORD
-    return 0;
 }
 
 static int func_if(struct ast *ast, int return_value)
@@ -407,19 +395,11 @@ int execute(struct ast *ast, int return_value)
             return func_or(ast, return_value);
         case AST_NOT:
             return func_not(ast, return_value);
-        case AST_PREFIX:
-            return func_prefix(ast, return_value);
-        case AST_REDIR:
+        /*case AST_REDIR:
             return func_redir(ast, return_value);
         case AST_PIPE:
             return func_pipe(ast, return_value);
-        case AST_ELEMENT:
-            return func_element(ast, return_value);
-        case AST_SP_CMD:
-            return func_sp_cmd(ast, return_value);
-        case AST_SH_CMD:
-            return func_sh_cmd(ast, return_value);       
-        default:
+        */default:
             return 19;
             // ADD NEW AST EXECUTE HERE
     }

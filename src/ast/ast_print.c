@@ -14,12 +14,6 @@ static void print_or(struct ast *ast);
 static void print_not(struct ast *ast);
 static void print_redirect(struct ast *ast);
 static void print_pipe(struct ast *ast);
-static void print_prefix(struct ast *ast);
-static void print_element(struct ast *ast);
-static void print_sh_cmd(struct ast *ast);
-static void print_sp_cmd(struct ast *ast);
-
-
 
 static void print_tab(int tab)
 {
@@ -74,7 +68,7 @@ void ugly_print(struct ast *ast)
 {
     if (!ast)
         printf("NULL");
-    if (ast->type == AST_IF)
+    else if (ast->type == AST_IF)
         print_if(ast);
     else if (ast->type == AST_WHILE)
         print_while(ast);
@@ -86,16 +80,8 @@ void ugly_print(struct ast *ast)
         print_list(ast);
     else if (ast->type == AST_CMD)
         print_cmd(ast);
-    /*else if (ast->type == AST_PREFIX)
-        print_prefix(ast);*/
     else if (ast->type == AST_REDIR)
         print_redirect(ast);
-    /*else if (ast->type == AST_SP_CMD)
-        print_sp_cmd(ast);
-    else if (ast->type == AST_SH_CMD)
-        print_sh_cmd(ast);
-    else if (ast->type == AST_ELEMENT)
-        print_element(ast);*/
     else if (ast->type == AST_AND)
         print_and(ast);
     else if (ast->type == AST_OR)
@@ -108,13 +94,13 @@ void ugly_print(struct ast *ast)
 
 static void print_if(struct ast *ast)
 {
-    printf("if ");
+    printf("\nif ");
     ugly_print(ast->data->ast_if->condition);
-    printf("then ");
+    printf("then \n");
     ugly_print(ast->data->ast_if->then);
-    printf("else ");
+    printf("\nelse ");
     ugly_print(ast->data->ast_if->else_body);
-    printf("fi ");
+    printf("\nfi ");
 }
 
 static void print_list(struct ast *ast)
@@ -122,7 +108,7 @@ static void print_list(struct ast *ast)
     ugly_print(ast->data->ast_list->cmd_if[0]);
     for (size_t i = 1; i < ast->data->ast_list->size; i++)
     {
-        printf("; ");
+        printf("; \n");
         ugly_print(ast->data->ast_list->cmd_if[i]);
     }
 }
@@ -153,17 +139,18 @@ static void print_for(struct ast *ast)
 
 static void print_while(struct ast *ast)
 {
-    printf("while ");
+    printf("\nwhile ");
     ugly_print(ast->data->ast_while->condition);
-    printf("do ");
+    printf("\ndo ");
     ugly_print(ast->data->ast_while->while_body);
+    printf("\ndone ");
 }
 
 static void print_until(struct ast *ast)
 {
-    printf("until ");
+    printf("\nuntil ");
     ugly_print(ast->data->ast_until->condition);
-    printf("do ");
+    printf("\ndo ");
     ugly_print(ast->data->ast_until->until_body);
 }
 
@@ -191,66 +178,10 @@ static void print_not(struct ast *ast)
     ugly_print(ast->data->ast_not->node);
 }
 
-/*
-static void print_sp_cmd(struct ast *ast)
-{
-    printf("sp_cmd : \n");
-    printf("size_prefix : %lu | ", ast->data->ast_sp_cmd->size_prefix);
-    printf("size_element : %lu | ", ast->data->ast_sp_cmd->size_element);
-    for (size_t i = 0; i < ast->data->ast_sp_cmd->size_prefix; i++)
-    {
-        printf("\n");
-        ugly_print(ast->data->ast_sp_cmd->cmd_prefix[i]);
-    }
-    if (ast->data->ast_sp_cmd->word)
-        printf("\n%s ", ast->data->ast_sp_cmd->word);
-    for (size_t i = 0; i < ast->data->ast_sp_cmd->size_element; i++)
-    {
-        printf("\n");
-        ugly_print(ast->data->ast_sp_cmd->cmd_element[i]);
-    }
-}
-
-static void print_sh_cmd(struct ast *ast)
-{
-    printf("sh_cmd ");
-    printf("size_redir : %lu ", ast->data->ast_sh_cmd->size_redir);
-    if (ast->data->ast_sh_cmd->cmd)
-    {
-        printf("command ");
-        ugly_print(ast->data->ast_sh_cmd->cmd);
-        printf("\n");
-    }
-    for (size_t i = 0; i < ast->data->ast_sh_cmd->size_redir; i++)
-    {
-        ugly_print(ast->data->ast_sh_cmd->redir[i]);
-        printf("\n");
-    }
-}
-
-
-static void print_element(struct ast *ast)
-{
-    printf("element :");
-    if (ast->data->ast_element->word)
-        printf("%s ", ast->data->ast_element->word);
-    if (ast->data->ast_element->redir)
-        ugly_print(ast->data->ast_element->redir);
-}
-
-static void print_prefix(struct ast *ast)
-{
-    printf("prefix ");
-    if (ast->data->ast_prefix->assign_word)
-        printf("%s ", ast->data->ast_prefix->assign_word);
-    if (ast->data->ast_prefix->redir)
-        ugly_print(ast->data->ast_prefix->redir);
-}*/
-
 static void print_redirect(struct ast *ast)
 {
     if (ast->data->ast_redir->io_number)
-        printf("%s ", ast->data->ast_redir->io_number); 
+        printf("%d ", ast->data->ast_redir->io_number); 
     printf("redirection ");
     if (ast->data->ast_redir->exit_file)
         printf("%s ", ast->data->ast_redir->exit_file);

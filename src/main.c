@@ -10,7 +10,7 @@
 #include "parse_execute_loop.h"
 
 int main(int argc, char **argv)
-{        
+{    
     char *filename = NULL;
     struct flags *flags = calloc(1, sizeof(struct flags));
     FILE *file = NULL;
