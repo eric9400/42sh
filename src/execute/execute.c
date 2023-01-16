@@ -1,16 +1,15 @@
-#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <time.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include "ast.h"
 #include "builtin.h"
 #include "execute_tools.h"
 #include "hash_map.h"
+#include "redirection.h"
 
 static char buf[] = 
 "     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\
@@ -44,80 +43,6 @@ static int func_not(struct ast *ast, int return_value);
 
 //static int func_redir(struct ast *ast, int return_value);
 //static int func_pipe(struct ast *ast, int return_value);
-
-/*
- * \return 0 if expand name is valid else return 1
- * lenvar will contain the size of the expand var name + 1 ('$')
- */
-static int is_still_variable(char *str, int *lenvar)
-{
-    // detecting special var
-    if (str[0] != '\0'
-        && ((str[0] == '@') || (str[0] == '?') || (str[0] == '$')
-            || (str[0] == '#') || (str[0] == '*'))
-        && str[1] == '\0')
-    {
-        *lenvar = 2;
-        return 0;
-    }
-
-    int i = 0;
-    int res = 0;
-    while (str[i] != '\0' && !isspace(str[i]) && str[i] != '$')
-    {
-        if (is_char_variable(str[i]))
-            i++;
-        else
-        {
-            res = 1;
-            break;
-        }
-    }
-    // return when no problem
-    *lenvar = i + 1;
-    return res;
-}
-
-static char *is_special_var(char *str, int return_value)
-{
-    char buf[1000];
-
-    /*if (!strcmp(str, "@") || !strcmp(str, "*")){}else */
-    if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
-        || !strcmp(str, "IFS"))
-    {
-        const char *res = hash_map_get(hashmap, str);
-        if (!res)
-            return NULL;
-        return strdup(res);
-    }
-    else if (!strcmp(str, "?"))
-    {
-        sprintf(buf, "%d", return_value);
-        return strdup(buf);
-    }
-    else if (!strcmp(str, "$"))
-    {
-        sprintf(buf, "%d", getpid());
-        return strdup(buf);
-    }
-    else if (!strcmp(str, "RANDOM"))
-    {
-        srand(time(NULL));
-        // max random possible
-        int temp = rand() % 32768;
-        sprintf(buf, "%d", temp);
-        return strdup(buf);
-    }
-    else if (!strcmp(str, "UID"))
-    {
-        uid_t uid = getuid();
-        sprintf(buf, "%d", uid);
-        return strdup(buf);
-    }
-    return NULL;
-}
-
 
 static int func_while(struct ast *ast, int return_value)
 {
@@ -186,34 +111,41 @@ static int func_list(struct ast *ast, int return_value)
     return execute(ast->data->ast_list->cmd_if[size], return_value);
 }
 
-static struct stock_fd *func_redir(struct ast_list *redir)
+static struct stock_fd *func_redir(struct ast_list *redir, int return_value)
 {
     struct stock_fd *stock_fd = NULL;
     int res = 0;
     for (size_t i = 0; i < redir->size && !res; i++)
     {
         int *marker = calloc(2, sizeof(int));
-        expandhino(&(ast->exit_file), return_value, marker, 0);
+        expandinho(&(redir->cmd_if[i]->data->ast_redir->exit_file), return_value, marker, 0);
         free(marker);
-        switch (ast->data->ast_redir->type)
+        switch (redir->cmd_if[i]->data->ast_redir->type)
         {
             case S_RIGHT:
-                res = redir_s_right(ast, &stock_fd);
+                res = redir_s_right(redir->cmd_if[i], &stock_fd);
+                break;
             case S_LEFT:
-                res = redir_s_left(ast, &stock_fd);
+                res = redir_s_left(redir->cmd_if[i], &stock_fd, 0);
+                break;
             case D_RIGHT:
-                res = redir_d_right(ast, &stock_fd);
+                res = redir_d_right(redir->cmd_if[i], &stock_fd);
+                break;
             case RIGHT_AND:
-                res = redir_right_and(ast, &stock_fd);
+                res = redir_right_and(redir->cmd_if[i], &stock_fd);
+                break;
             case LEFT_AND:
-                res = redir_left_and(vast, &stock_fd);
+                res = redir_left_and(redir->cmd_if[i], &stock_fd);
+                break;
             case RIGHT_PIP:
-                res = redir_right_pip(ast, &stock_fd);
+                res = redir_right_pip(redir->cmd_if[i], &stock_fd);
+                break;
             case LEFT_RIGHT:
-                res = redir_left_right(ast, &stock_fd);
+                res = redir_left_right(redir->cmd_if[i], &stock_fd);
+                break;
             default:
                 // check error
-                sprintf(stderr, "C LA MERDEEEEEEEEEEE");
+                fprintf(stderr, "C LA MERDEEEEEEEEEEE");
                 return stock_fd;
         }
     }
@@ -228,7 +160,7 @@ static struct stock_fd *func_redir(struct ast_list *redir)
 
 static int func_cmd(struct ast *ast, int return_value)
 {
-    struct stock_fd *stock_fd = func_redir(ast->data->ast_redir);
+    struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value);
     if (stock_fd == NULL)
         return 1;
     size_t size = ast->data->ast_cmd->arg->size;

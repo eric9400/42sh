@@ -10,13 +10,13 @@ struct stock_fd
     struct stock_fd *next;
 };
 
-int destroy_stock_fd(struct stock_fd *list);
+void destroy_stock_fd(struct stock_fd *list);
 int redir_s_right(struct ast *ast, struct stock_fd **list);
-int redir_s_left(struct ast *ast);
-int redir_d_right(struct ast *ast);
-int redir_right_and(struct ast *ast);
-int redir_left_and(struct ast *ast);
-int redir_right_pip(struct ast *ast);
-int redir_left_right(struct ast *ast);
+int redir_s_left(struct ast *ast, struct stock_fd **list, int GDDN);
+int redir_d_right(struct ast *ast, struct stock_fd **list);
+int redir_right_and(struct ast *ast, struct stock_fd **list);
+int redir_left_and(struct ast *ast, struct stock_fd **list);
+int redir_right_pip(struct ast *ast, struct stock_fd **list);
+int redir_left_right(struct ast *ast, struct stock_fd **list);
 
 #endif /* REDIRECTION_H */

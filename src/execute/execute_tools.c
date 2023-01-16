@@ -1,8 +1,12 @@
 #include "execute_tools.h"
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "hash_map.h"
 
@@ -85,6 +89,39 @@ void split_no_quote(struct vector **v)
     }
 }
 
+/*
+ * \return 0 if expand name is valid else return 1
+ * lenvar will contain the size of the expand var name + 1 ('$')
+ */
+static int is_still_variable(char *str, int *lenvar)
+{
+    // detecting special var
+    if (str[0] != '\0'
+        && ((str[0] == '@') || (str[0] == '?') || (str[0] == '$')
+            || (str[0] == '#') || (str[0] == '*'))
+        && str[1] == '\0')
+    {
+        *lenvar = 2;
+        return 0;
+    }
+
+    int i = 0;
+    int res = 0;
+    while (str[i] != '\0' && !isspace(str[i]) && str[i] != '$')
+    {
+        if (is_char_variable(str[i]))
+            i++;
+        else
+        {
+            res = 1;
+            break;
+        }
+    }
+    // return when no problem
+    *lenvar = i + 1;
+    return res;
+}
+
 // return "$*"
 void split_quote_star(struct vector **v)
 {
@@ -109,6 +146,45 @@ void split_quote_star(struct vector **v)
     *v = vector_append(*v, str);
 }
 
+static char *is_special_var(char *str, int return_value)
+{
+    char buf[1000];
+
+    /*if (!strcmp(str, "@") || !strcmp(str, "*")){}else */
+    if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
+        || !strcmp(str, "IFS"))
+    {
+        const char *res = hash_map_get(hashmap, str);
+        if (!res)
+            return NULL;
+        return strdup(res);
+    }
+    else if (!strcmp(str, "?"))
+    {
+        sprintf(buf, "%d", return_value);
+        return strdup(buf);
+    }
+    else if (!strcmp(str, "$"))
+    {
+        sprintf(buf, "%d", getpid());
+        return strdup(buf);
+    }
+    else if (!strcmp(str, "RANDOM"))
+    {
+        srand(time(NULL));
+        // max random possible
+        int temp = rand() % 32768;
+        sprintf(buf, "%d", temp);
+        return strdup(buf);
+    }
+    else if (!strcmp(str, "UID"))
+    {
+        uid_t uid = getuid();
+        sprintf(buf, "%d", uid);
+        return strdup(buf);
+    }
+    return NULL;
+}
 
 /*
  * S'occupe de append dans v les mots un a un selon les cas
