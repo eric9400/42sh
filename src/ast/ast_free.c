@@ -33,32 +33,6 @@ static void free_list(struct ast *ast)
     free(ast->data->ast_list->cmd_if);
     free(ast->data->ast_list);
 }
-
-static void free_sh_cmd(struct ast *ast)
-{
-    for (size_t i = 0; i < ast->data->ast_sh_cmd->size_redir; i++)
-        free_node(ast->data->ast_sh_cmd->redir[i]);
-    free_node(ast->data->ast_sh_cmd->cmd);
-    free(ast->data->ast_sh_cmd);
-}
-
-static void free_sp_cmd(struct ast *ast)
-{
-    for (size_t i = 0; i < ast->data->ast_sp_cmd->size_prefix; i++)
-    {
-        struct ast *tmp = ast->data->ast_sp_cmd->cmd_prefix[i];
-        free_node(tmp);
-    }
-    for (size_t i = 0; i < ast->data->ast_sp_cmd->size_element; i++)
-    {
-        struct ast *tmp = ast->data->ast_sp_cmd->cmd_element[i];
-        free_node(tmp);
-    }
-    free(ast->data->ast_sp_cmd->word);
-    free(ast->data->ast_sp_cmd->cmd_prefix);
-    free(ast->data->ast_sp_cmd->cmd_element);
-    free(ast->data->ast_sp_cmd);
-}
     
 static void free_cmd(struct ast *ast)
 {
@@ -66,21 +40,10 @@ static void free_cmd(struct ast *ast)
     free(ast->data->ast_cmd);
 }
 
-static void free_prefix(struct ast *ast)
-{
-    if (ast->data->ast_prefix->assign_word)
-        free(ast->data->ast_prefix->assign_word);
-    if (ast->data->ast_prefix->redir)
-        free_node(ast->data->ast_prefix->redir);
-    free(ast->data->ast_prefix);
-}
-
 static void free_redir(struct ast *ast)
 {
     if (ast->data->ast_redir->exit_file)
         free(ast->data->ast_redir->exit_file);
-    if (ast->data->ast_redir->io_number)
-        free(ast->data->ast_redir->io_number);
     free(ast->data->ast_redir);
 }
 
@@ -111,15 +74,6 @@ static void free_for(struct ast *ast)
     if (ast->data->ast_for->var)
         free(ast->data->ast_for->var);
     free(ast->data->ast_for);
-}
-
-static void free_element(struct ast *ast)
-{
-    if (ast->data->ast_element->word)
-        free(ast->data->ast_element->word);
-    if (ast->data->ast_element->redir)
-        free_node(ast->data->ast_element->redir);
-    free(ast->data->ast_element);
 }
 
 static void free_not(struct ast *ast)
@@ -196,16 +150,8 @@ void free_node(struct ast *ast)
         free_list(ast);
     else if (ast->type == AST_CMD)
         free_cmd(ast);
-    else if (ast->type == AST_PREFIX)
-        free_prefix(ast);
     else if (ast->type == AST_REDIR)
         free_redir(ast);
-    else if (ast->type == AST_SP_CMD)
-        free_sp_cmd(ast);
-    else if (ast->type == AST_SH_CMD)
-        free_sh_cmd(ast);
-    else if (ast->type == AST_ELEMENT)
-        free_element(ast);
     else if (ast->type == AST_AND || ast->type == AST_OR)
         free_ast_tree(ast);
     else if (ast->type == AST_PIPE)

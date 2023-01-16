@@ -14,10 +14,6 @@ static struct ast_or *init_or(void);
 static struct ast_not *init_not(void);
 static struct ast_redir *init_redir(void);
 static struct ast_pipe *init_pipe(void);
-static struct ast_prefix *init_prefix(void);
-static struct ast_element *init_element(void);
-static struct ast_sp_cmd *init_sp_cmd(void);
-static struct ast_sh_cmd *init_sh_cmd(void);
 
 void *init_ast(enum ast_type type, size_t capacity)
 {
@@ -43,36 +39,8 @@ void *init_ast(enum ast_type type, size_t capacity)
         return init_redir();
     else if (type == AST_PIPE)
         return init_pipe();
-    else if (type == AST_PREFIX)
-        return init_prefix();
-    else if (type == AST_ELEMENT)
-        return init_element();
-    else if (type == AST_SP_CMD)
-        return init_sp_cmd();
-    else if (type == AST_SH_CMD)
-        return init_sh_cmd();
     return NULL;
     // ADD NEW AST INIT HERE
-}
-
-static struct ast_sp_cmd *init_sp_cmd(void)
-{
-    struct ast_sp_cmd *ast_cmd = calloc(1, sizeof(struct ast_sp_cmd));
-    ast_cmd->word = NULL;
-    ast_cmd->cmd_prefix = calloc(10, sizeof(struct ast_prefix *)); //CHANGE THIS WITH REALLOC
-    ast_cmd->cmd_element = calloc(10, sizeof(struct ast_element *)); //CHANGE THIS WITH REALLOC
-    ast_cmd->size_prefix = 0;
-    ast_cmd->size_element = 0;
-    return ast_cmd;
-}
-
-static struct ast_sh_cmd *init_sh_cmd(void)
-{
-    struct ast_sh_cmd *cmd = calloc(1, sizeof(struct ast_sh_cmd));
-    cmd->cmd = NULL;
-    cmd->size_redir = 0;
-    cmd->redir = NULL;
-    return cmd;
 }
 
 static struct ast_cmd *init_cmd(void)
@@ -116,28 +84,12 @@ static struct ast_until *init_until(void)
     return ast_until;
 }
 
-static struct ast_prefix *init_prefix(void)
-{
-    struct ast_prefix *ast_prefix = calloc(1, sizeof(struct ast_prefix));
-    ast_prefix->assign_word = NULL;
-    ast_prefix->redir = NULL;
-    return ast_prefix;
-}
-
 static struct ast_redir *init_redir(void)
 {
     struct ast_redir *ast_redir = calloc(1, sizeof(struct ast_redir));
-    ast_redir->io_number = NULL;
+    ast_redir->io_number = 0;
     ast_redir->exit_file = NULL;
     return ast_redir;
-}
-
-static struct ast_element *init_element(void)
-{
-    struct ast_element *ast_element = calloc(1, sizeof(struct ast_element));
-    ast_element->word = NULL;
-    ast_element->redir = NULL;
-    return ast_element;
 }
 
 static struct ast_for *init_for(void)

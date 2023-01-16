@@ -15,8 +15,6 @@ static struct ast *command(struct lexer *lex);
 /*
  * check if the current token is a shell command
  */
-
-
 void new_lines(struct lexer *lex)
 {
     peek_token(lex);
