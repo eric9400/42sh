@@ -265,13 +265,13 @@ static struct ast *command(struct lexer *lex)
 
     if (!cmd)
     {
-        struct ast *cmd = shell_command(lex);
+        cmd = shell_command(lex);
 
         if (!cmd)
             return error_handler(lex, 0, "ERROR");
             //flag print is set to 0 to not print the error message
-
-        command2(cmd->data->ast_cmd->redir, lex);
+        if (cmd->type == AST_CMD)
+            command2(cmd->data->ast_cmd->redir, lex);
     }
     return cmd;
 }
@@ -306,12 +306,15 @@ static void find_type_redir(struct lexer *lex, struct ast_redir *redir)
     {
         if(redir->io_number != -1)
             lex->error = 2;
-        free_node(convert_node_ast(AST_REDIR, redir));       
+        free_node(convert_node_ast(AST_REDIR, redir));
+        redir = NULL;
     }
 }
 
 static void default_ionb(struct lexer *lex, struct ast_redir *redir)
 {
+    if (redir->io_number != -1)
+        return;
     if (lex->tok->data[0] == '>')
         redir->io_number = 0;
     else
@@ -345,6 +348,7 @@ struct ast *redirection(struct lexer *lex)
     
     default_ionb(lex, redir);
     free_token(lex);
+
     peek_token(lex);
     if (lex->tok->type != WORD)
     {

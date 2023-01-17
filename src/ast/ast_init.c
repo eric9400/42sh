@@ -49,7 +49,7 @@ static struct ast_cmd *init_cmd(size_t capacity)
 {
     struct ast_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));
     ast_cmd->arg = vector_init(10);
-    struct ast_list *redir = init_list(capacity);
+    ast_cmd->redir = init_list(capacity);
     return ast_cmd;
 }
 
