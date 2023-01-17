@@ -65,12 +65,15 @@ int parse_execute_loop(FILE *file, struct flags *flags)
         {
             // pretty print
             if (flags->p)
-                pretty_print(ast, 0);
+            {
+                ugly_print(ast, 0);
+                printf("\n");
+            }
 
             // ugly print && exit
             if (flags->u)
             {
-                ugly_print(ast);
+                ugly_print(ast, 0);
                 printf("\n");
                 break;
             }
