@@ -201,14 +201,10 @@ static int func_cmd(struct ast *ast, int return_value)
             exit(126);
         exit(2);
     }
-    else
-    {
-        int status;
-        waitpid(pid, &status, 0);
-        return WEXITSTATUS(status);
-    }
     destroy_stock_fd(stock_fd);
-    return 0;
+    int status;
+    waitpid(pid, &status, 0);
+    return WEXITSTATUS(status);
 }
 
 /*

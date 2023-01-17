@@ -124,5 +124,5 @@ int check_builtin(char **str, int return_value)
         return 1;
     if (!strcmp(str[0], "echo"))
         return echo(str, return_value);
-    return 3;
+    return -1;
 }
