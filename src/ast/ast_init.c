@@ -62,28 +62,31 @@ static struct ast_list *init_list(size_t capacity)
     return ast_list;
 }
 
-static struct ast_if *init_if(void)
+static struct ast_if *init_if(void)//int capacity)
 {
     struct ast_if *ast_if = calloc(1, sizeof(struct ast_if));
     ast_if->condition = NULL;
     ast_if->then = NULL;
     ast_if->else_body = NULL;
+    //ast_if->redir = init_list(capacity);
     return ast_if;
 }
 
-static struct ast_while *init_while(void)
+static struct ast_while *init_while(void)//int capacity)
 {
     struct ast_while *ast_while = calloc(1, sizeof(struct ast_while));
     ast_while->condition = NULL;
     ast_while->while_body = NULL;
+    //ast_while->redir = init_list(capacity);
     return ast_while;
 }
 
-static struct ast_until *init_until(void)
+static struct ast_until *init_until(void)//int capacity)
 {
     struct ast_until *ast_until = calloc(1, sizeof(struct ast_until));
     ast_until->condition = NULL;
     ast_until->until_body = NULL;
+    //ast_until->redir = init_list(capacity);
     return ast_until;
 }
 
@@ -95,12 +98,13 @@ static struct ast_redir *init_redir(void)
     return ast_redir;
 }
 
-static struct ast_for *init_for(void)
+static struct ast_for *init_for(void)//int capacity)
 {
     struct ast_for *ast_for = calloc(1, sizeof(struct ast_for));
     ast_for->var = NULL;
     ast_for->for_list = NULL;
     ast_for->arg = vector_init(10);
+    //ast_cmd->redir = init_list(capacity);
     return ast_for;
 }
 
