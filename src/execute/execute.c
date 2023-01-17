@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "ast.h"
 #include "builtin.h"
@@ -40,7 +40,6 @@ static int func_for(struct ast *ast, int return_value);
 static int func_and(struct ast *ast, int return_value);
 static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
-
 //static int func_redir(struct ast *ast, int return_value);
 //static int func_pipe(struct ast *ast, int return_value);
 
