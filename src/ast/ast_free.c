@@ -25,7 +25,7 @@ static void free_list(struct ast *ast)
 static void free_cmd(struct ast *ast)
 {
     vector_destroy(ast->data->ast_cmd->arg);
-    free_list(ast->data->ast_cmd->redir);
+    free_list(convert_node_ast(AST_LIST, ast->data->ast_cmd->redir));
     free(ast->data->ast_cmd);
 }
 

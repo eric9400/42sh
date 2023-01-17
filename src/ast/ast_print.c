@@ -125,7 +125,7 @@ static void print_cmd(struct ast *ast)
     }
     for (size_t i = 0; i < v->size - 1; i++)
         printf("%s ", v->data[i]);
-    print_list(ast->data->ast_cmd->redir);
+    print_list(convert_node_ast(AST_LIST, ast->data->ast_cmd->redir));
 }
 
 static void print_for(struct ast *ast)
