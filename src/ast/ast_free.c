@@ -30,7 +30,6 @@ static void free_cmd(struct ast *ast)
         free_node(list->cmd_if[i]);
     free(list->cmd_if);
     free(list);
-    free(ast->data->ast_cmd);
 }
 
 static void free_redir(struct ast *ast)

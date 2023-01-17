@@ -12,5 +12,6 @@ void split_quote_star(struct vector **v);
 void split_no_quote(struct vector **v);
 
 int is_char_variable(char c);
+void expandinho(char **str, int return_value, int *marker, size_t ind_marker);
 
 #endif /* EXECUTE_TOOLS_H */
