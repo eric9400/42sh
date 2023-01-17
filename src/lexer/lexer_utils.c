@@ -10,6 +10,7 @@ struct lex_flags *init_lex_flags(int len)
     flags->in_dquote = 0;
     flags->was_operator = 0;
     flags->in_variable = 0;
+    flags->in_acollade = 0;
     flags->is_ionumber = 0;
     flags->found_backslash = 0;
     return flags;
@@ -19,7 +20,7 @@ void findtype(struct token *tok, struct lex_flags *flags)
 {
     if (!tok->data)
         return;
-    else if (/*!flags->found_backslash && */flags->is_ionumber)
+    else if (flags->is_ionumber)
         tok->type = IO_NUMBER;
     else if (flags->was_operator)
         tok->type = OPERATOR;

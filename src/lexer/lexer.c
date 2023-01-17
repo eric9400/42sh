@@ -116,16 +116,25 @@ static void comments(struct lexer *lex, struct token *tok)
 static void rule_5(struct lexer *lex, struct token *tok,
                    struct lex_flags *flags, char curr)
 {
-    tok->data[flags->i] = curr;
-    curr = fgetc(lex->filename);
-    if (curr == '{')
+    if (flags->in_acollade)
     {
-        flags->i++;
         tok->data[flags->i] = curr;
-        flags->in_variable = 1;
+        if (curr == '}')
+            flags->in_acollade = 1;
     }
     else
-        ungetc(curr, lex->filename);
+    {
+        tok->data[flags->i] = curr;
+        curr = fgetc(lex->filename);
+        if (curr == '{')
+        {
+            flags->i++;
+            tok->data[flags->i] = curr;
+            flags->in_acollade = 1;
+        }
+        else
+            ungetc(curr, lex->filename);
+    }
 }
 
 static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
@@ -213,7 +222,7 @@ static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
                  || curr == '\"' || curr == '\\')
             quote(lex, flags, tok, curr);
 
-        else if (curr == '$') //|| curr == '`')
+        else if (flags->in_acollade || curr == '$') //|| curr == '`')
             rule_5(lex, tok, flags, curr);
 
         else if (!flags->in_squote && !flags->in_dquote && start_operator(curr))

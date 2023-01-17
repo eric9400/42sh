@@ -3,6 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static void free_list2(struct ast_list *list)
+{
+    for (size_t i = 0; i < list->size; i++)
+        free_node(list->cmd_if[i]);
+    free(list->cmd_if);
+    free(list);
+}
+
 static void free_if(struct ast *ast)
 {
     if (ast->data->ast_if->condition)
@@ -11,6 +19,7 @@ static void free_if(struct ast *ast)
         free_node(ast->data->ast_if->then);
     if (ast->data->ast_if->else_body)
         free_node(ast->data->ast_if->else_body);
+    free_list2(ast->data->ast_if->redir);
     free(ast->data->ast_if);
 }
 
@@ -25,11 +34,7 @@ static void free_list(struct ast *ast)
 static void free_cmd(struct ast *ast)
 {
     vector_destroy(ast->data->ast_cmd->arg);
-    struct ast_list *list = ast->data->ast_cmd->redir;
-    for (size_t i = 0; i < list->size; i++)
-        free_node(list->cmd_if[i]);
-    free(list->cmd_if);
-    free(list);
+    free_list2(ast->data->ast_cmd->redir);
     free(ast->data->ast_cmd);
 }
 
@@ -46,6 +51,7 @@ static void free_while(struct ast *ast)
         free_node(ast->data->ast_while->condition);
     if (ast->data->ast_while->while_body)
         free_node(ast->data->ast_while->while_body);
+    free_list2(ast->data->ast_while->redir);
     free(ast->data->ast_while);
 }
 
@@ -55,6 +61,7 @@ static void free_until(struct ast *ast)
         free_node(ast->data->ast_until->condition);
     if (ast->data->ast_until->until_body)
         free_node(ast->data->ast_until->until_body);
+    free_list2(ast->data->ast_until->redir);
     free(ast->data->ast_until);
 }
 
@@ -66,6 +73,7 @@ static void free_for(struct ast *ast)
         free_node(ast->data->ast_for->for_list);
     if (ast->data->ast_for->var)
         free(ast->data->ast_for->var);
+    free_list2(ast->data->ast_for->redir);
     free(ast->data->ast_for);
 }
 
@@ -92,31 +100,13 @@ static void free_and_or(struct ast *ast)
     }
 }
 
-static void free_pipe(struct ast *tree)
+static void free_pipe(struct ast *pipe)
 {
-    while(tree)
-    {
-        struct ast *tmp = NULL;
-
-        if (tree->type == AST_NOT)
-        {
-            free_node(tree);
-            break;
-        }
-
-        tmp = tree->data->ast_pipe->left;
-        if (tree->data->ast_pipe->right)
-            free_node(tree->data->ast_pipe->right);
-        if (tree)
-            free_node(tree);
-        if (!tmp)
-            break;
-
-        if (tmp->type == AST_PIPE)
-            tree = (convert_node_ast(AST_PIPE, tmp));
-        else 
-            tree = (convert_node_ast(AST_NOT, tmp));
-    }
+    if (pipe->data->ast_pipe->left)
+        free_node(pipe->data->ast_pipe->left);
+    if (pipe->data->ast_pipe->right)
+        free_node(pipe->data->ast_pipe->right);
+    free(pipe->data->ast_pipe);
 }
 
 void free_node(struct ast *ast)

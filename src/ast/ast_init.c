@@ -7,10 +7,10 @@
 
 static struct ast_cmd *init_cmd(size_t capacity);
 static struct ast_list *init_list(size_t capacity);
-static struct ast_if *init_if(void);
-static struct ast_for *init_for(void);
-static struct ast_while *init_while(void);
-static struct ast_until *init_until(void);
+static struct ast_if *init_if(size_t capacity);
+static struct ast_for *init_for(size_t capacity);
+static struct ast_while *init_while(size_t capacity);
+static struct ast_until *init_until(size_t capacity);
 static struct ast_and *init_and(void);
 static struct ast_or *init_or(void);
 static struct ast_not *init_not(void);
@@ -22,15 +22,15 @@ void *init_ast(enum ast_type type)
     if (type == AST_CMD)
         return init_cmd(SIZE);
     else if (type == AST_IF)
-        return init_if();
+        return init_if(SIZE);
     else if (type == AST_LIST)
         return init_list(SIZE);
     else if (type == AST_FOR)
-        return init_for();
+        return init_for(SIZE);
     else if (type == AST_WHILE)
-        return init_while();
+        return init_while(SIZE);
     else if (type == AST_UNTIL)
-        return init_until();
+        return init_until(SIZE);
     else if (type == AST_AND)
         return init_and();
     else if (type == AST_OR)
@@ -62,28 +62,31 @@ static struct ast_list *init_list(size_t capacity)
     return ast_list;
 }
 
-static struct ast_if *init_if(void)
+static struct ast_if *init_if(size_t capacity)
 {
     struct ast_if *ast_if = calloc(1, sizeof(struct ast_if));
     ast_if->condition = NULL;
     ast_if->then = NULL;
     ast_if->else_body = NULL;
+    ast_if->redir = init_list(capacity);
     return ast_if;
 }
 
-static struct ast_while *init_while(void)
+static struct ast_while *init_while(size_t capacity)
 {
     struct ast_while *ast_while = calloc(1, sizeof(struct ast_while));
     ast_while->condition = NULL;
     ast_while->while_body = NULL;
+    ast_while->redir = init_list(capacity);
     return ast_while;
 }
 
-static struct ast_until *init_until(void)
+static struct ast_until *init_until(size_t capacity)
 {
     struct ast_until *ast_until = calloc(1, sizeof(struct ast_until));
     ast_until->condition = NULL;
     ast_until->until_body = NULL;
+    ast_until->redir = init_list(capacity);
     return ast_until;
 }
 
@@ -95,12 +98,13 @@ static struct ast_redir *init_redir(void)
     return ast_redir;
 }
 
-static struct ast_for *init_for(void)
+static struct ast_for *init_for(size_t capacity)
 {
     struct ast_for *ast_for = calloc(1, sizeof(struct ast_for));
     ast_for->var = NULL;
     ast_for->for_list = NULL;
     ast_for->arg = vector_init(10);
+    ast_for->redir = init_list(capacity);
     return ast_for;
 }
 
