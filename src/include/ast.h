@@ -53,7 +53,7 @@ struct ast_if
     struct ast *condition;
     struct ast *then;
     struct ast *else_body;
-    //struct ast_list *redir;
+    struct ast_list *redir;
 };
 
 struct ast_for
@@ -61,21 +61,21 @@ struct ast_for
     char *var;
     struct vector *arg;
     struct ast *for_list;
-    //struct ast_list *redir;
+    struct ast_list *redir;
 };
 
 struct ast_while
 {
     struct ast *condition;
     struct ast *while_body;
-    //struct ast_list *redir;
+    struct ast_list *redir;
 };
 
 struct ast_until
 {
     struct ast *condition;
     struct ast *until_body;
-    //struct ast_list *redir;
+    struct ast_list *redir;
 };
 
 struct ast_and

@@ -5,6 +5,7 @@
 
 static void print_if(struct ast *ast, int tab);
 static void print_list(struct ast *ast, int tab);
+static void print_list2(struct ast_list *list, int tab);
 static void print_cmd(struct ast *ast, int tab);
 static void print_for(struct ast *ast, int tab);
 static void print_while(struct ast *ast, int tab);
@@ -77,6 +78,14 @@ static void print_list(struct ast *ast, int tab)
     }
 }
 
+static void print_list2(struct ast_list *list, int tab)
+{
+    for (size_t i = 0; i < list->size; i++)
+    {
+        ugly_print(list->cmd_if[i], tab);
+    }
+}
+
 static void print_cmd(struct ast *ast, int tab)
 {
     print_tab(tab);
@@ -90,11 +99,8 @@ static void print_cmd(struct ast *ast, int tab)
     }
     for (size_t i = 0; i < v->size - 1; i++)
         printf(" %s", v->data[i]);
+    print_list2(ast->data->ast_cmd->redir, tab + 1);
     printf(";\n");
-    for (size_t i = 0; i < ast->data->ast_cmd->redir->size; i++)
-    {
-        ugly_print(ast->data->ast_cmd->redir->cmd_if[i], tab + 1);
-    }
 }
 
 static void print_for(struct ast *ast, int tab)
@@ -105,6 +111,8 @@ static void print_for(struct ast *ast, int tab)
         printf(" %s", ast->data->ast_for->arg->data[i]);
     printf(":\n");
     ugly_print(ast->data->ast_for->for_list, tab + 1);
+    printf("\n");
+    print_list2(ast->data->ast_for->redir, tab + 1);
     printf("\n");
 }
 
@@ -117,6 +125,8 @@ static void print_while(struct ast *ast, int tab)
     printf("DO:\n");
     ugly_print(ast->data->ast_while->while_body, tab + 1);
     printf("\n");
+    print_list2(ast->data->ast_while->redir, tab + 1);
+    printf("\n");
 }
 
 static void print_until(struct ast *ast, int tab)
@@ -127,6 +137,8 @@ static void print_until(struct ast *ast, int tab)
     print_tab(tab);
     printf("DO:\n");
     ugly_print(ast->data->ast_until->until_body, tab + 1);
+    printf("\n");
+    print_list2(ast->data->ast_until->redir, tab + 1);
     printf("\n");
 }
 

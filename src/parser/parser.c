@@ -221,7 +221,7 @@ static struct ast *pipeline(struct lexer *lex)
     else
         parent = cmd;
 
-    while(lex->tok->type == WORD && !strcmp(lex->tok->data, "|"))
+    while(lex->tok->type == OPERATOR && !strcmp(lex->tok->data, "|"))
     {
         free_token(lex);
 
@@ -259,6 +259,14 @@ static struct ast *command(struct lexer *lex)
             //flag print is set to 0 to not print the error message
         if (cmd->type == AST_CMD)
             command2(cmd->data->ast_cmd->redir, lex);
+        else if (cmd->type == AST_IF)
+            command2(cmd->data->ast_if->redir, lex);
+        else if (cmd->type == AST_WHILE)
+            command2(cmd->data->ast_while->redir, lex);
+        else if (cmd->type == AST_FOR)
+            command2(cmd->data->ast_for->redir, lex);
+        else if (cmd->type == AST_UNTIL)
+            command2(cmd->data->ast_until->redir, lex);
     }
     return cmd;
 }
