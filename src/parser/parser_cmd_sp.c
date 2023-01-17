@@ -25,12 +25,20 @@ struct ast *simple_command(struct lexer *lex)
     simple_command2(lex, cmd);
 
     peek_token(lex);
-    if (lex->tok->type != WORD || is_shell_command(lex))
+    if ((lex->tok->type != WORD || is_shell_command(lex))
+         && lex->tok->type != END_OF_FILE && lex->tok->type != NEWLINE)
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
     }
 
+    if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE)
+    {
+        vector_append(cmd->arg, strdup(""));
+        vector_append(cmd->arg, NULL);
+        return convert_node_ast(AST_CMD, cmd);
+    }
+    
     char *word = strdup(lex->tok->data);
     vector_append(cmd->arg, word);
     free_token(lex);

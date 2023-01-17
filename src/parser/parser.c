@@ -56,7 +56,7 @@ struct ast *input(struct lexer *lex)
     struct ast *exec_tree = list(lex);
     if (lex->error == 2)
     {
-        error_handler(lex, 1, "Error input: NO MATCHING PATERN");
+        error_handler(lex, 1, "ERROR INPUT: NO MATCHING PATERN");
         return exec_tree;
     }
 
@@ -79,7 +79,7 @@ static struct ast *list(struct lexer *lex)
         add_to_list(exec_tree, head_cmd);
     if (lex->error == 2)
     {
-        error_handler(lex, 1, "Error input: NO MATCHING PATERN");
+        error_handler(lex, 1, "ERROR LIST: NO MATCHING PATERN");
         return convert_node_ast(AST_LIST, exec_tree);
     }
 
@@ -142,7 +142,7 @@ struct ast *and_or(struct lexer *lex)
             if (!pipe2)
             {
                 free_node(convert_node_ast(AST_AND, ast_op));
-                return error_handler(lex, 1, "Error and_or: inside || : NO MATCHING PATERN\n");
+                return error_handler(lex, 1, "Error and_or: inside && : NO MATCHING PATERN\n");
             }
             ast_op->right = pipe2;
 
@@ -203,8 +203,8 @@ static struct ast *pipeline(struct lexer *lex)
     {
         if (not)
         {
-            lex->error = 2;
             free_node(convert_node_ast(AST_NOT, not));
+            return error_handler(lex, 1, "ERROR PIPELINE : CMD 1 NO MATCHING PATTERN");
         }
         return NULL;
     }
@@ -231,9 +231,8 @@ static struct ast *pipeline(struct lexer *lex)
 
         if (!cmd2)
         {
-            lex->error = 2;
             free_node(parent); //l'implémenter !!!!
-            return NULL;
+            return error_handler(lex, 1, "ERROR PIPELINE : CMD 2 NO MATCHING PATTERN");
         }
 
         struct ast_pipe *pipe = init_ast(AST_PIPE);
@@ -293,7 +292,7 @@ static struct ast_redir *find_type_redir(struct lexer *lex, struct ast_redir *re
     else
     {
         if(redir->io_number != -1)
-            lex->error = 2;
+            error_handler(lex, 1, "ERROR REDIRECTION : FIND_TYPE_REDIR PROBLEM");
         free_node(convert_node_ast(AST_REDIR, redir));
         redir = NULL;
     }
@@ -305,9 +304,9 @@ static void default_ionb(struct lexer *lex, struct ast_redir *redir)
     if (redir->io_number != -1)
         return;
     if (lex->tok->data[0] == '>')
-        redir->io_number = 0;
-    else
         redir->io_number = 1;
+    else
+        redir->io_number = 0;
 }
 
 struct ast *redirection(struct lexer *lex)
@@ -325,9 +324,10 @@ struct ast *redirection(struct lexer *lex)
 
     if (lex->tok->type != OPERATOR)
     {
-        if(redir->io_number != -1)
-            lex->error = 2;
+        int io_number = redir->io_number;
         free_node(convert_node_ast(AST_REDIR, redir));
+        if(io_number != -1)
+            return error_handler(lex, 1, "ERROR REDIRECTION : LACK OF WORD");
         return NULL;
     }
 

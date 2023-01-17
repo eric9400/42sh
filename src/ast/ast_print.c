@@ -155,9 +155,23 @@ static void print_not(struct ast *ast, int tab)
 
 static void print_redirect(struct ast *ast)
 {
+    printf(" ");
     if (ast->data->ast_redir->io_number)
-        printf("%d", ast->data->ast_redir->io_number); 
-    printf(">>>");
+        printf("%d", ast->data->ast_redir->io_number);
+    if (ast->data->ast_redir->type == S_RIGHT)
+        printf("> "); //>
+    else if (ast->data->ast_redir->type == S_LEFT)
+        printf("< "); //<
+    else if (ast->data->ast_redir->type == D_RIGHT)
+        printf(">> "); //>>
+    else if (ast->data->ast_redir->type == RIGHT_AND)
+        printf(">& "); //>&
+    else if (ast->data->ast_redir->type == LEFT_AND)
+        printf("<& "); //<&
+    else if (ast->data->ast_redir->type == RIGHT_PIP)
+        printf(">| ");  //>|
+    else if (ast->data->ast_redir->type == LEFT_RIGHT)
+        printf("<> "); //<>
     if (ast->data->ast_redir->exit_file)
         printf("%s", ast->data->ast_redir->exit_file);
 }

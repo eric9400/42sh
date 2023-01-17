@@ -92,31 +92,6 @@ static void free_and_or(struct ast *ast)
     }
 }
 
-/*
-static void free_ast_tree(struct ast *tree)
-{
-    while(tree)
-    {
-        struct ast *tmp = NULL;
-        if (tree->type == AST_AND)
-        {
-            tmp = tree->data->ast_and->left;
-            if (tree->data->ast_and->right)
-                free_node(tree->data->ast_and->right);
-        }
-        else if (tree->type == AST_OR)
-        {
-            tmp = tree->data->ast_or->left;
-            if (tree->data->ast_or->right)
-                free_node(tree->data->ast_or->right);
-        }
-
-        if (tree)
-            free_node(tree);
-        tree = tmp;
-    }
-}*/
-
 static void free_pipe(struct ast *tree)
 {
     while(tree)
