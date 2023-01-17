@@ -132,22 +132,25 @@ static void print_until(struct ast *ast, int tab)
 
 static void print_and(struct ast *ast, int tab)
 {
-    ugly_print(ast->data->ast_and->left, tab + 1);
+    ugly_print(ast->data->ast_and->left, tab);
+    print_tab(tab);
     printf("&& ");
-    ugly_print(ast->data->ast_and->right, tab + 1);
+    ugly_print(ast->data->ast_and->right, 0);
 }
 
 static void print_or(struct ast *ast, int tab)
 {
-    ugly_print(ast->data->ast_or->left, tab + 1);
+    ugly_print(ast->data->ast_or->left, tab);
+    print_tab(tab);
     printf("|| ");
-    ugly_print(ast->data->ast_or->right, tab + 1);
+    ugly_print(ast->data->ast_or->right, 0);
 }
 
 static void print_not(struct ast *ast, int tab)
 {
+    print_tab(tab);
     printf("!");
-    ugly_print(ast->data->ast_not->node, tab + 1);
+    ugly_print(ast->data->ast_not->node, 0);
 }
 
 static void print_redirect(struct ast *ast)

@@ -76,6 +76,23 @@ static void free_not(struct ast *ast)
     free(ast->data->ast_not);
 }
 
+static void free_and_or(struct ast *ast)
+{
+    if (ast->type == AST_AND)
+    {
+        free_node(ast->data->ast_and->left);
+        free_node(ast->data->ast_and->right);
+        free(ast->data->ast_and);
+    }
+    else
+    {
+        free_node(ast->data->ast_or->left);
+        free_node(ast->data->ast_or->right);
+        free(ast->data->ast_or);
+    }
+}
+
+/*
 static void free_ast_tree(struct ast *tree)
 {
     while(tree)
@@ -98,9 +115,9 @@ static void free_ast_tree(struct ast *tree)
             free_node(tree);
         tree = tmp;
     }
-}
+}*/
 
-static void free_ast_tree_junior(struct ast *tree)
+static void free_pipe(struct ast *tree)
 {
     while(tree)
     {
@@ -146,9 +163,9 @@ void free_node(struct ast *ast)
     else if (ast->type == AST_REDIR)
         free_redir(ast);
     else if (ast->type == AST_AND || ast->type == AST_OR)
-        free_ast_tree(ast);
+        free_and_or(ast);
     else if (ast->type == AST_PIPE)
-        free_ast_tree_junior(ast);
+        free_pipe(ast);
     else if (ast->type == AST_NOT)
         free_not(ast);
 
