@@ -194,7 +194,8 @@ static int func_cmd(struct ast *ast, int return_value)
         if (errno == ENOENT)
         {
             fprintf(stderr, "%s\n", buf);
-            fprintf(stderr, "%s: command not found\n", ast->data->ast_cmd->arg->data[0]);
+            fprintf(stderr, "%s: command not found\n",
+                    ast->data->ast_cmd->arg->data[0]);
             exit(127);
         }
         if (errno == ENOEXEC)

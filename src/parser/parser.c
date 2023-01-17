@@ -25,15 +25,16 @@ void new_lines(struct lexer *lex)
 }
 
 /*
-*Error handler puts an error in the "lex struct" and print the "error_message" only if the flag "print" is 1
-*/
+ *Error handler puts an error in the "lex struct" and print the "error_message"
+ *only if the flag "print" is 1
+ */
 struct ast *error_handler(struct lexer *lex, int print, char *error_message)
 {
     lex->error = 2;
     char var = error_message[0];
     var++;
     if (print)
-        printf("%s\n", error_message);
+        fprintf(stderr, "%s\n", error_message);
     return NULL;
 }
 
@@ -96,14 +97,14 @@ static struct ast *list(struct lexer *lex)
 }
 
 /*
-*If there is more than one ast than we add it in the list until it doesn't fit
-*/
+ *If there is more than one ast than we add it in the list until it doesn't fit
+ */
 static void list2(struct lexer *lex, struct ast_list *exec_tree)
 {
     peek_token(lex);
     if (lex->tok->type != SEMICOLON)
         return;
-    
+
     free_token(lex);
     struct ast *cmd = and_or(lex);
     if (!cmd) // If we are at the end of the list

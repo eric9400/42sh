@@ -3,21 +3,19 @@
 
 enum tok_type
 {
-    //syntax 
     SEMICOLON,
     NEWLINE,
     IONUMBER,
     /*S_QUOTE,
     D_QUOTE,*/
-    
+
     WORD,
     ASSIGNMENT_WORD,
     IO_NUMBER,
 
     END_OF_FILE,
 
-
-    //all type of operators
+    // all type of operators
     OPERATOR
 };
 
@@ -27,6 +25,6 @@ struct token
     char *data;
 };
 
-//ALL TOKEN FUNCTIONS ARE IN "lexer.h" FOR PRACTICAL REASONS
+// ALL TOKEN FUNCTIONS ARE IN "lexer.h" FOR PRACTICAL REASONS
 
 #endif /*TOKEN_H*/

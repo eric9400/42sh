@@ -1,7 +1,7 @@
-#include "parser.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include "parser.h"
 
 #define SIZE 100
 
@@ -120,7 +120,6 @@ static struct ast *compound_list(struct lexer *lex)
         free_node(convert_node_ast(AST_LIST, list));
         return error_handler(lex, 1, "ERROR COMPOUND_LIST: NO MATCHIN PATTERN");
     }
-
     add_to_list(list, node);
 
     compound_list2(lex, list);
@@ -128,7 +127,7 @@ static struct ast *compound_list(struct lexer *lex)
     peek_token(lex);
     if (lex->tok->type == SEMICOLON)
         free_token(lex);
-    
+
     new_lines(lex);
 
     // multiple command

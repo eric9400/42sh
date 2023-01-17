@@ -46,9 +46,9 @@ int test_data_full(char **data, int i, int len)
 int is_operator(char p, char c)
 {
     return (p == '|' && c == '|') || (p == '&' && c == '&')
-            || (p == '>' && c == '>') || (p == '>' && c == '&')
-            || (p == '<' && c == '&') || (p == '>' && c == '|')
-            || (p == '<' && c == '>');
+        || (p == '>' && c == '>') || (p == '>' && c == '&')
+        || (p == '<' && c == '&') || (p == '>' && c == '|')
+        || (p == '<' && c == '>');
 }
 
 int start_operator(char c)

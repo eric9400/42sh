@@ -1,6 +1,6 @@
 src_file = files('execute.c', 'parse_execute_loop.c')
 src += src_file
 
-parser_lib = static_library('parse_execute_loop',
+execute_lib = static_library('parse_execute_loop',
   src_file,
   include_directories : inc)

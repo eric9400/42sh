@@ -60,7 +60,8 @@ static void end_of_block_line_file(struct lexer *lex, char tmp)
     lex->tok = tok;
 }
 
-static void quote(struct lexer *lex, struct lex_flags *flags, struct token *tok, char curr)
+static void quote(struct lexer *lex, struct lex_flags *flags, struct token *tok,
+                  char curr)
 {
     if (curr == '\\')
     {
@@ -93,7 +94,7 @@ static void quote(struct lexer *lex, struct lex_flags *flags, struct token *tok,
 
     else if (curr == '\"')
         flags->in_dquote = 1;
-    
+
     tok->data[flags->i] = curr;
 }
 
@@ -112,7 +113,8 @@ static void comments(struct lexer *lex, struct token *tok)
     ungetc(curr, lex->filename);
 }
 
-static void rule_5(struct lexer *lex, struct token *tok, struct lex_flags *flags, char curr)
+static void rule_5(struct lexer *lex, struct token *tok,
+                   struct lex_flags *flags, char curr)
 {
     tok->data[flags->i] = curr;
     curr = fgetc(lex->filename);
@@ -126,7 +128,8 @@ static void rule_5(struct lexer *lex, struct token *tok, struct lex_flags *flags
         ungetc(curr, lex->filename);
 }
 
-static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags);
+static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
+                          struct lex_flags *flags);
 // WHEN EXE IS KILL CLOSE THE FILE
 void next_token(struct lexer *lex)
 {
@@ -158,7 +161,7 @@ void next_token(struct lexer *lex)
     }
     else
         ungetc(tmp, lex->filename);
-    
+
     if (sub_next_token(lex, tok, curr, flags))
     {
         free(flags);
@@ -170,14 +173,15 @@ void next_token(struct lexer *lex)
     findtype(tok, flags);
     lex->tok = tok;
     free(flags);
-    //puts(lex->tok->data);
+    // puts(lex->tok->data);
 }
 
 /*
-*return 1 if there was a comment so that the rest of next_token is not executed
-*else return 0
-*/
-static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struct lex_flags *flags)
+ *return 1 if there was a comment so that the rest of next_token is not executed
+ *else return 0
+ */
+static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
+                          struct lex_flags *flags)
 {
     while (1)
     {
@@ -205,8 +209,8 @@ static int sub_next_token(struct lexer *lex, struct token *tok, char curr, struc
             break;
         }
 
-        else if (flags->in_squote || flags->in_dquote
-                 || curr == '\'' || curr == '\"' || curr == '\\')
+        else if (flags->in_squote || flags->in_dquote || curr == '\''
+                 || curr == '\"' || curr == '\\')
             quote(lex, flags, tok, curr);
 
         else if (curr == '$') //|| curr == '`')

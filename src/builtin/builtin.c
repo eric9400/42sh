@@ -5,12 +5,20 @@
 
 #include "vector.h"
 
-static size_t print_special_char(int f_e, char c)
+static int is_backslashable(char c)
+{
+    return c == '\\' || c == '`';
+}
+
+static size_t print_special_char(int f_e, char c, int in_d_quotes,
+                                 int in_s_quotes)
 {
     if (!f_e)
     {
-        printf("\\");
-        return 0;
+        if (in_s_quotes || (in_d_quotes && !is_backslashable(c)))
+            printf("\\");
+        printf("%c", c);
+        return 1;
     }
 
     size_t res = 1;
@@ -31,18 +39,32 @@ static size_t print_special_char(int f_e, char c)
 
 static void print_echo(int f_n, int f_e, struct vector *v)
 {
+    int in_s_quotes = 0;
+    int in_d_quotes = 0;
     for (size_t i = 0; i < v->size; i++)
     {
         char *s = v->data[i];
         for (size_t j = 0; j < strlen(s); j++)
         {
-            if (s[j] == '\\')
-                j += print_special_char(f_e, s[j + 1]);
-            else if (s[j] == '\'' || s[j] == '"')
+            if (!in_d_quotes && s[j] == '\'')
+            {
+                in_s_quotes = !in_s_quotes;
                 continue;
+            }
+            else if (!in_s_quotes && s[j] == '"')
+            {
+                in_d_quotes = !in_d_quotes;
+                continue;
+            }
+            // we have to expand everything from here
+            else if (s[j] == '\\')
+                j +=
+                    print_special_char(f_e, s[j + 1], in_d_quotes, in_s_quotes);
             else
                 printf("%c", s[j]);
         }
+        in_s_quotes = 0;
+        in_d_quotes = 0;
         if (i != v->size - 1)
             printf(" ");
     }
@@ -60,7 +82,8 @@ static int is_flag(char *s, int *f_n, int *f_e)
     // can be a flag
     if (s[0] == '-')
     {
-        for (size_t i = 1; i < strlen(s); i++)
+        size_t len = strlen(s);
+        for (size_t i = 1; i < len; i++)
         {
             if (s[i] == 'n')
                 *f_n = 1;
