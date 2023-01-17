@@ -186,8 +186,51 @@ static int func_list(struct ast *ast, int return_value)
     return execute(ast->data->ast_list->cmd_if[size], return_value);
 }
 
+static struct stock_fd *func_redir(struct ast_list *redir)
+{
+    struct stock_fd *stock_fd = NULL;
+    int res = 0;
+    for (size_t i = 0; i < redir->size && !res; i++)
+    {
+        int *marker = calloc(2, sizeof(int));
+        expandhino(&(ast->exit_file), return_value, marker, 0);
+        free(marker);
+        switch (ast->data->ast_redir->type)
+        {
+            case S_RIGHT:
+                res = redir_s_right(ast, &stock_fd);
+            case S_LEFT:
+                res = redir_s_left(ast, &stock_fd);
+            case D_RIGHT:
+                res = redir_d_right(ast, &stock_fd);
+            case RIGHT_AND:
+                res = redir_right_and(ast, &stock_fd);
+            case LEFT_AND:
+                res = redir_left_and(vast, &stock_fd);
+            case RIGHT_PIP:
+                res = redir_right_pip(ast, &stock_fd);
+            case LEFT_RIGHT:
+                res = redir_left_right(ast, &stock_fd);
+            default:
+                // check error
+                sprintf(stderr, "C LA MERDEEEEEEEEEEE");
+                return stock_fd;
+        }
+    }
+    if (res)
+    {
+        fprintf(stderr, "redirection: something went wrong\n");
+        destroy_stock_fd(stock_fd);
+        return NULL;
+    }
+    return stock_fd;
+}
+
 static int func_cmd(struct ast *ast, int return_value)
 {
+    struct stock_fd *stock_fd = func_redir(ast->data->ast_redir);
+    if (stock_fd == NULL)
+        return 1;
     size_t size = ast->data->ast_cmd->arg->size;
     int *marker = calloc(size, sizeof(int));
     //CALL NEW FUNCTION TO EXPAND $@ OR $* AND REARRANGE VECTOR
@@ -227,41 +270,9 @@ static int func_cmd(struct ast *ast, int return_value)
         waitpid(pid, &status, 0);
         return WEXITSTATUS(status);
     }
+    destroy_stock_fd(stock_fd);
 }
 
-static int func_redir(struct ast_list *redir, int return_value)
-{
-    struct stock_fd *stock_fd = NULL;
-
-    for (size_t i = 0; i < redir->size; i++)
-    {
-        int *marker = calloc(2, sizeof(int));
-        expandhino(&(ast->exit_file), return_value, marker, 0);
-        switch (ast->data->ast_redir->type)
-        {
-            case S_RIGHT:
-                redir_s_right(ast, &stock_fd);
-            case S_LEFT:
-                redir_s_left(ast, &stock_fd);
-            case D_RIGHT:
-                redir_d_right(ast, &stock_fd);
-            case RIGHT_AND:
-                redir_right_and(ast, &stock_fd);
-            case LEFT_AND:
-                redir_left_and(vast, &stock_fd);
-            case RIGHT_PIP:
-                redir_right_pip(ast, &stock_fd);
-            case LEFT_RIGHT:
-                redir_left_right(ast, &stock_fd);
-            default:
-                // check error
-                // TOCHANGE
-                sprintf(stderr, "C LA MERDEEEEEEEEEEE");
-                return 999;
-        }
-    }
-    restore(&stock_fd);
-}
 /*
  * \brief recursively execute the ast
  * \param ast from parser
