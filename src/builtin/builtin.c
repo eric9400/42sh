@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "vector.h"
 
@@ -80,6 +82,11 @@ static int is_flag(char *s, int *f_n, int *f_e)
 
 int echo(char **s, int return_value)
 {
+    if (fcntl(STDOUT_FILENO, F_GETFD))
+    {
+        fprintf(stderr, "echo: write error: Bad file descriptor\n");
+        return 1;
+    }
     (void)return_value;
     if (s && strcmp(s[0], "echo"))
         return 1;
