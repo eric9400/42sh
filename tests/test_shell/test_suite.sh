@@ -6,6 +6,7 @@ blue='\033[36m'
 red='\033[31m'
 green='\033[32m'
 nc='\033[0m'
+p_all=0
 
 test_lex_parse()
 {
@@ -14,7 +15,7 @@ test_lex_parse()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
         echo "$red     NAN!     |  $1    ->    $2"
-    else
+    elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1    ->    $2"
     fi
 }
@@ -26,7 +27,7 @@ test_input()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
         echo "$red     NAN!     |  $1"
-    else
+    elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     fi
 }
@@ -38,7 +39,7 @@ test_stdin()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
         echo "$red     NAN!     |  $1"
-    else
+    elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     fi
 }
@@ -53,7 +54,7 @@ test_error()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
         echo "$red     NAN!     |  $1"
-    else
+    elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     fi
 }
@@ -64,8 +65,8 @@ echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 echo
 echo
 echo $blue "===================STEP 1==================="
-echo 
-echo $blue "LEXER/PARSER"
+#echo 
+#echo $blue "LEXER/PARSER"
 # test_lex_parse "test_shell/step1/test1.sh" "echo foo bar "
 # test_lex_parse "test_shell/step1/test2.sh" "echo foo ; echo bar "
 # test_lex_parse "test_shell/step1/test3.sh" "if true then false else true fi "
@@ -78,7 +79,7 @@ echo $blue "LEXER/PARSER"
 # test_lex_parse "test_shell/step1/test10.sh" " "
 # test_lex_parse "test_shell/step1/test11.sh" "if false ; true ; false then echo a else echo b ; echo c echo a fi "
 echo
-echo $blue "STDIN"
+echo $blue "STDIN" $red
 test_stdin "test_shell/step1/test1.sh"
 test_stdin "test_shell/step1/test2.sh"
 test_stdin "test_shell/step1/test3.sh"
@@ -99,7 +100,7 @@ test_stdin "test_shell/step1/backlash_newline2.sh"
 test_stdin "test_shell/step1/ascii_house.sh"
 #test_stdin "test_shell/step1/cursed.sh"
 echo
-echo $blue "ALL INPUT"
+echo $blue "ALL INPUT" $red
 test_input "echo foo bar"
 test_input "echo foo ; echo bar"
 test_input "if true; then echo ok; else echo ko; fi"
@@ -119,17 +120,15 @@ test_input "echo toto"
 test_input "echo 'coucou'"
 test_input "echo -e -E foobar"
 test_input "echo -n Mael arrete de geeker"
-test_input "echo \"je suis une chauve souris\""
-test_input "echo 2>a"
-test_input "echo \2>a"
-test_input "echo 2\>a"
-test_input "echo \"\\n\""
+test_input 'echo \"je suis une chauve souris\"'
+test_input 'echo \"\\n\"'
 test_input "echo -e '\n'"
-test_input "echo -E \n"
-test_input "echo -E \"\n\""
+test_input 'echo -E \n"'
+test_input 'echo -E \"\n\"'
 test_input "echo -E '\n'"
+test_input "'coucou'"
 echo
-echo $blue "AMOUNG SUS ERRORS"
+echo $blue "AMOUNG SUS ERRORS" $red
 test_error "if"
 test_error "if true; echo toto; fi"
 test_error "coucou"
@@ -144,12 +143,26 @@ test_error "if; if ; if ; if ; then; fi"
 test_error "if ; else; coucou"
 test_error "if ; then echo ok ; fi"
 test_error "if true; then; echo ko; fi"
-test_error "if ;\n true; then; flase; fi;fi;fi;fi"
-test_error "if ;\n\n\n\ntrue;\n then echo okqyyy; fi"
+test_error 'if ;\n true; then; flase; fi;fi;fi;fi'
+test_error 'if ;\n\n\n\ntrue;\n then echo okqyyy; fi'
 test_error "then; fi;"
 test_error "echo if; if echo"
 test_error "if true; then false; elif true; then true; else false;"
 test_error "if true;;;;;;;;;then false; fi"
+echo
+echo $blue "===================STEP 2==================="
+echo 
+echo $bleu "INPUT" $red
+test_input "if true || false; then echo foo; fi"
+test_input "if true || false && true && false; then echo foo; else echo bar; fi"
+test_input "while false; do echo foofoooo; done"
+test_input "echo foobar | echo"
+test_input "! echo foobar | echo | echo | echo | echo"
+test_input "if true && true; then while false; do echo bar; done; fi"
+test_input "echo toto 0>a"
+test_input "echo 2>a"
+test_input 'echo \2>a'
+test_input 'echo 2\>a'
 echo
 echo
 echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
