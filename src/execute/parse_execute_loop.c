@@ -10,9 +10,12 @@
 #include "utils.h"
 #include "hash_map.h"
 
-static struct flags *global_flags = NULL;
+struct flags *global_flags = NULL;
+struct lexer *lex = NULL;
+struct ast *ast = NULL;
+FILE *file = NULL;
 
-static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
+int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
 {
     free_lexer(lex);
     free_node(ast);
@@ -34,8 +37,9 @@ void hash_map_init_basic(void)
 int parse_execute_loop(FILE *file, struct flags *flags)
 {
     global_flags = flags;
-    struct lexer *lex = init_lexer(file);
-    struct ast *ast = NULL;
+    lex = init_lexer(file);
+    ast = NULL;
+    file = file;
     int return_value = 0;
     hash_map_init_basic();
     /*
