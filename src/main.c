@@ -10,14 +10,17 @@
 #include "parse_execute_loop.h"
 
 int main(int argc, char **argv)
-{        
+{    
     char *filename = NULL;
     struct flags *flags = calloc(1, sizeof(struct flags));
     FILE *file = NULL;
 
     // parsing arguments
-    BaBaJi(argc, argv, &filename, flags);
-
+    if (BaBaJi(argc, argv, &filename, flags) == 2)
+    {
+        free(flags);
+        return 2;
+    }
     // switch of file type
     if (flags->c)
         file = fmemopen(filename, strlen(filename), "r");

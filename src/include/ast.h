@@ -6,9 +6,9 @@
 enum ast_type
 {
     AST_LIST,
-    AST_IF,
     AST_CMD,
 
+    AST_IF,
     AST_FOR,
     AST_WHILE,
     AST_UNTIL,
@@ -17,19 +17,35 @@ enum ast_type
     AST_OR,
     AST_NOT,
 
-    AST_REDIRECT
+    AST_REDIR,
+    AST_PIPE,
 };
 
-struct ast_cmd
+enum redir_type
 {
-    struct vector *arg;
+    S_RIGHT,    // >
+    S_LEFT,     // <
+
+    D_RIGHT,    // >>
+    
+    RIGHT_AND,  // >&
+    LEFT_AND,   // <&
+    
+    RIGHT_PIP,  // >|
+    LEFT_RIGHT  // <>
 };
 
 struct ast_list
 {
     size_t size;
     size_t capacity;
-    struct ast **cmd_if;
+    struct ast **cmd_if;//changer plus tard
+};
+
+struct ast_cmd
+{
+    struct vector *arg;
+    struct ast_list *redir;
 };
 
 struct ast_if
@@ -37,26 +53,29 @@ struct ast_if
     struct ast *condition;
     struct ast *then;
     struct ast *else_body;
+    struct ast_list *redir;
 };
-
 
 struct ast_for
 {
     char *var;
+    struct vector *arg;
     struct ast *for_list;
-    struct ast *for_body;
+    struct ast_list *redir;
 };
 
 struct ast_while
 {
     struct ast *condition;
     struct ast *while_body;
+    struct ast_list *redir;
 };
 
 struct ast_until
 {
     struct ast *condition;
     struct ast *until_body;
+    struct ast_list *redir;
 };
 
 struct ast_and
@@ -76,11 +95,11 @@ struct ast_not
     struct ast *node;
 };
 
-struct ast_redirect
+struct ast_redir
 {
-    char *type;
-    struct ast *left;
-    struct ast *right;
+    int io_number;
+    char *exit_file;
+    enum redir_type type;
 };
 
 struct ast_pipe
@@ -88,7 +107,6 @@ struct ast_pipe
     struct ast *left;
     struct ast *right;
 };
-
 
 union ast_union
 {
@@ -104,7 +122,7 @@ union ast_union
     struct ast_or *ast_or;
     struct ast_not *ast_not;
 
-    struct ast_cmd *ast_redirect;
+    struct ast_redir *ast_redir;
     struct ast_pipe *ast_pipe;
 };
 

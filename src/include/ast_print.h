@@ -5,6 +5,6 @@
 #include "vector.h"
 
 void pretty_print(struct ast *tree, int tab);
-void ugly_print(struct ast *tree);
+void ugly_print(struct ast *tree, int tab);
 
 #endif /* AST_PRINT_H */

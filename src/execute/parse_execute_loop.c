@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "ast.h"
 #include "execute.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
+#include "hash_map.h"
 
 static struct flags *global_flags = NULL;
 
@@ -15,7 +18,17 @@ static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
     free_node(ast);
     fclose(file);
     free(global_flags);
+    hash_map_free(hashmap);
     return error;
+}
+
+void hash_map_init_basic(void)
+{
+    char pwd[1000];
+    getcwd(pwd, sizeof(pwd));
+    hash_map_insert(hashmap, "PWD", pwd);
+    hash_map_insert(hashmap, "OLDPWD", pwd);
+    hash_map_insert(hashmap, "IFS", " \t\n");
 }
 
 int parse_execute_loop(FILE *file, struct flags *flags)
@@ -24,6 +37,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct lexer *lex = init_lexer(file);
     struct ast *ast = NULL;
     int return_value = 0;
+    hash_map_init_basic();
     /*
     if (file == stdin)
         printf("42sh$ ");
@@ -51,12 +65,15 @@ int parse_execute_loop(FILE *file, struct flags *flags)
         {
             // pretty print
             if (flags->p)
-                pretty_print(ast, 0);
+            {
+                ugly_print(ast, 0);
+                printf("\n");
+            }
 
             // ugly print && exit
             if (flags->u)
             {
-                ugly_print(ast);
+                ugly_print(ast, 0);
                 printf("\n");
                 break;
             }
@@ -67,8 +84,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 free_node(ast);
                 continue;
             }
-            return_value = execute(
-                ast, return_value); // RETURN_VALUE FOR ECHO EXPAND (echo $?)
+            return_value = execute(ast, return_value);
             if (return_value)
             {
                 /*
@@ -78,7 +94,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                     return freeAll(file, lex, ast, lex->error);
                 */
                 if (file != stdin)
-                    return freeAll(file, lex, ast, lex->error);
+                    return freeAll(file, lex, ast, return_value);
             }
         }
         free_node(ast);

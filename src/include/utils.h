@@ -10,7 +10,6 @@ struct flags
     int u;
 };
 
-int BaBaJi(int argc, char *argv[], char **filename, struct flags *flags);
+int BaBaJi(int argc, char **argv, char **filename, struct flags *flags);
 
 #endif /* UTILS_H */
-
