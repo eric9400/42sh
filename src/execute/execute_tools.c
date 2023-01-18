@@ -17,6 +17,9 @@ void split_vector(int *marker, struct ast *ast)
     char **data = ast->data->ast_cmd->arg->data;
     for (size_t i = 0; i < len - 1; i++) ///BABABJIIIIIIIIIIIIIIi
     {
+        // case when we have assignment word
+        if (marker[i] == -1)
+            continue;
         // case when we expanded
         if (marker[i])
         {

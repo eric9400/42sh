@@ -1,9 +1,6 @@
 #ifndef LEXER_UTILS_H
 #define LEXER_UTILS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "token.h"
 
 struct lex_flags
@@ -30,5 +27,6 @@ int is_operator(char p, char c);
 int start_operator(char c);
 int is_number(char *str);
 int my_isspace(char c);
+int is_assign_word(char *str);
 
 #endif /*LEXER_UTILS_H*/

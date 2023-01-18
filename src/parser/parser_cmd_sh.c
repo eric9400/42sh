@@ -264,14 +264,14 @@ struct ast *rule_for(struct lexer *lex)
 {
     peek_token(lex);
 
-    if (lex->tok->type != WORD || strcmp("for", lex->tok->data))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || strcmp("for", lex->tok->data))
         return NULL;
 
     struct ast_for *for_node = init_ast(AST_FOR);
 
     free_peek(lex);
 
-    if (lex->tok->type != WORD)
+    if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
         return rule_for_error(for_node, lex);
 
     for_node->var = strdup(lex->tok->data);
@@ -283,7 +283,7 @@ struct ast *rule_for(struct lexer *lex)
     {
         new_lines(lex);
 
-        if (lex->tok->type != WORD)
+        if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
             return rule_for_error(for_node, lex);
 
         if (strcmp("do", lex->tok->data))
@@ -294,7 +294,7 @@ struct ast *rule_for(struct lexer *lex)
 
             free_peek(lex);
 
-            while(lex->tok->type == WORD)
+            while(lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
             {
                 vector_append(for_node->arg, strdup(lex->tok->data));
                 free_peek(lex);
@@ -313,7 +313,7 @@ struct ast *rule_for(struct lexer *lex)
     if (lex->tok->type == NEWLINE)
         new_lines(lex);
 
-    if (lex->tok->type != WORD || strcmp("do", lex->tok->data))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || strcmp("do", lex->tok->data))
         return rule_for_error(for_node, lex);
 
     free_token(lex);

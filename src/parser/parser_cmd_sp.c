@@ -24,18 +24,23 @@ struct ast *simple_command(struct lexer *lex)
     struct ast_cmd *cmd = init_ast(AST_CMD);
     simple_command2(lex, cmd);
 
-    peek_token(lex);
-    if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE
-        || lex->tok->type == SEMICOLON)
+    /*
+    if (prefix)
     {
-        if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE)
+        vector_append(cmd->arg, NULL);
+        return convert_node_ast(AST_CMD, cmd);
+    }
+    */
+    peek_token(lex);
+    if (lex->tok->type == END_OF_FILE || lex->tok->type == SEMICOLON)
+    {
+        if (lex->tok->type == END_OF_FILE)
             vector_append(cmd->arg, strdup(""));
         vector_append(cmd->arg, NULL);
         return convert_node_ast(AST_CMD, cmd);
     }
 
-    if ((lex->tok->type != WORD || is_shell_command(lex))
-         && lex->tok->type != END_OF_FILE && lex->tok->type != NEWLINE)
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
@@ -87,7 +92,7 @@ static int prefix(struct lexer *lex, struct ast_cmd *cmd)
 static int element(struct lexer *lex, struct ast_cmd *cmd)
 {
     peek_token(lex);
-    if (lex->tok->type == WORD)
+    if (lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
     {
         vector_append(cmd->arg, strdup(lex->tok->data));
         free_token(lex);
