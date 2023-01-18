@@ -214,12 +214,12 @@ static struct ast *pipeline(struct lexer *lex)
 
     struct ast *parent = NULL;
 
-    if (not)
+    /*if (not)
     {
         not->node = cmd;
         parent = convert_node_ast(AST_NOT, not);
     }
-    else
+    else*/
         parent = cmd;
 
     while(lex->tok->type == OPERATOR && !strcmp(lex->tok->data, "|"))
@@ -243,8 +243,12 @@ static struct ast *pipeline(struct lexer *lex)
         parent = convert_node_ast(AST_PIPE, pipe);
     }
 
+    if (not)
+    {
+        not->node = parent;
+        return convert_node_ast(AST_NOT, not);
+    }
     return parent;
-    //return command(lex);
 }
 
 static struct ast *command(struct lexer *lex)
