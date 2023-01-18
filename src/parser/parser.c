@@ -346,7 +346,7 @@ struct ast *redirection(struct lexer *lex)
     free_token(lex);
 
     peek_token(lex);
-    if (lex->tok->type != WORD)
+    if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
     {
         free_node(convert_node_ast(AST_REDIR, redir));
         return error_handler(lex, 1, "ERROR REDIRECTION : LACK OF WORD");

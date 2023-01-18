@@ -5,8 +5,8 @@
 
 struct ast *simple_command(struct lexer *lex);
 static int element(struct lexer *lex, struct ast_cmd *cmd);
-static int prefix(struct lexer *lex, struct ast_cmd *cmd);
-static void simple_command2(struct lexer *lex, struct ast_cmd *cmd);
+static int prefix(struct lexer *lex, struct ast_cmd *cmd, int *pref);
+static void simple_command2(struct lexer *lex, struct ast_cmd *cmd, int *pref);
 static void simple_command3(struct lexer *lex, struct ast_cmd *cmd);
 
 int is_shell_command(struct lexer *lex)
@@ -22,20 +22,25 @@ int is_shell_command(struct lexer *lex)
 struct ast *simple_command(struct lexer *lex)
 {
     struct ast_cmd *cmd = init_ast(AST_CMD);
-    simple_command2(lex, cmd);
+    int pref = 0;
+    simple_command2(lex, cmd, &pref);
 
-    peek_token(lex);
-    if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE
-        || lex->tok->type == SEMICOLON)
+    if (pref)
     {
-        if (lex->tok->type == END_OF_FILE || lex->tok->type == NEWLINE)
-            vector_append(cmd->arg, strdup(""));
+        vector_append(cmd->arg, NULL);
+        return convert_node_ast(AST_CMD, cmd);        
+    }
+    peek_token(lex);
+    if (lex->tok->type == END_OF_FILE)
+        //|| lex->tok->type == SEMICOLON)
+    {
+        //if (lex->tok->type == END_OF_FILE)
+        vector_append(cmd->arg, strdup(""));
         vector_append(cmd->arg, NULL);
         return convert_node_ast(AST_CMD, cmd);
     }
 
-    if ((lex->tok->type != WORD || is_shell_command(lex))
-         && lex->tok->type != END_OF_FILE && lex->tok->type != NEWLINE)
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
@@ -50,12 +55,12 @@ struct ast *simple_command(struct lexer *lex)
     return convert_node_ast(AST_CMD, cmd);
 }
 
-static void simple_command2(struct lexer *lex, struct ast_cmd *cmd)
+static void simple_command2(struct lexer *lex, struct ast_cmd *cmd, int *pref)
 {
-    int stop = prefix(lex, cmd);
+    int stop = prefix(lex, cmd, pref);
     if (stop)
         return;
-    simple_command2(lex, cmd);
+    simple_command2(lex, cmd, pref);
 }
 
 static void simple_command3(struct lexer *lex, struct ast_cmd *cmd)
@@ -66,13 +71,14 @@ static void simple_command3(struct lexer *lex, struct ast_cmd *cmd)
     simple_command3(lex, cmd);
 }
 
-static int prefix(struct lexer *lex, struct ast_cmd *cmd)
+static int prefix(struct lexer *lex, struct ast_cmd *cmd, int *pref)
 {
     peek_token(lex);
     if (lex->tok->type == ASSIGNMENT_WORD)
     {
         vector_append(cmd->arg, strdup(lex->tok->data));
         free_token(lex);
+        *pref = 1;
         return 0;
     }
 
@@ -87,7 +93,7 @@ static int prefix(struct lexer *lex, struct ast_cmd *cmd)
 static int element(struct lexer *lex, struct ast_cmd *cmd)
 {
     peek_token(lex);
-    if (lex->tok->type == WORD)
+    if (lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
     {
         vector_append(cmd->arg, strdup(lex->tok->data));
         free_token(lex);

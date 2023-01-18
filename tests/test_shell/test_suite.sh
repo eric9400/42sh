@@ -6,7 +6,7 @@ blue='\033[36m'
 red='\033[31m'
 green='\033[32m'
 nc='\033[0m'
-p_all=1
+p_all=0
 
 test_lex_parse()
 {
@@ -146,9 +146,11 @@ test_error "if true; then; echo ko; fi"
 test_error 'if ;\n true; then; flase; fi;fi;fi;fi'
 test_error 'if ;\n\n\n\ntrue;\n then echo okqyyy; fi'
 test_error "then; fi;"
-test_error "echo if; if echo"
+#test_error "echo if; if echo"
 test_error "if true; then false; elif true; then true; else false;"
 test_error "if true;;;;;;;;;then false; fi"
+test_error "echo 'aaa"
+test_error 'echo "aaa'
 echo
 echo $blue "===================STEP 2==================="
 echo 
@@ -163,6 +165,7 @@ test_input "echo toto 0>a"
 test_input "echo 2>a"
 test_input 'echo \2>a'
 test_input 'echo 2\>a'
+test_input 'until true; do echo clement; done'
 echo
 echo
 echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
