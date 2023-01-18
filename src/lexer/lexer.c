@@ -260,7 +260,8 @@ static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
     return 0;
 }
 
-/*int main(int argc, char *argv[])
+/*
+int main(int argc, char *argv[])
 {
     if (argc != 2)
         printf("sale merde\n");

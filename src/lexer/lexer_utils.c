@@ -16,6 +16,32 @@ struct lex_flags *init_lex_flags(int len)
     return flags;
 }
 
+static int is_name(char *str, size_t size)
+{
+    if (str[0] != '_' && (str[0] < 'a' || str[0] > 'z')
+        && (str[0] < 'A' || str[0] > 'Z'))
+        return 0;
+    for (size_t i = 1; i < size; i++)
+    {
+        if (str[0] != '_' && (str[0] < 'a' || str[0] > 'z')
+            && (str[0] < 'A' || str[0] > 'Z')
+            && (str[0] < '0' || str[0] > '9'))
+            return 0;
+    }
+    return 1;
+}
+
+static int is_assign_word(struct token *tok)
+{
+    char *str = tok->data;
+    for (size_t i = 0; str[i] != '\0'; i++)
+    {
+        if (str[i] == '=')
+            return is_name(str, i);
+    }
+    return 0;
+}
+
 void findtype(struct token *tok, struct lex_flags *flags)
 {
     if (!tok->data)
@@ -24,6 +50,8 @@ void findtype(struct token *tok, struct lex_flags *flags)
         tok->type = IO_NUMBER;
     else if (flags->was_operator)
         tok->type = OPERATOR;
+    else if (is_assign_word(tok))
+        tok->type = ASSIGNMENT_WORD;
     else if (flags->is_word)
         tok->type = WORD;
     else
