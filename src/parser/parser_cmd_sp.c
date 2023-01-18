@@ -40,7 +40,7 @@ struct ast *simple_command(struct lexer *lex)
         return convert_node_ast(AST_CMD, cmd);
     }
 
-    if (lex->tok->type != WORD || is_shell_command(lex))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
@@ -93,7 +93,7 @@ static int prefix(struct lexer *lex, struct ast_cmd *cmd, int *pref)
 static int element(struct lexer *lex, struct ast_cmd *cmd)
 {
     peek_token(lex);
-    if (lex->tok->type == WORD)
+    if (lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
     {
         vector_append(cmd->arg, strdup(lex->tok->data));
         free_token(lex);

@@ -1,5 +1,9 @@
 #include "lexer_utils.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 struct lex_flags *init_lex_flags(int len)
 {
     struct lex_flags *flags = calloc(1, sizeof(struct lex_flags));
@@ -31,9 +35,8 @@ static int is_name(char *str, size_t size)
     return 1;
 }
 
-static int is_assign_word(struct token *tok)
+int is_assign_word(char *str)
 {
-    char *str = tok->data;
     for (size_t i = 0; str[i] != '\0'; i++)
     {
         if (str[i] == '=')
@@ -50,8 +53,15 @@ void findtype(struct token *tok, struct lex_flags *flags)
         tok->type = IO_NUMBER;
     else if (flags->was_operator)
         tok->type = OPERATOR;
-    else if (is_assign_word(tok))
+    else if (is_assign_word(tok->data))
+    {
+        char *temp = calloc(strlen(tok->data) + 2, 1);
+        temp[0] = '#';
+        strcat(temp + 1, tok->data);
+        free(tok->data);
+        tok->data = temp;
         tok->type = ASSIGNMENT_WORD;
+    }
     else if (flags->is_word)
         tok->type = WORD;
     else

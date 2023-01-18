@@ -8,7 +8,9 @@
 #include "ast.h"
 #include "builtin.h"
 #include "execute_tools.h"
+#include "lexer.h"
 #include "hash_map.h"
+#include "pipe.h"
 #include "redirection.h"
 
 static char buf[] = 
@@ -93,10 +95,12 @@ static int func_not(struct ast *ast, int return_value)
 
 static int func_if(struct ast *ast, int return_value)
 {
-    if (execute(ast->data->ast_if->condition, return_value) == 0)
+    int a = execute(ast->data->ast_if->condition, return_value);
+    if (!a)
         return execute(ast->data->ast_if->then, return_value);
-    else
-        return execute(ast->data->ast_if->else_body, return_value);
+    else if (a == 127 || a == 126 || a == 2)
+        return a;
+    return execute(ast->data->ast_if->else_body, return_value);
 }
 
 static int func_list(struct ast *ast, int return_value)
@@ -157,6 +161,14 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int
     }
     return stock_fd;
 }
+        
+static void add_assign_word(char *str)
+{
+    char *value = strstr(str, "=");
+    value[0] = '\0';
+    value++;
+    hash_map_insert(hashmap, str, value);
+}
 
 static int func_cmd(struct ast *ast, int return_value)
 {
@@ -164,19 +176,39 @@ static int func_cmd(struct ast *ast, int return_value)
     struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-    size_t size = ast->data->ast_cmd->arg->size;
-    int *marker = calloc(size, sizeof(int));
+    size_t size = ast->data->ast_cmd->arg->size - 1;
+    int *marker = calloc(size + 1, sizeof(int));
     //CALL NEW FUNCTION TO EXPAND $@ OR $* AND REARRANGE VECTOR
     // expandinho_senior(ast);
 
     // check for expand
     for (size_t i = 0; i < size; i++)
-        expandinho(&(ast->data->ast_cmd->arg->data[i]), return_value, marker,
-                i);
+    {
+
+        int is_assign = ast->data->ast_cmd->arg->data[i][0] == '#';
+        if (is_assign)
+        {
+            char *temp = strdup(ast->data->ast_cmd->arg->data[i] + 1);
+            free(ast->data->ast_cmd->arg->data[i]);
+            ast->data->ast_cmd->arg->data[i] = temp;
+        }
+        expandinho(&(ast->data->ast_cmd->arg->data[i]), return_value, marker ,i);
+        if (is_assign)
+        {
+            add_assign_word(ast->data->ast_cmd->arg->data[i]);
+            // to skip in split_vector, assignment word are not commands
+            marker[i] = -1;
+        }
+    }
 
     // split when expanded
     split_vector(marker, ast);
     free(marker);
+    if (ast->data->ast_cmd->arg->data[0] == NULL)
+    {
+        destroy_stock_fd(stock_fd);
+        return 0;
+    }
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, return_value);
     if (code != -1)
@@ -189,12 +221,13 @@ static int func_cmd(struct ast *ast, int return_value)
     // child
     if (!pid)
     {
+        errno = 0;
         execvp(ast->data->ast_cmd->arg->data[0], ast->data->ast_cmd->arg->data);
         if (errno == ENOENT)
         {
-            fprintf(stderr, "%s\n", buf);
-            fprintf(stderr, "%s: command not found\n",
-                    ast->data->ast_cmd->arg->data[0]);
+            fprintf(stderr, "%s\n%s: command not found\n", buf, ast->data->ast_cmd->arg->data[0]);
+            //fprintf(stderr, "%s: command not found\n",
+            //        ast->data->ast_cmd->arg->data[0]);
             exit(127);
         }
         if (errno == ENOEXEC)
@@ -236,10 +269,10 @@ int execute(struct ast *ast, int return_value)
             return func_or(ast, return_value);
         case AST_NOT:
             return func_not(ast, return_value);
-        /*case AST_PIPE:
+        case AST_PIPE:
             return func_pipe(ast, return_value);
-        */default:
+        default:
             return 19;
-            // ADD NEW AST EXECUTE HERE
+        // ADD NEW AST EXECUTE HERE
     }
 }

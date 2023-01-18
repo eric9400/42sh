@@ -1,4 +1,4 @@
-src_file = files('execute.c', 'parse_execute_loop.c', 'execute_tools.c', 'redirection.c')
+src_file = files('execute.c', 'parse_execute_loop.c', 'execute_tools.c', 'redirection.c', 'pipe.c')
 src += src_file
 
 execute_lib = static_library('parse_execute_loop',
