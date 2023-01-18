@@ -6,7 +6,7 @@ blue='\033[36m'
 red='\033[31m'
 green='\033[32m'
 nc='\033[0m'
-p_all=1
+p_all=0
 
 test_lex_parse()
 {
