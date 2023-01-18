@@ -9,6 +9,7 @@
 #include "builtin.h"
 #include "execute_tools.h"
 #include "hash_map.h"
+#include "pipe.h"
 #include "redirection.h"
 
 static char buf[] = 
@@ -93,10 +94,12 @@ static int func_not(struct ast *ast, int return_value)
 
 static int func_if(struct ast *ast, int return_value)
 {
-    if (execute(ast->data->ast_if->condition, return_value) == 0)
+    int a = execute(ast->data->ast_if->condition, return_value);
+    if (!a)
         return execute(ast->data->ast_if->then, return_value);
-    else
-        return execute(ast->data->ast_if->else_body, return_value);
+    else if (a == 127 || a == 126 || a == 2)
+        return a;
+    return execute(ast->data->ast_if->else_body, return_value);
 }
 
 static int func_list(struct ast *ast, int return_value)
@@ -189,6 +192,7 @@ static int func_cmd(struct ast *ast, int return_value)
     // child
     if (!pid)
     {
+        errno = 0;
         execvp(ast->data->ast_cmd->arg->data[0], ast->data->ast_cmd->arg->data);
         if (errno == ENOENT)
         {
@@ -236,10 +240,10 @@ int execute(struct ast *ast, int return_value)
             return func_or(ast, return_value);
         case AST_NOT:
             return func_not(ast, return_value);
-        /*case AST_PIPE:
+        case AST_PIPE:
             return func_pipe(ast, return_value);
-        */default:
+        default:
             return 19;
-            // ADD NEW AST EXECUTE HERE
+        // ADD NEW AST EXECUTE HERE
     }
 }
