@@ -32,9 +32,7 @@ struct ast *simple_command(struct lexer *lex)
     }
     peek_token(lex);
     if (lex->tok->type == END_OF_FILE)
-        //|| lex->tok->type == SEMICOLON)
     {
-        //if (lex->tok->type == END_OF_FILE)
         vector_append(cmd->arg, strdup(""));
         vector_append(cmd->arg, NULL);
         return convert_node_ast(AST_CMD, cmd);

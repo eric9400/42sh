@@ -58,13 +58,11 @@ static void print_if(struct ast *ast, int tab)
     print_tab(tab);
     printf("THEN:\n");
     ugly_print(ast->data->ast_if->then, tab + 1);
-    printf("\n");
     if (ast->data->ast_if->else_body)
     {
         print_tab(tab);
         printf("ELSE:\n");
         ugly_print(ast->data->ast_if->else_body, tab + 1);
-        printf("\n");
     }
 }
 
