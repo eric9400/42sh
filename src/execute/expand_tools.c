@@ -1,8 +1,12 @@
 #include "expand_tools.h"
 
+#include <ctype.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "hash_map.h"
 #include "my_string.h"
 
 static int is_valid_char(char c)
@@ -16,27 +20,28 @@ static int is_valid_char(char c)
     return c == '_';
 }
 
-static void resize_string(char **str, size_t size, size_t *capacity)
+static void resize_string(struct string *new_str, char *buf)
 {
-    if (size < *capacity)
+    size_t size = new_str->index + strlen(buf) + 1;
+    if (size < new_str->len)
         return;
-    *capacity = size * 2;
-    *str = realloc(*str, *capacity);
+    new_str->len = size * 2;
+    new_str->str = realloc(new_str->str, new_str->len);
 }
 
-void string_append(struct string *str, struct string *new_str, char *buf)
+void string_append(struct string *new_str, char *buf)
 {
-    resize_string(&new_str->str, new_str->index + strlen(buf) + 1, new_str->len);
-    new_str->str = strcat(new_str->str, buf);
+    resize_string(new_str, buf);
+    my_strcat(new_str->str + new_str->index, buf);
     new_str->index += strlen(buf);
 }
 
-static void expand_from_hashmap(struct string *str, struct string *new_str, char *buf)
+static void expand_from_hashmap(struct string *new_str, char *buf)
 {
     char *value = hashmap_get_copy(hashmap, buf);
     if (value)
     {
-        string_append(str, new_str, value);
+        string_append(new_str, value);
         free(value);
     }
 }
@@ -52,10 +57,10 @@ int dollar_expansion(struct string *str, struct string *new_str)
         size_t start = str->index;
         while (is_valid_char(str->str[str->index]))
             str->index += 1;
-        char *key = strndup(str->str[start], str->index - start);
+        char *key = strndup(str->str, str->index - start);
         if (str->str[str->index] == '}')
         {
-            expand_from_hashmap(str, new_str, key);
+            expand_from_hashmap(new_str, key);
             free(key);
             return 0;
         }
@@ -70,15 +75,15 @@ int dollar_expansion(struct string *str, struct string *new_str)
         if (isdigit(str->str[str->index]))
         {
             buf[0] = str->str[str->index];
-            expand_from_hashmap(str, new_str, buf);
+            expand_from_hashmap(new_str, buf);
         }
         else
         {
             size_t start = str->index;
             while(is_valid_char(str->str[str->index]))
                 str->index += 1;
-            char *key = strndup(str->str[start], str->index - start);
-            expand_from_hashmap(str, new_str, key);
+            char *key = strndup(str->str, str->index - start);
+            expand_from_hashmap(new_str, key);
             free(key);
         }
     }
@@ -87,7 +92,7 @@ int dollar_expansion(struct string *str, struct string *new_str)
         // $_ with invalid char after $, just print $_
         buf[0] = '$';
         buf[1] = str->str[str->index];
-        string_append(str, new_str, buf);
+        string_append(new_str, buf);
     }
     return 0;
 }
@@ -112,5 +117,5 @@ void slash_expansion_in_d_quotes(struct string *str, struct string *new_str)
         buf[0] = '\\';
         buf[1] = str->str[str->index];
     }
-    string_append(str, new_str, buf);
+    string_append(new_str, buf);
 }

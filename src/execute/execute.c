@@ -7,6 +7,7 @@
 
 #include "ast.h"
 #include "builtin.h"
+#include "expand_tools.h"
 #include "execute_tools.h"
 #include "lexer.h"
 #include "hash_map.h"
@@ -116,13 +117,16 @@ static int func_list(struct ast *ast, int return_value)
 
 static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error)
 {
+    // TO CHANGE TODO
+    (void) return_value;
     struct stock_fd *stock_fd = NULL;
     int res = 0;
     for (size_t i = 0; i < redir->size && !res; i++)
     {
-        int *marker = calloc(2, sizeof(int));
-        expandinho(&(redir->cmd_if[i]->data->ast_redir->exit_file), return_value, marker, 0);
-        free(marker);
+        // expandinho(&(redir->cmd_if[i]->data->ast_redir->exit_file), return_value, marker, 0);
+        char *tmp = expandinho_phoenix_junior(redir->cmd_if[i]->data->ast_redir->exit_file);
+        free(redir->cmd_if[i]->data->ast_redir->exit_file);
+        redir->cmd_if[i]->data->ast_redir->exit_file = tmp;
         switch (redir->cmd_if[i]->data->ast_redir->type)
         {
             case S_RIGHT:
@@ -161,8 +165,9 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int
     }
     return stock_fd;
 }
-        
-static void add_assign_word(char *str)
+
+// TODO
+static inline void add_assign_word(char *str)
 {
     char *value = strstr(str, "=");
     value[0] = '\0';
