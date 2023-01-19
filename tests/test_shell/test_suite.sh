@@ -99,7 +99,7 @@ echo
 echo
 echo $blue "===================STEP 1==================="
 echo
-echo $blue " STDIN" $red
+echo $blue " SCRIPTS" $red
 test_stdin "test_shell/step1/test1.sh"
 test_stdin "test_shell/step1/test2.sh"
 test_stdin "test_shell/step1/test3.sh"
@@ -201,6 +201,13 @@ test_error "'if' true; then echo toto; fi"
 echo
 echo $blue "===================STEP 2==================="
 echo 
+echo $blue " SCRIPTS"
+test_stdin "test_shell/step2/for1_10.sh"
+test_stdin "test_shell/step2/for12345.sh"
+test_stdin "test_shell/step2/pipe.sh"
+test_stdin "test_shell/step2/var.sh"
+test_stdin "test_shell/step2/while_if.sh"
+echo
 echo $blue " INPUT" $red
 test_input "echo \"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bourre ou quoi\""
 test_input "echo \"\""

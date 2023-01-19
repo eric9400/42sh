@@ -106,6 +106,10 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
         return;
 
     free_token(lex);
+    peek_token(lex);
+    if (lex->tok->type == NEWLINE || lex->tok->type == END_OF_FILE)
+        return;
+
     struct ast *cmd = and_or(lex);
     if (!cmd) // If we are at the end of the list
     {
