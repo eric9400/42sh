@@ -5,23 +5,8 @@
 
 #include "vector.h"
 
-static int is_backslashable(char c)
+static size_t print_special_char(char c)
 {
-    return c == '\\' || c == '`';
-}
-
-static size_t print_special_char(int f_e, char c, int in_d_quotes,
-                                 int in_s_quotes)
-{
-    if (!f_e)
-    {
-        if (in_s_quotes || (in_d_quotes && !is_backslashable(c)))
-            printf("\\");
-        printf("%c", c);
-        return 1;
-    }
-
-    size_t res = 1;
     if (c == 'n')
         printf("\n");
     else if (c == 't')
@@ -31,40 +16,24 @@ static size_t print_special_char(int f_e, char c, int in_d_quotes,
     {
         printf("\\");
         // case '\' with non escape next
-        if (c != '\\')
-            res = 0;
+        if (c != '\\' && c != '\0')
+            printf("%c", c);
     }
-    return res;
+    return 1;
 }
 
 static void print_echo(int f_n, int f_e, struct vector *v)
 {
-    int in_s_quotes = 0;
-    int in_d_quotes = 0;
     for (size_t i = 0; i < v->size; i++)
     {
         char *s = v->data[i];
         for (size_t j = 0; j < strlen(s); j++)
         {
-            if (!in_d_quotes && s[j] == '\'')
-            {
-                in_s_quotes = !in_s_quotes;
-                continue;
-            }
-            else if (!in_s_quotes && s[j] == '"')
-            {
-                in_d_quotes = !in_d_quotes;
-                continue;
-            }
-            // we have to expand everything from here
-            else if (s[j] == '\\')
-                j +=
-                    print_special_char(f_e, s[j + 1], in_d_quotes, in_s_quotes);
+            if (f_e && s[j] == '\\')
+                j += print_special_char(s[j + 1]);
             else
                 printf("%c", s[j]);
         }
-        in_s_quotes = 0;
-        in_d_quotes = 0;
         if (i != v->size - 1)
             printf(" ");
     }
@@ -141,6 +110,8 @@ int echo(char **s, int return_value)
 
 int check_builtin(char **str, int return_value)
 {
+    if (!(*str))
+        return -1;
     if (!strcmp(str[0], "true"))
         return 0;
     if (!strcmp(str[0], "false"))

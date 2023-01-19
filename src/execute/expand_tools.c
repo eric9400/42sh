@@ -102,7 +102,7 @@ static int is_valid_escape_d_quotes(char c)
     return c == '$' || c == '`' || c == '"' || c == '\\' || c == '\n';
 }
 
-void slash_expansion_in_d_quotes(struct string *str, struct string *new_str)
+void slash_expansion_in_d_quotes(struct string *str, struct string *new_str, int in_d_quotes)
 {
     str->index++;
     char buf[3] = { 0 };
@@ -114,8 +114,13 @@ void slash_expansion_in_d_quotes(struct string *str, struct string *new_str)
     }
     else
     {
-        buf[0] = '\\';
-        buf[1] = str->str[str->index];
+        if (in_d_quotes)
+        {
+            buf[0] = '\\';
+            buf[1] = str->str[str->index];
+        }
+        else
+            buf[0] = str->str[str->index];
     }
     string_append(new_str, buf);
 }

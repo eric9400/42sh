@@ -104,7 +104,7 @@ int expandinho_phoenix(struct ast *ast)
                 }
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
-                    slash_expansion_in_d_quotes(str, new_str);
+                    slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
                 else
                     string_append(new_str, buf);
             }
@@ -123,7 +123,7 @@ int expandinho_phoenix(struct ast *ast)
                 }
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
-                    slash_expansion_in_d_quotes(str, new_str);
+                    slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
                 else
                     string_append(new_str, buf);
             }
@@ -173,7 +173,7 @@ char *expandinho_phoenix_junior(char *s)
             }
             else if (buf[0] == '\\')
                 // there is always something after a backslash
-                slash_expansion_in_d_quotes(str, new_str);
+                slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
             else
                 string_append(new_str, buf);
         }
@@ -194,7 +194,7 @@ char *expandinho_phoenix_junior(char *s)
             }
             else if (buf[0] == '\\')
                 // there is always something after a backslash
-                slash_expansion_in_d_quotes(str, new_str);
+                slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
             else
                 string_append(new_str, buf);
         }
