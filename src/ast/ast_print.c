@@ -15,6 +15,8 @@ static void print_or(struct ast *ast, int tab);
 static void print_not(struct ast *ast, int tab);
 static void print_redirect(struct ast *ast);
 static void print_pipe(struct ast *ast, int tab);
+static void print_function(struct ast *ast, int tab);
+static void print_subshell(struct ast *ast, int tab);
 
 static void print_tab(int tab)
 {
@@ -48,6 +50,10 @@ void ugly_print(struct ast *ast, int tab)
         print_pipe(ast, tab);
     else if (ast->type == AST_NOT)
         print_not(ast, tab);
+    else if (ast->type == AST_FUNC)
+        print_function(ast, tab);
+    else if (ast->type == AST_SUBSHELL)
+        print_subshell(ast, tab);
 }
 
 static void print_if(struct ast *ast, int tab)
@@ -195,6 +201,21 @@ static void print_pipe(struct ast *ast, int tab)
     printf(" |\n");
     ugly_print(ast->data->ast_pipe->left, tab + 1);
     ugly_print(ast->data->ast_pipe->right, tab + 1);
+}
+
+
+static void print_function(struct ast *ast, int tab)
+{
+    print_tab(tab);
+    printf(" FUNCTION :\n");
+    ugly_print(ast->data->ast_func->func, tab + 1);
+}
+
+static void print_subshell(struct ast *ast, int tab)
+{
+    print_tab(tab);
+    printf(" SUBSHELL :\n");
+    ugly_print(ast->data->ast_subshell->sub, tab + 1);
 }
 
 // ADD NEW AST PRINT HERE

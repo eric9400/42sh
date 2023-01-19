@@ -1,5 +1,7 @@
 shell_command =
-    rule_if
+    '{' compound_list '}'
+    | '(' compound_list ')'
+    | rule_if
     | rule_while
     | rule_until
     | rule_for

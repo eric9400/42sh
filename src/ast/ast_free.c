@@ -109,6 +109,18 @@ static void free_pipe(struct ast *pipe)
     free(pipe->data->ast_pipe);
 }
 
+static void free_function(struct ast *ast_func)
+{
+    free_node(ast_func->data->ast_func->func);
+    free(ast_func->data->ast_func);
+}
+
+static void free_subshell(struct ast *ast_sub)
+{
+    free_node(ast_sub->data->ast_subshell->sub);
+    free(ast_sub->data->ast_subshell);
+}
+
 void free_node(struct ast *ast)
 {
     if (!ast)
@@ -133,6 +145,10 @@ void free_node(struct ast *ast)
         free_pipe(ast);
     else if (ast->type == AST_NOT)
         free_not(ast);
+    else if (ast->type == AST_FUNC)
+        free_function(ast);
+    else if (ast->type == AST_SUBSHELL)
+        free_subshell(ast);
 
     free(ast->data);
     free(ast);

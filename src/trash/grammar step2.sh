@@ -16,7 +16,10 @@ pipeline = ['!'] command { '|' {'\n'} command } ;
 command =
     simple_command
     | shell_command { redirection }
+    | funcdec { redirection }
     ;
+
+funcdec = WORD '(' ')' {'\n'} shell_command ;
 
 simple_command =
     prefix { prefix }

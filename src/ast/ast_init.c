@@ -16,6 +16,8 @@ static struct ast_or *init_or(void);
 static struct ast_not *init_not(void);
 static struct ast_redir *init_redir(void);
 static struct ast_pipe *init_pipe(void);
+static struct ast_func *init_function(void);
+static struct ast_subshell *init_subshell(void);
 
 void *init_ast(enum ast_type type)
 {
@@ -41,6 +43,10 @@ void *init_ast(enum ast_type type)
         return init_redir();
     else if (type == AST_PIPE)
         return init_pipe();
+    else if (type == AST_FUNC)
+        return init_function();
+    else if (type == AST_SUBSHELL)
+        return init_subshell();
     return NULL;
     // ADD NEW AST INIT HERE
 }
@@ -137,5 +143,19 @@ static struct ast_pipe *init_pipe(void)
     ast_pipe->left = NULL;
     ast_pipe->right = NULL;
     return ast_pipe;
+}
+
+static struct ast_func *init_function(void)
+{
+    struct ast_func *ast_func = calloc(1, sizeof(struct ast_func));
+    ast_func->func = NULL;
+    return ast_func;
+}
+
+static struct ast_subshell *init_subshell(void)
+{
+    struct ast_subshell *ast_subshell = calloc(1, sizeof(struct ast_subshell));
+    ast_subshell->sub = NULL;
+    return ast_subshell;
 }
 // ADD NEW AST INIT HERE
