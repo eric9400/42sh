@@ -181,7 +181,7 @@ void next_token(struct lexer *lex)
     tok->data[lex->flags->i] = '\0';
     findtype(tok, lex->flags);
     lex->tok = tok;
-    // puts(lex->tok->data);
+    //puts(lex->tok->data);
 }
 
 /*

@@ -112,7 +112,7 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
         lex->error = 0;
         return;
     }
-
+    
     add_to_list(exec_tree, cmd);
     list2(lex, exec_tree);
 }

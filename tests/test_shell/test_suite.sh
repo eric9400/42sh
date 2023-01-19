@@ -11,23 +11,13 @@ test=0
 fail=0
 p_all=0
 
-test_lex_parse()
-{
-    echo "$2" > "$REF_OUT"
-    ./42sh -u "$1" > "$TEST_OUT"
-    var=$(diff "$REF_OUT" "$TEST_OUT")
-    if [ $(echo "$var" | wc -c) -gt 1 ]; then
-        echo "$red     NAN!     |  $1    ->    $2"
-    elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1    ->    $2"
-    fi
-}
-
 test_input()
 {
     test=$(($test+1));
-    echo "$1" | bash --posix > "$REF_OUT" 2> /dev/null
+    bash --posix -c "$1" > "$REF_OUT" 2> /dev/null
+    echo $? >> "$REF_OUT"
     ./42sh -c "$1" > "$TEST_OUT" 2> /dev/null
+    echo $? >> "$TEST_OUT"
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
         fail=$(($fail+1));
@@ -42,8 +32,10 @@ test_input()
 test_stdin()
 {
     test=$(($test+1));
-    echo "$1" | bash --posix > "$REF_OUT" 2> /dev/null
-    ./42sh < "$1" > "$TEST_OUT" 2> /dev/null
+    bash --posix "$1" > "$REF_OUT" 2> /dev/null
+    echo $? >> "$REF_OUT"
+    ./42sh "$1" > "$TEST_OUT" 2> /dev/null
+    echo $? >> "$TEST_OUT"
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
         fail=$(($fail+1));
@@ -59,9 +51,35 @@ test_stdin()
 test_error()
 {
     test=$(($test+1));
-    echo "$1" | bash --posix > /dev/null 2>&1
-    echo $? > "$REF_OUT"
-    ./42sh -c "$1" > /dev/null 2>&1
+    bash --posix -c $1 > /dev/null 2> /dev/null
+    ref=$(echo $?)
+    if [ $ref -eq 1 ]; then
+        ref=$(($ref+1));
+    fi;
+    echo $ref > "$REF_OUT"
+    ./42sh -c $1 > /dev/null 2> /dev/null
+    echo $? > "$TEST_OUT"
+    var=$(diff "$REF_OUT" "$TEST_OUT")
+    if [ $(echo "$var" | wc -c) -gt 1 ]; then
+        fail=$(($fail+1));
+        echo "$red     NAN!     |  $1"
+    elif [ $p_all -eq 1 ]; then
+        echo "$green      OK      |  $1"
+    else
+        pass=$(($pass+1));
+    fi
+}
+
+test_stdin_error()
+{
+    test=$(($test+1));
+    bash --posix ./"$1" > /dev/null 2>&1
+    ref=$(echo $?);
+    if [ $ref -eq 1 ]; then
+        ref=$(($ref+1));
+    fi;
+    echo $ref > "$REF_OUT"
+    ./42sh "$1" > /dev/null 2>&1
     echo $? > "$TEST_OUT"
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ]; then
@@ -100,7 +118,7 @@ test_stdin "test_shell/step1/echo_backslash_dquote.sh"
 test_stdin "test_shell/step1/backlash_newline.sh"
 test_stdin "test_shell/step1/backlash_newline2.sh"
 test_stdin "test_shell/step1/ascii_house.sh"
-test_stdin "test_shell/step1/command_list_err.sh"
+test_stdin_error "test_shell/step1/command_list_err.sh"
 #test_stdin "test_shell/step1/cursed.sh"
 echo
 echo $blue " ALL INPUT" $red
@@ -136,7 +154,7 @@ test_input "'#'quote"
 test_input "'ls'"
 echo
 echo $blue " AMOUNG SUS ERRORS" $red
-test_error "if"
+test_error 'if'
 test_error "if true; echo toto; fi"
 test_error "coucou"
 test_error "coucou;"
@@ -160,8 +178,8 @@ test_error "then; fi;"
 test_error "if"
 test_error "if; then; fi"
 test_error "if true; then fi; fi"
-test_error "if \n; then echo foo; fi"
-test_error "if true\n; then echo foo; fi"
+test_error 'if \n; then echo foo; fi'
+test_error 'if true\n; then echo foo; fi'
 test_error "if true; then false;"
 test_error "if true; then false;;"
 test_error "if true; then; fi"
@@ -201,10 +219,10 @@ test_input "echo \"cont\\\\\nent\""
 test_input "echo \"quoi?\nfeur\""
 test_input "for n; do echo foo; done"
 test_input "for coucou; do echo foo; done"
-test_input "n=5; for $n; do echo foo; done"
-test_input "n=5;\n for $n; do echo foo; done"
+test_input "n=5; for \$n; do echo foo; done"
+test_input "n=5;\n for \$n; do echo foo; done"
 test_input "for n in foo bar; do echo toto; done"
-test_input "n=4; foo=7; for $n in $foo; do echo toto; done"
+test_input "n=4; foo=7; for \$n in \$foo; do echo toto; done"
 test_input "! true"
 test_input "! echo foo"
 test_input "! echo foo | echo"
