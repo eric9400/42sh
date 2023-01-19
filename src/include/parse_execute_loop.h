@@ -6,7 +6,7 @@
 #include "utils.h"
 
 int parse_execute_loop(FILE *file, struct flags *flags);
-int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error);
+int freeAll();
 
 extern struct flags *global_flags;
 extern struct lexer *lex;

@@ -15,13 +15,17 @@ struct lexer *lex = NULL;
 struct ast *ast = NULL;
 FILE *file = NULL;
 
-int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
+int freeAll()
 {
     free_lexer(lex);
     free_node(ast);
     fclose(file);
     free(global_flags);
-    hash_map_free(hashmap);
+    if (!is_in_dot)
+    {
+        hash_map_free(hashmap);
+        free(global_flags);
+    }
     return error;
 }
 
@@ -61,7 +65,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 return freeAll(file, lex, ast, lex->error);
             */
             if (file != stdin)
-                return freeAll(file, lex, ast, lex->error);
+                return freeAll();
         }
         else if (!ast && file != stdin)
             break;
@@ -98,7 +102,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                     return freeAll(file, lex, ast, lex->error);
                 */
                 if (file != stdin)
-                    return freeAll(file, lex, ast, return_value);
+                    return freeAll();
             }
         }
         free_node(ast);
@@ -109,6 +113,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
         fflush(stdout);
     }
     if (lex->error)
-        return freeAll(file, lex, ast, lex->error);
-    return freeAll(file, lex, ast, return_value);
+        return freeAll();
+    return freeAll();
 }

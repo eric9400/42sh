@@ -12,6 +12,8 @@
 #include "execute.h"
 #include "hash_map.h"
 
+int is_in_dot = 0;
+
 static int is_backslashable(char c)
 {
     return c == '\\' || c == '`';
@@ -236,6 +238,7 @@ int unset(char **str) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
         }
         else
         {
+            printf("IT HAS TO BE A FUNCTION REMOVE IN HASHMAP\n");
             //if (!hash_map_f_remove(hashmap_f, s[i])
             //  return_value = 1;
         }
@@ -246,19 +249,66 @@ int unset(char **str) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
 
 int cd(char **s)
 {
-    //TO DO
+    
 }
 
 int dot(char **s)
 {
-    //TO DO
+    char *filename = s[1];
+    int as_slash = 0;
+    int len_filename = strlen(s[1]);
+    for (int i = 0; i < len; i++)
+    {
+        if (s[1][i] == '/')
+        {
+            as_slash = 1;
+            break;
+        }
+    }
+    FILE *filedot = NULL;
+    if ((filedot = fopen(filename, "r")) == NULL)
+    {
+        if ((filedot = fopen(PATH + filename, "r")) == NULL)
+        {
+            if (file == stdin)
+            {
+                fprintf(stderr, "Bad file for . builtin\n");
+                return 1;
+            }
+            else
+            {
+                freeAll();
+                exit(1);
+            }
+        }
+    }
+    struct lexer *old_lex = lex;
+    lex = NULL;
+    struct ast *old_ast = ast;
+    ast = NULL:
+    FILE *old_file = file;
+
+    int i = 2;
+    while (s[i++] != NULL)
+    {
+        char value[100] = { 0 };
+        sprintf(value, "%d", i-1);
+        hash_map_insert(hashmap, value, s[i]);
+    }
+    is_in_dot = 1;
+    int res = parse_execute_loop(filedot, global_flags);
+    lex = old_lex;
+    ast = old_ast:
+    file = old_file;
+    is_in_dot = 0;
+    return res;
 }
 
-int exit(char **s, int return_value)
+int my_exit(char **s, int return_value)
 {
     if (s[1] == NULL)
     {
-        freeAll(file, lex, ast, error);
+        freeAll();
         exit(return_value);
     }
     int isnum = 1;
@@ -273,12 +323,16 @@ int exit(char **s, int return_value)
     }
     if (!isnum)
     {
-        freeAll(file, lex, ast, error);
-        exit(1); //MIGHT NEED TO WRITE ON STDERR BEFORE
+        fprintf(stderr, "exit: need numeric argument\n");
+        freeAll();
+        exit(1);
     }
     if (s[2] != NULL)
-        return 1; //MIGHT ENED TO WRITE ON STDERR
-    freeAll(file, lex, ast, error);
+    {
+        fprintf(stderr, "exit: too many arguments\n");
+        return 1;
+    }
+    freeAll();
     exit(atoi(s[1]));
 }
 
@@ -320,11 +374,11 @@ int check_builtin(char **str, struct c_or_b *no_to_racismo, int return_value)
     if (!strcmp(str[0], "break"))
         return corb(str, &no_to_racismo, 1);
     if (!strcmp(str[0], "exit"))
-        return exit(str, return_value);
+        return my_exit(str, return_value);
 
     if (!strcmp(str[0], "cd"))
         return cd(str);
-    if (!strcmp(str[0], "dot"))
+    if (!strcmp(str[0], "."))
         return dot(str);
     return -1;
 }
