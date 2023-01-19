@@ -176,21 +176,19 @@ static int func_cmd(struct ast *ast, int return_value)
     struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-// ==========================
 
-    expandinho_phoenix(ast);
-
-
-
-    // split when expanded
-    split_vector(marker, ast);
-    free(marker);
-// ==========================
+    if (expandinho_phoenix(ast) == 1)
+    {
+        destroy_stock_fd(stock_fd);
+        return 1;
+    }
+/*
     if (ast->data->ast_cmd->arg->data[0] == NULL)
     {
         destroy_stock_fd(stock_fd);
         return 0;
     }
+    */
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, return_value);
     if (code != -1)
