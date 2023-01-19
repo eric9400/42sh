@@ -200,7 +200,10 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
         if (curr == EOF)
         {
             if (is_invalid(lex->flags))
+            {
                 lex->error = 2;
+                fprintf(stderr, "%s\n", "ERROR LEXER : LACK OF ENDING \", \' or }");
+            }
             ungetc(curr, lex->filename);
             break;
         }
