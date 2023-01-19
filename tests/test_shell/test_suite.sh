@@ -150,6 +150,15 @@ test_input "echo -E '\n'"
 test_input "'coucou'"
 test_input "'echo toto'"
 test_input "echo 'toto'"
+
+
+test_input "echo '\n'"
+test_input "echo \"\n\""
+test_input "echo $1"
+test_input "echo \"\n\""
+test_input "echo 'a   \'b\z' \'c\z"
+
+
 test_input "'#'quote"
 test_input "'ls'"
 echo
