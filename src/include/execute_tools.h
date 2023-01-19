@@ -4,6 +4,13 @@
 #include "ast.h"
 #include "vector.h"
 
+struct string 
+{
+    char *str;
+    size_t index;
+    size_t len;
+};
+
 void split_and_append(struct vector **v, char *s);
 void split_vector(int *marker, struct ast *ast);
 

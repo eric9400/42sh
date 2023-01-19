@@ -176,34 +176,16 @@ static int func_cmd(struct ast *ast, int return_value)
     struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-    size_t size = ast->data->ast_cmd->arg->size - 1;
-    int *marker = calloc(size + 1, sizeof(int));
-    //CALL NEW FUNCTION TO EXPAND $@ OR $* AND REARRANGE VECTOR
-    // expandinho_senior(ast);
+// ==========================
 
-    // check for expand
-    for (size_t i = 0; i < size; i++)
-    {
+    expandinho_phoenix(ast);
 
-        int is_assign = ast->data->ast_cmd->arg->data[i][0] == '#';
-        if (is_assign)
-        {
-            char *temp = strdup(ast->data->ast_cmd->arg->data[i] + 1);
-            free(ast->data->ast_cmd->arg->data[i]);
-            ast->data->ast_cmd->arg->data[i] = temp;
-        }
-        expandinho(&(ast->data->ast_cmd->arg->data[i]), return_value, marker ,i);
-        if (is_assign)
-        {
-            add_assign_word(ast->data->ast_cmd->arg->data[i]);
-            // to skip in split_vector, assignment word are not commands
-            marker[i] = -1;
-        }
-    }
+
 
     // split when expanded
     split_vector(marker, ast);
     free(marker);
+// ==========================
     if (ast->data->ast_cmd->arg->data[0] == NULL)
     {
         destroy_stock_fd(stock_fd);

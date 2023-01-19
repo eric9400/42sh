@@ -3,10 +3,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 #include "hash_map.h"
 
@@ -189,128 +189,140 @@ static char *is_special_var(char *str, int return_value)
     return NULL;
 }
 
-static int is_valid_char(char c)
+/*
+ * S'occupe de append dans v les mots un a un selon les cas
+static void expandinho_senior_aux(struct vector **v, char *s)
 {
-    if (c >= 'a' && c <= 'z')
-        return 1;
-    else if (c >= 'A' && c <= 'Z')
-        return 1;
-    else if (c >= '0' && c <= '9')
-        return 1;
-    return c == '_';
-}
-
-static void resize_string(char **str, size_t size, size_t *capacity)
-{
-    if (size < *capacity)
-        return;
-    *capacity = size * 2;
-    *str = realloc(*str, *capacity);
-}
-
-static string_append(struct string *str, struct string *new_str, char *buf)
-{
-    resize_string(&new_str->str, new_str->index + strlen(buf) + 1, new_str->len);
-    new_str->str = strcat(new_str->str, buf);
-    new_str->index += strlen(buf);
-}
-
-static void expand_from_hashmap(struct string *str, struct string *new_str, char *buf)
-{
-    char *value = hashmap_get_copy(hashmap, buf);
-    string_append(str, new_str, value); 
-}
-
-static void dollar_expansion(struct string *str, struct string *new_str)
-{
-    str->index += 1;
-    char buf[2] = { 0 };
-    if (str->str[str->index] == '\\' || str->str[str->index] == ' ')
+    int in_double_quotes = 0;
+    int in_single_quotes = 0;
+    size_t len = strlen(s);
+    size_t i = 0;
+    for (size_t j = 0; j < len; j++)
     {
-        buf[0] = '$';
-        string_append(str, new_str, buf);
-        str->index -= 1;
-    }
-    // ${a}
-    else if (str->str[str->index] == '{')
-    {
-        
-    }
-    // $a
-    else
-    {
-        if (str->str[str->index] >= '0' && str->str[str->index] <= '9')
+        if (s[j] == '\'')
+            in_single_quotes = !in_single_quotes;
+        else if (s[j] == '"')
+            in_double_quotes = !in_double_quotes;
+        else if (s[j] == '$')
         {
-            buf[0] = str->str[str->index];
-            expand_from_hashmap(str, new_str, buf);
-        }
-
-        size_t start = str->index;
-        while(is_valid_char(str->str[str->index]))
-            str->index += 1;
-        char *to_append = strndup(str->str[start], str->index - start);
-        string_append(str, new_str, to_append);
-        free(to_append);
-    }
-}
-
-static struct string init_string(char *str, size_t index, size_t len)
-{
-    struct string *obj = malloc(sizeof(struct string));
-    obj->str = strdup(str);
-    obj->index = index;
-    obj->len = len;
-    return obj;
-}
-
-void expandhino_phoenix(struct ast *ast)
-{
-    size_t size = ast->data->ast_cmd->arg->size - 1;
-    struct vector *vect_temp = vector_init(10);
-    int in_s_quotes = 0;
-    size_t start = 0;
-    char buf[2] = { 0 };
-    for (size_t i = 0; i < size; i++)
-    {
-        struct string *str = init_string(ast->data->ast_cmd->arg->data[curr], 
-                0, strlen(str));
-
-        struct string *new_str = init_string(str->str, 0, strlen(str));
-
-        int was_slash = 0;
-        for (; str->index < str->len; str->index++)
-        {
-            buf[0] = str->str[str->index];
-            if (in_s_quotes)
+            if (s[j + 1] != '\0' && !in_single_quotes)
             {
-                if (str->str[str->index] == ''')
+                j++;
+                if (s[j] == '@')
                 {
-                    in_s_quotes = 0;
-                    continue;
+                    // $@
+                    if (!in_double_quotes)
+                        split_no_quote(v);
+                    // "$@"
+                    else
+                        split_quote_at(v);
                 }
-                else
-                    string_append(str, new_str, buf);
+                else if (s[j] == '*')
+                {
+                    // $*
+                    if (!in_double_quotes)
+                        split_no_quote(v);
+                    // "$*" ok
+                    else
+                        split_quote_star(v);
+                }
             }
-            else if (str->str[str->index] == '$')
-                dollar_expansion(str, new_str);
-            else if (str[curr] == '\\')
+        }
+        else
+        {
+
+        }
+    }
+
+}
+
+ * Preparsing for the cases $@ and $*
+static void expandinho_senior(struct ast *ast)
+{
+    struct vector **v = &ast->data->ast_cmd->arg;
+    size_t len_vector = ast->data->ast_cmd->arg->size - 1;
+    struct vector *new = vector_init(len_vector);
+    char **data = ast->data->ast_cmd->arg->data;
+    size_t len = 0;
+    for (size_t i = 0; i < len_vector; i++)
+    {
+        char *temp = strdup(data[i]);
+        expandinho_senior_aux(v, temp);
+        free(temp);
+    }
+    new = vector_append(new, NULL);
+    vector_destroy(*v);
+    *v = new;
+}
+*/
+
+static void expandinho_junior(size_t *i, int *lenvar, int *indnew, char **value)
+{
+    *i += *lenvar - 1;
+    (*indnew)--;
+    free(*value);
+    *value = NULL;
+}
+
+void expandinho(char **str, int return_value, int *marker,
+        size_t ind_marker)
+{
+    if (!(*str))
+        return;
+
+    // new string after expand
+    size_t len = strlen(*str);
+    char *new = malloc(len + 1);
+    int indnew = 0;
+
+    int new_len = len;
+    int single_quote = 0;
+
+    // temporary variable
+    int lenvar = 0;
+    size_t value_len = 0;
+    char *hkey = NULL;
+    char *value = NULL;
+
+    for (size_t i = 0; i < len; i++, indnew++)
+    {
+        if ((*str)[i] == '$' && !single_quote)
+        {
+            // we found matching expand
+            if (is_still_variable(*str + i + 1, &lenvar) == 0)
             {
-                if (was_slash)
-                {
-                    string_append(&new_str, curr, &capacity, buf);
-                }
+                // lenvar == strlen(name var to expand) + '$'
+                hkey = strndup(*str + i + 1, lenvar - 1);
+                if ((value = is_special_var(hkey, return_value)) == NULL)
+                    value = hashmap_get_copy(hashmap, hkey);
+                free(hkey);
+            }
+            // no matching expand
+            if (!value)
+            {
+                if (new_len - lenvar > 0)
+                    new = realloc(new, new_len - lenvar + 1);
                 else
-                {
-                    was_slash = 1;
-                    continue;
-                }
+                    new = realloc(new, 1);
             }
             else
-                string_append(&new_str, curr, &capacity, buf);
-            was_slash = 0;
-            //new_curr++;
+            {
+                value_len = strlen(value);
+                new_len = new_len - lenvar + value_len;
+                new = realloc(new, new_len + 1);
+                for (size_t j = 0; j < value_len; j++, indnew++)
+                    new[indnew] = value[j];
+                marker[ind_marker]++;
+            }
+            expandinho_junior(&i, &lenvar, &indnew, &value);
         }
-        new_str = realloc(new_str, new_curr + 1);
-        new_str[new_curr] = '\0';
+        else
+            new[indnew] = (*str)[i];
+        if ((*str)[i] == '\'')
+            single_quote = !single_quote;
+        lenvar = 0;
     }
+    new[indnew] = '\0';
+    free(*str);
+    *str = new;
 }
