@@ -11,14 +11,14 @@ if [ $# -ne 0 ] && [ $# -ne 1 ]; then
 fi
 
 if [ $# -eq 1 ]; then
-    if [[ $1 == "clean" ]]; then
+    if [ $1 = "clean" ]; then
         rm -rf "$dir"
         rm -rf "$bin"
         rm -f "a"
         rm -rf "$testsuite"
         echo "clean done"
         exit 0
-    elif [[ $1 == "debug" ]]; then
+    elif [ $1 = "debug" ]; then
         debug="-Db_sanitize=address"
     else
         echo "Usage: "$0" [clean | debug]"
@@ -31,7 +31,7 @@ rm -rf "$bin"
 
 # build
 # >=======
-meson setup "$dir" "$debug"
+meson setup $dir $debug
 echo "meson setup build done"
 # =======<
 
@@ -45,7 +45,7 @@ echo "ninja done"
 cp "$dir"/"$bin" "."
 echo "build finish"
 
-if [[ $1 == "debug" ]]; then
+if [ "$1" = "debug" ]; then
     cp -r "../tests/""$testsuite" "."
     ./test_shell/test_suite.sh
 fi
