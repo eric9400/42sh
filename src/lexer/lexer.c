@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int next_token_junior(struct lexer *lex, struct token *tok, char curr);
+static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr, char *prev);
+
 void peek_token(struct lexer *lex)
 {
     if (!lex->tok)
@@ -18,9 +21,10 @@ void free_token(struct lexer *lex)
 
 struct lexer *init_lexer(FILE *file)
 {
-    struct lexer *lex = malloc(sizeof(struct lexer));
+    struct lexer *lex = calloc(1, sizeof(struct lexer));
     if (!lex)
         return NULL;
+    lex->flags = calloc(1, sizeof(struct lex_flags));
     lex->filename = file;
     lex->tok = NULL;
     lex->error = 0;
@@ -31,6 +35,7 @@ void free_lexer(struct lexer *lex)
 {
     if (lex->tok != NULL)
         free_token(lex);
+    free(lex->flags);
     free(lex);
 }
 
@@ -60,42 +65,42 @@ static void end_of_block_line_file(struct lexer *lex, char tmp)
     lex->tok = tok;
 }
 
-static void quote(struct lexer *lex, struct lex_flags *flags, struct token *tok,
-                  char curr)
+static void quote(struct lexer *lex, struct token *tok, char curr)
 {
+    struct lex_flags *f = lex->flags;
     if (curr == '\\')
     {
-        tok->data[flags->i] = curr;
+        tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
         if (curr == EOF)
         {
             ungetc(curr, lex->filename);
             return;
         }
-        else if (curr == '\n' && flags->in_dquote)
+        else if (curr == '\n' && f->in_dquote)
         {
-            flags->i--;
+            f->i--;
             return;
         }
-        flags->i++;
+        f->i++;
     }
-    else if (flags->in_squote)
+    else if (f->in_squote)
     {
         if (curr == '\'')
-            flags->in_squote = 0;
+            f->in_squote = 0;
     }
-    else if (flags->in_dquote)
+    else if (f->in_dquote)
     {
         if (curr == '\"')
-            flags->in_dquote = 0;
+            f->in_dquote = 0;
     }
     else if (curr == '\'')
-        flags->in_squote = 1;
+        f->in_squote = 1;
 
     else if (curr == '\"')
-        flags->in_dquote = 1;
+        f->in_dquote = 1;
 
-    tok->data[flags->i] = curr;
+    tok->data[f->i] = curr;
 }
 
 static void comments(struct lexer *lex, struct token *tok)
@@ -113,32 +118,30 @@ static void comments(struct lexer *lex, struct token *tok)
     ungetc(curr, lex->filename);
 }
 
-static void rule_5(struct lexer *lex, struct token *tok,
-                   struct lex_flags *flags, char curr)
+static void rule_5(struct lexer *lex, struct token *tok, char curr)
 {
-    if (flags->in_acollade)
+    struct lex_flags *f = lex->flags;
+    if (f->in_acollade)
     {
-        tok->data[flags->i] = curr;
+        tok->data[f->i] = curr;
         if (curr == '}')
-            flags->in_acollade = 1;
+            f->in_acollade = 1;
     }
     else
     {
-        tok->data[flags->i] = curr;
+        tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
         if (curr == '{')
         {
-            flags->i++;
-            tok->data[flags->i] = curr;
-            flags->in_acollade = 1;
+            f->i++;
+            tok->data[f->i] = curr;
+            f->in_acollade = 1;
         }
         else
             ungetc(curr, lex->filename);
     }
 }
 
-static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
-                          struct lex_flags *flags);
 // WHEN EXE IS KILL CLOSE THE FILE
 void next_token(struct lexer *lex)
 {
@@ -155,33 +158,29 @@ void next_token(struct lexer *lex)
     }
 
     struct token *tok = calloc(1, sizeof(struct token));
-    struct lex_flags *flags = init_lex_flags(20);
-    tok->data = calloc(flags->len, sizeof(char));
+    reinit_lex_flags(lex->flags, 20);
+    tok->data = calloc(lex->flags->len, sizeof(char));
 
-    // curr = current character
+    // curr : current character
     char curr = tmp;
     // word flag, singlequote flag, doublequote flag, operator flag
 
     if (start_operator(curr))
     {
-        flags->was_operator = 1;
-        tok->data[flags->i] = curr;
-        flags->i++;
+        lex->flags->was_operator = 1;
+        tok->data[lex->flags->i] = curr;
+        lex->flags->i++;
     }
     else
         ungetc(tmp, lex->filename);
 
-    if (sub_next_token(lex, tok, curr, flags))
-    {
-        free(flags);
+    if (next_token_junior(lex, tok, curr))
         return;
-    }
 
-    tok->data = realloc(tok->data, flags->i + 1);
-    tok->data[flags->i] = '\0';
-    findtype(tok, flags);
+    tok->data = realloc(tok->data, lex->flags->i + 1);
+    tok->data[lex->flags->i] = '\0';
+    findtype(tok, lex->flags);
     lex->tok = tok;
-    free(flags);
     // puts(lex->tok->data);
 }
 
@@ -189,9 +188,9 @@ void next_token(struct lexer *lex)
  *return 1 if there was a comment so that the rest of next_token is not executed
  *else return 0
  */
-static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
-                          struct lex_flags *flags)
+static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
 {
+    struct lex_flags *f = lex->flags; 
     while (1)
     {
         // previous character
@@ -200,63 +199,80 @@ static int sub_next_token(struct lexer *lex, struct token *tok, char curr,
 
         if (curr == EOF)
         {
+            if (is_invalid(lex->flags))
+            {
+                lex->error = 2;
+                fprintf(stderr, "%s\n", "ERROR LEXER : LACK OF ENDING \", \' or }");
+            }
             ungetc(curr, lex->filename);
             break;
         }
         // CHECK IF NEED TO DOUBLE SIZE
-        flags->len = test_data_full(&(tok->data), flags->i, flags->len);
+        f->len = test_data_full(&(tok->data), f->i, f->len);
 
-        if (!flags->in_squote && !flags->in_dquote && flags->was_operator)
-        {
-            if (is_operator(prev, curr))
-            {
-                tok->data[flags->i] = curr;
-                flags->i++;
-            }
-            else
-                ungetc(curr, lex->filename);
+        int break_lvl = next_token_genZ(lex, tok, &curr, &prev);
+        if (break_lvl == 2)
+            return 2;
+        if (break_lvl == 1)
             break;
-        }
-
-        else if (flags->in_squote || flags->in_dquote || curr == '\''
-                 || curr == '\"' || curr == '\\')
-            quote(lex, flags, tok, curr);
-
-        else if (flags->in_acollade || curr == '$') //|| curr == '`')
-            rule_5(lex, tok, flags, curr);
-
-        else if (!flags->in_squote && !flags->in_dquote && start_operator(curr))
-        {
-            if (is_number(tok->data))
-                flags->is_ionumber = 1;
-            ungetc(curr, lex->filename);
-            break;
-        }
-
-        else if (curr == ';' || curr == '\n')
-        {
-            ungetc(curr, lex->filename);
-            break;
-        }
-        else if (my_isspace(curr))
-            break; // RETURN TOKEN WITHOUT BLANK
-
-        else if (flags->is_word)
-            tok->data[flags->i] = curr;
-
-        else if (curr == '#')
-        {
-            comments(lex, tok);
-            return 1;
-        }
-
-        else
-        {
-            flags->is_word = 1;
-            tok->data[flags->i] = curr;
-        }
-        flags->i++;
     }
+    return 0;
+}
+
+static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *p)
+{
+    struct lex_flags *f = lex->flags; 
+    
+    if (!f->in_squote && !f->in_dquote && f->was_operator)
+    {
+        if (is_operator(*p, *c))
+        {
+            tok->data[f->i] = *c;
+            f->i++;
+        }
+        else
+            ungetc(*c, lex->filename);
+        return 1;
+    }
+
+    else if (f->in_squote || f->in_dquote || *c == '\''
+            || *c == '\"' || *c == '\\')
+        quote(lex, tok, *c);
+
+    else if (f->in_acollade || *c == '$') //|| curr == '`')
+        rule_5(lex, tok, *c);
+
+    else if (!f->in_squote && !f->in_dquote && start_operator(*c))
+    {
+        if (is_number(tok->data))
+            f->is_ionumber = 1;
+        ungetc(*c, lex->filename);
+        return 1;
+    }
+
+    else if (*c == ';' || *c == '\n')
+    {
+        ungetc(*c, lex->filename);
+        return 1;
+    }
+    else if (my_isspace(*c))
+        return 1; // RETURN TOKEN WITHOUT BLANK
+
+    else if (f->is_word)
+        tok->data[f->i] = *c;
+
+    else if (*c == '#')
+    {
+        comments(lex, tok);
+        return 2;
+    }
+
+    else
+    {
+        f->is_word = 1;
+        tok->data[f->i] = *c;
+    }
+    f->i++;
     return 0;
 }
 
