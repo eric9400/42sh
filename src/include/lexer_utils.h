@@ -14,8 +14,8 @@ struct lex_flags
     int in_squote;
     int in_dquote;
     int was_operator;
-    int in_variable;
     int in_acollade;
+    int in_parenthese;
     int is_ionumber;
     int found_backslash;
 };
