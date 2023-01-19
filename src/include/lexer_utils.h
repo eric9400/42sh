@@ -20,7 +20,9 @@ struct lex_flags
     int found_backslash;
 };
 
+int is_invalid(struct lex_flags *flags);
 struct lex_flags *init_lex_flags(int len);
+void reinit_lex_flags(struct lex_flags *flags, int len);
 void findtype(struct token *tok, struct lex_flags *flags);
 int test_data_full(char **data, int i, int len);
 int is_operator(char p, char c);

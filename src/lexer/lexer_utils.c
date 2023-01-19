@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+int is_invalid(struct lex_flags *flags)
+{
+    return flags->in_acollade || flags->in_squote || flags->in_dquote;
+}
+
 struct lex_flags *init_lex_flags(int len)
 {
     struct lex_flags *flags = calloc(1, sizeof(struct lex_flags));
@@ -18,6 +23,20 @@ struct lex_flags *init_lex_flags(int len)
     flags->is_ionumber = 0;
     flags->found_backslash = 0;
     return flags;
+}
+
+void reinit_lex_flags(struct lex_flags *flags, int len)
+{
+    flags->i = 0;
+    flags->len = len;
+    flags->is_word = 0;
+    flags->in_squote = 0;
+    flags->in_dquote = 0;
+    flags->was_operator = 0;
+    flags->in_variable = 0;
+    flags->in_acollade = 0;
+    flags->is_ionumber = 0;
+    flags->found_backslash = 0;
 }
 
 static int is_name(char *str, size_t size)

@@ -10,6 +10,7 @@ struct lexer
 {
     FILE *filename;
     struct token *tok;
+    struct lex_flags *flags;
     int error;
 };
 
