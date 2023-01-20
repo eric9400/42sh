@@ -52,11 +52,11 @@ test_error()
 {
     test=$(($test+1));
     bash --posix -c $1 > /dev/null 2> /dev/null
-    ref=$(echo $?)
-    if [ $ref -eq 1 ]; then
-        ref=$(($ref+1));
-    fi;
-    echo $ref > "$REF_OUT"
+#ref=$(echo $?)
+#    if [ $ref -eq 1 ]; then
+#        ref=$(($ref+1));
+#    fi;
+    echo $? > "$REF_OUT"
     ./42sh -c $1 > /dev/null 2> /dev/null
     echo $? > "$TEST_OUT"
     var=$(diff "$REF_OUT" "$TEST_OUT")
