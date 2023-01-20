@@ -128,7 +128,8 @@ struct ast *and_or(struct lexer *lex)
 
     peek_token(lex);
 
-    if (lex->tok->type != OPERATOR)
+    if (lex->tok->type != OPERATOR || (strcmp(lex->tok->data, "||") != 0
+    && strcmp(lex->tok->data, "&&") != 0))
         return pipe;
     
     struct ast *child = NULL;

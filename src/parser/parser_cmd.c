@@ -132,7 +132,8 @@ static struct ast *funcdec(struct lexer *lex)
 {
     peek_token(lex);
 
-    if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+    || is_shell_command(lex))
         return NULL;
     
     struct ast_func *ast_func = init_ast(AST_FUNC);

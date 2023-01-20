@@ -14,11 +14,19 @@ static struct ast *rule_for(struct lexer *lex);
 static struct ast *compound_list(struct lexer *lex);
 static void compound_list2(struct lexer *lex, struct ast_list *list);
 
+static void free_peek(struct lexer *lex)
+{
+    free_token(lex);
+    peek_token(lex);
+    return;
+}
+
 struct ast *shell_command(struct lexer *lex)
 {
     peek_token(lex);
     if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "(") == 0)
     {
+        free_peek(lex);
         struct ast_subshell *ast_sub = init_ast(AST_SUBSHELL);
         ast_sub->sub = compound_list(lex);
         peek_token(lex);
@@ -28,11 +36,13 @@ struct ast *shell_command(struct lexer *lex)
             free_node(convert_node_ast(AST_SUBSHELL, ast_sub));
             return error_handler(lex, 1, "ERROR SUBSHELL: INVALID COMPOUND LIST");
         }
+        free_token(lex);
         return convert_node_ast(AST_SUBSHELL, ast_sub);
     }
 
     if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "{") == 0)
     {
+        free_peek(lex);
         struct ast *comp_list = compound_list(lex);
         peek_token(lex);
         if (!comp_list || lex->error == 2 || lex->tok->type != OPERATOR
@@ -41,6 +51,7 @@ struct ast *shell_command(struct lexer *lex)
             free_node(comp_list);
             return error_handler(lex, 1, "ERROR BLOCKCOMMAND: INVALID COMPOUND LIST");
         }
+        free_token(lex);
         return comp_list;
     }
 
@@ -230,13 +241,6 @@ static void *rule_for_error(struct ast_for *for_node, struct lexer *lex)
     free_node(convert_node_ast(AST_FOR, for_node));
     lex->error = 2;
     return NULL;
-}
-
-static void free_peek(struct lexer *lex)
-{
-    free_token(lex);
-    peek_token(lex);
-    return;
 }
 
 struct ast *rule_for(struct lexer *lex)
