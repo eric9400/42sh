@@ -7,7 +7,7 @@ struct string *init_string(struct ast *ast, int i, struct vector *v)
 {
     char *str = NULL;
     if (ast->type == AST_CMD)
-        str =  ast->data->ast_cmd->arg->data[i];
+        str = ast->data->ast_cmd->arg->data[i];
     else
         str = ast->data->ast_for->arg->data[i];
     struct string *obj = malloc(sizeof(struct string));

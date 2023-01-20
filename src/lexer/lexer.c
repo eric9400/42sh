@@ -4,7 +4,8 @@
 #include <string.h>
 
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr);
-static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr, char *prev);
+static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr,
+                           char *prev);
 
 void peek_token(struct lexer *lex)
 {
@@ -127,7 +128,7 @@ static void rule_5(struct lexer *lex, struct token *tok, char curr)
         if (curr == ')' && !f->in_dquote && !f->in_squote)
             f->in_parenthese--;
         else if (curr == '(' && !f->in_dquote && !f->in_squote)
-            f->in_parenthese++;   
+            f->in_parenthese++;
     }
     else if (f->in_acollade)
     {
@@ -137,7 +138,7 @@ static void rule_5(struct lexer *lex, struct token *tok, char curr)
         else if (curr == '{' && !f->in_dquote && !f->in_squote)
             f->in_acollade++;
     }
-    else //curr == '$'
+    else // curr == '$'
     {
         tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
@@ -197,7 +198,7 @@ void next_token(struct lexer *lex)
     tok->data[lex->flags->i] = '\0';
     findtype(tok, lex->flags);
     lex->tok = tok;
-    //puts(lex->tok->data);
+    // puts(lex->tok->data);
 }
 
 /*
@@ -206,7 +207,7 @@ void next_token(struct lexer *lex)
  */
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
 {
-    struct lex_flags *f = lex->flags; 
+    struct lex_flags *f = lex->flags;
     while (1)
     {
         // previous character
@@ -218,7 +219,8 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
             if (is_invalid(lex->flags))
             {
                 lex->error = 2;
-                fprintf(stderr, "%s\n", "ERROR LEXER : LACK OF ENDING \", \' or }");
+                fprintf(stderr, "%s\n",
+                        "ERROR LEXER : LACK OF ENDING \", \' or }");
             }
             ungetc(curr, lex->filename);
             break;
@@ -235,12 +237,13 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
     return 0;
 }
 
-static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *p)
+static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
+                           char *p)
 {
-    struct lex_flags *f = lex->flags; 
-    
-    if (!f->in_squote && !f->in_dquote && !f->in_acollade
-        && !f->in_parenthese && f->was_operator)
+    struct lex_flags *f = lex->flags;
+
+    if (!f->in_squote && !f->in_dquote && !f->in_acollade && !f->in_parenthese
+        && f->was_operator)
     {
         if (is_operator(*p, *c))
         {
@@ -252,8 +255,8 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *
         return 1;
     }
 
-    else if (f->in_squote || f->in_dquote || *c == '\''
-            || *c == '\"' || *c == '\\')
+    else if (f->in_squote || f->in_dquote || *c == '\'' || *c == '\"'
+             || *c == '\\')
         quote(lex, tok, *c);
 
     else if (f->in_acollade || f->in_parenthese || *c == '$')
@@ -293,35 +296,3 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *
     f->i++;
     return 0;
 }
-
-/*
-int main(int argc, char *argv[])
-{
-    if (argc != 2)
-        printf("sale merde\n");
-    FILE *ipf = fopen(argv[1], "r");
-    if (!ipf)
-        return -1;
-
-    struct lexer *lex = init_lexer(ipf);
-    next_token(lex);
-    while(1)
-    {
-        if (lex->tok->type == END_OF_FILE)
-        {
-            printf("Token : EOF\t\tType : %d\n", lex->tok->type);
-            break;
-        }
-        if (lex->tok->data[0] == '\n')
-            printf("Token : \\n\t\tType : %d\n", lex->tok->type);
-        else
-            printf("Token : %s\t\tType : %d\n", lex->tok->data,
-                   lex->tok->type);
-        free(lex->tok->data);
-        free(lex->tok);
-        lex->tok = NULL;
-        next_token(lex);
-    }
-    free_lexer(lex);
-    fclose(ipf);
-}*/

@@ -28,23 +28,23 @@ enum ast_type
 
 enum redir_type
 {
-    S_RIGHT,    // >
-    S_LEFT,     // <
+    S_RIGHT, // >
+    S_LEFT, // <
 
-    D_RIGHT,    // >>
-    
-    RIGHT_AND,  // >&
-    LEFT_AND,   // <&
-    
-    RIGHT_PIP,  // >|
-    LEFT_RIGHT  // <>
+    D_RIGHT, // >>
+
+    RIGHT_AND, // >&
+    LEFT_AND, // <&
+
+    RIGHT_PIP, // >|
+    LEFT_RIGHT // <>
 };
 
 struct ast_list
 {
     size_t size;
     size_t capacity;
-    struct ast **cmd_if;//changer plus tard
+    struct ast **cmd_if; // changer plus tard
 };
 
 struct ast_cmd

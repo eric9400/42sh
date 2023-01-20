@@ -4,13 +4,12 @@
 #include <unistd.h>
 
 #include "ast.h"
+#include "builtin.h"
 #include "execute.h"
 #include "hash_map.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
-#include "hash_map.h"
-#include "builtin.h"
 
 struct flags *global_flags = NULL;
 struct lexer *lex = NULL;
@@ -42,6 +41,7 @@ void hash_map_init_basic(void)
     }
 }
 
+// 36 lines
 int parse_execute_loop(FILE *f, struct flags *flags)
 {
     global_flags = flags;

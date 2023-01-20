@@ -1,17 +1,17 @@
 #include "redirection.h"
 
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <errno.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 void destroy_stock_fd(struct stock_fd *list)
 {
     struct stock_fd *tmp = NULL;
-    while(list)
+    while (list)
     {
         tmp = list->next;
         dup2(list->old_fd, list->new_fd);
@@ -21,7 +21,8 @@ void destroy_stock_fd(struct stock_fd *list)
     }
 }
 
-static struct stock_fd *prepend_stock_fd(int old_fd, int new_fd, struct stock_fd **list)
+static struct stock_fd *prepend_stock_fd(int old_fd, int new_fd,
+                                         struct stock_fd **list)
 {
     struct stock_fd *new = calloc(1, sizeof(struct stock_fd));
     new->old_fd = old_fd;
@@ -33,9 +34,11 @@ static struct stock_fd *prepend_stock_fd(int old_fd, int new_fd, struct stock_fd
 // 1>toto.txt
 int redir_s_right(struct ast *ast, struct stock_fd **list)
 {
-    int fd = atoi(ast->data->ast_redir->exit_file); //MIGHT CHANGE HERE IF exit_file == "0"
-    if (fd == 0) //FILE
-        fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT | O_WRONLY, 00666); 
+    // MIGHT CHANGE HERE IF exit_file == "0"
+    int fd = atoi(ast->data->ast_redir->exit_file);
+    if (fd == 0) // FILE
+        fd = open(ast->data->ast_redir->exit_file, O_TRUNC | O_CREAT | O_WRONLY,
+                  00666);
     if (fd == -1)
         return 1;
     int fd_dup = dup(ast->data->ast_redir->io_number);
@@ -49,9 +52,9 @@ int redir_s_right(struct ast *ast, struct stock_fd **list)
 int redir_s_left(struct ast *ast, struct stock_fd **list, int GDDN)
 {
     int fd = atoi(ast->data->ast_redir->exit_file);
-    if (fd == 0) //IF NOT A NUMBER
+    if (fd == 0) // IF NOT A NUMBER
     {
-        if (GDDN) //IF EXPECT A NUMBER ON RIGHT SIDE (WHEN 1<&2)
+        if (GDDN) // IF EXPECT A NUMBER ON RIGHT SIDE (WHEN 1<&2)
             return 1;
         else
             fd = open(ast->data->ast_redir->exit_file, O_APPEND | O_RDONLY);
@@ -69,8 +72,9 @@ int redir_s_left(struct ast *ast, struct stock_fd **list, int GDDN)
 int redir_d_right(struct ast *ast, struct stock_fd **list)
 {
     int fd = atoi(ast->data->ast_redir->exit_file);
-    if (fd == 0) 
-        fd = open(ast->data->ast_redir->exit_file, O_CREAT | O_APPEND | O_WRONLY, 00666);
+    if (fd == 0)
+        fd = open(ast->data->ast_redir->exit_file,
+                  O_CREAT | O_APPEND | O_WRONLY, 00666);
     if (fd == -1)
         return 1;
     int fd_dup = dup(ast->data->ast_redir->io_number);
@@ -101,17 +105,17 @@ int redir_left_and(struct ast *ast, struct stock_fd **list)
 // 1>|toto.txt
 int redir_right_pip(struct ast *ast, struct stock_fd **list)
 {
-    return redir_s_right(ast, list);   
+    return redir_s_right(ast, list);
 }
 
 // echo toto <> test
 // 1<>toto.txt
 int redir_left_right(struct ast *ast, struct stock_fd **list)
-{ 
-    //MIGHT CHANGE HERE IF exit_file == "0"
+{
+    // MIGHT CHANGE HERE IF exit_file == "0"
     int fd = atoi(ast->data->ast_redir->exit_file);
-    if (fd == 0) //FILE
-        fd = open(ast->data->ast_redir->exit_file, O_CREAT | O_RDWR, 00666); 
+    if (fd == 0) // FILE
+        fd = open(ast->data->ast_redir->exit_file, O_CREAT | O_RDWR, 00666);
     if (fd == -1)
         return 1;
     int fd_dup = dup(ast->data->ast_redir->io_number);

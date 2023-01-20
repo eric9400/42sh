@@ -6,8 +6,6 @@ enum tok_type
     SEMICOLON = 0,
     NEWLINE = 1,
     IONUMBER = 2,
-    /*S_QUOTE,
-    D_QUOTE,*/
 
     WORD = 3,
     ASSIGNMENT_WORD = 4,

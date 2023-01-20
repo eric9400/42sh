@@ -34,7 +34,7 @@ void ugly_print(struct ast *ast, int tab)
         print_while(ast, tab);
     else if (ast->type == AST_FOR)
         print_for(ast, tab);
-    else if(ast->type == AST_UNTIL)
+    else if (ast->type == AST_UNTIL)
         print_until(ast, tab);
     else if (ast->type == AST_LIST)
         print_list(ast, tab);
@@ -142,7 +142,7 @@ static void print_until(struct ast *ast, int tab)
 
 static void print_and(struct ast *ast, int tab)
 {
-    //ugly_print(ast->data->ast_and->left, tab);
+    // ugly_print(ast->data->ast_and->left, tab);
     print_tab(tab + 1);
     printf(" &&\n");
     ugly_print(ast->data->ast_and->left, tab + 1);
@@ -151,7 +151,7 @@ static void print_and(struct ast *ast, int tab)
 
 static void print_or(struct ast *ast, int tab)
 {
-    //ugly_print(ast->data->ast_or->left, tab);
+    // ugly_print(ast->data->ast_or->left, tab);
     print_tab(tab + 1);
     printf(" ||\n");
     ugly_print(ast->data->ast_or->left, tab + 1);
@@ -181,7 +181,7 @@ static void print_redirect(struct ast *ast)
     else if (ast->data->ast_redir->type == LEFT_AND)
         printf("<& "); //<&
     else if (ast->data->ast_redir->type == RIGHT_PIP)
-        printf(">| ");  //>|
+        printf(">| "); //>|
     else if (ast->data->ast_redir->type == LEFT_RIGHT)
         printf("<> "); //<>
     if (ast->data->ast_redir->exit_file)
@@ -190,13 +190,12 @@ static void print_redirect(struct ast *ast)
 
 static void print_pipe(struct ast *ast, int tab)
 {
-    //ugly_print(ast->data->ast_pipe->left, tab + 1);
+    // ugly_print(ast->data->ast_pipe->left, tab + 1);
     print_tab(tab + 1);
     printf(" |\n");
     ugly_print(ast->data->ast_pipe->left, tab + 1);
     ugly_print(ast->data->ast_pipe->right, tab + 1);
 }
-
 
 static void print_function(struct ast *ast, int tab)
 {

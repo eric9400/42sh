@@ -1,8 +1,8 @@
 #include "vector.h"
 
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct vector *vector_init(size_t n)
 {

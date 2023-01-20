@@ -8,10 +8,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "vector.h"
 #include "execute.h"
 #include "hash_map.h"
 #include "parse_execute_loop.h"
+#include "vector.h"
 
 int is_in_dot = 0;
 
@@ -130,15 +130,15 @@ static int export(char **s)
             break;
         }
     }
-    if (isseton) //export n=b
-        putenv(s[1]); //est ce qu'il faut utiliser putenv
+    if (isseton) // export n=b
+        putenv(s[1]); // est ce qu'il faut utiliser putenv
     else
     {
         char *var = strndup(s[1], lenvar);
         const char *value = hash_map_get(hashmap, var);
         if (value != NULL)
         {
-            size_t lenvalue = strlen(value); 
+            size_t lenvalue = strlen(value);
             var = realloc(var, lenvar + 1 + lenvalue + 1);
             var[lenvar] = '=';
             size_t j = 0;
@@ -183,7 +183,8 @@ static int is_flag_for_unset(char *s, int *f_f, int *f_v)
     return 0;
 }
 
-static int unset(char **s) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
+// REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
+static int unset(char **s)
 {
     int f_f = 0;
     int f_v = 0;
@@ -202,16 +203,16 @@ static int unset(char **s) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNC
     {
         if (f_v || !f_f)
         {
-           bool hash_var = hash_map_remove(hashmap, s[i]);
-           int env_var = unsetenv(s[i]);
-           if (!hash_var && env_var == -1)
-               return_value = 1;
+            bool hash_var = hash_map_remove(hashmap, s[i]);
+            int env_var = unsetenv(s[i]);
+            if (!hash_var && env_var == -1)
+                return_value = 1;
         }
         else
         {
             printf("IT HAS TO BE A FUNCTION REMOVE IN HASHMAP\n");
-            //if (!hash_map_f_remove(hashmap_f, s[i])
-            //  return_value = 1;
+            // if (!hash_map_f_remove(hashmap_f, s[i])
+            //   return_value = 1;
         }
         i++;
     }
@@ -227,12 +228,12 @@ static int cd(char **s)
     if (s[1] == NULL)
     {
         char *home = getenv("HOME");
-        if (home == NULL) //STEP 1
+        if (home == NULL) // STEP 1
         {
             fprintf(stderr, "cd: HOME undefined\n");
             return 1;
         }
-        res = chdir(home); //STEP 2
+        res = chdir(home); // STEP 2
         if (!res)
         {
             hash_map_insert(hashmap, "OLDPWD", cwd);
@@ -291,20 +292,20 @@ static void hash_map_restore(char **values)
 {
     int i = 0;
     char *value = NULL;
-    char key[4];
-    sprintf(key, "%d", i+1);
+    char key[1000];
+    sprintf(key, "%d", i + 1);
     while (values[i] != NULL)
     {
         hash_map_insert(hashmap, key, values[i]);
         free(values[i]);
         i++;
-        sprintf(key, "%d", i+1);
+        sprintf(key, "%d", i + 1);
     }
     while ((value = hash_map_get(hashmap, key)) != NULL)
     {
         hash_map_remove(hashmap, key);
         i++;
-        sprintf(key, "%d", i+1);
+        sprintf(key, "%d", i + 1);
     }
     free(values);
 }
@@ -313,16 +314,16 @@ static char **copy_values()
 {
     char **result = calloc(100, 1);
     int len = 0;
-    char key[4];
+    char key[1000];
     char *value;
-    sprintf(key, "%d", len+1);
+    sprintf(key, "%d", len + 1);
     while ((value = hash_map_get(hashmap, key)) != NULL)
     {
         result[len] = strdup(value);
         len++;
-        sprintf(key, "%d", len+1);
+        sprintf(key, "%d", len + 1);
     }
-    result = realloc(result, (len+1) * sizeof(char *));
+    result = realloc(result, (len + 1) * sizeof(char *));
     return result;
 }
 
@@ -337,8 +338,8 @@ static int dot2(char **s, FILE *filedot)
     int i = 2;
     while (s[i] != NULL)
     {
-        char value[4] = { 0 };
-        sprintf(value, "%d", i-1);
+        char value[1000] = { 0 };
+        sprintf(value, "%d", i - 1);
         hash_map_insert(hashmap, value, s[i]);
         i++;
     }
@@ -443,7 +444,7 @@ static int corb(char **s, struct c_or_b *no_to_racismo, int i)
             fprintf(stderr, "Bad argument\n");
             return 128;
         }
-        if(no_to_racismo->is_in_loop)
+        if (no_to_racismo->is_in_loop)
         {
             no_to_racismo->is_break = i;
             no_to_racismo->cbdeep = r;

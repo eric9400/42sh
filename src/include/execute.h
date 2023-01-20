@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-struct c_or_b 
+struct c_or_b
 {
     int is_in_loop;
     int loop_deep;

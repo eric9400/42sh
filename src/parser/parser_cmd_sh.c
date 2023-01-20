@@ -1,7 +1,7 @@
+#include "parser_cmd_sh.h"
+
 #include <stdlib.h>
 #include <string.h>
-
-#include "parser_cmd_sh.h"
 
 #define SIZE 150
 
@@ -22,6 +22,7 @@ static void free_peek(struct lexer *lex)
     return;
 }
 
+// 37 lines
 struct ast *shell_command(struct lexer *lex)
 {
     peek_token(lex);
@@ -35,7 +36,8 @@ struct ast *shell_command(struct lexer *lex)
             || strcmp(lex->tok->data, ")") != 0)
         {
             free_node(convert_node_ast(AST_SUBSHELL, ast_sub));
-            return error_handler(lex, 1, "ERROR SUBSHELL: INVALID COMPOUND LIST");
+            return error_handler(lex, 1,
+                                 "ERROR SUBSHELL: INVALID COMPOUND LIST");
         }
         free_token(lex);
         return convert_node_ast(AST_SUBSHELL, ast_sub);
@@ -50,7 +52,8 @@ struct ast *shell_command(struct lexer *lex)
             || strcmp(lex->tok->data, "}") != 0)
         {
             free_node(comp_list);
-            return error_handler(lex, 1, "ERROR BLOCKCOMMAND: INVALID COMPOUND LIST");
+            return error_handler(lex, 1,
+                                 "ERROR BLOCKCOMMAND: INVALID COMPOUND LIST");
         }
         free_token(lex);
         return comp_list;
@@ -60,7 +63,7 @@ struct ast *shell_command(struct lexer *lex)
 
     if (cmd_if)
         return cmd_if;
-    
+
     struct ast *cmd_while = rule_while(lex);
 
     if (cmd_while)
@@ -161,8 +164,8 @@ static struct ast *rule_while(struct lexer *lex)
     if (!while_node->condition || lex->error == 2)
     {
         free_node(convert_node_ast(AST_WHILE, while_node));
-        return error_handler(lex, 1,
-                    "Error rule_while: NO MATCHING PATERN after \"while\"");
+        return error_handler(
+            lex, 1, "Error rule_while: NO MATCHING PATERN after \"while\"");
     }
 
     next_token(lex);
@@ -205,8 +208,8 @@ static struct ast *rule_until(struct lexer *lex)
     if (!until_node->condition || lex->error == 2)
     {
         free_node(convert_node_ast(AST_UNTIL, until_node));
-        return error_handler(lex, 1,
-                    "Error rule_until: NO MATCHING PATERN after \"until\"");
+        return error_handler(
+            lex, 1, "Error rule_until: NO MATCHING PATERN after \"until\"");
     }
 
     next_token(lex);
@@ -247,7 +250,7 @@ struct ast *rule_for(struct lexer *lex)
     peek_token(lex);
 
     if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
-         || strcmp("for", lex->tok->data))
+        || strcmp("for", lex->tok->data))
         return NULL;
 
     struct ast_for *for_node = init_ast(AST_FOR);
@@ -273,7 +276,8 @@ struct ast *rule_for(struct lexer *lex)
     if (lex->tok->type == NEWLINE)
         new_lines(lex);
 
-    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || strcmp("do", lex->tok->data))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+        || strcmp("do", lex->tok->data))
         return rule_for_error(for_node, lex);
 
     free_token(lex);
@@ -288,12 +292,12 @@ struct ast *rule_for(struct lexer *lex)
 
     next_token(lex);
 
-    if(strcmp("done", lex->tok->data))
+    if (strcmp("done", lex->tok->data))
         return rule_for_error(for_node, lex);
 
     free_token(lex);
 
-    return convert_node_ast(AST_FOR,for_node);
+    return convert_node_ast(AST_FOR, for_node);
 }
 
 static int rule_for_in(struct lexer *lex, struct ast_for *for_node)
@@ -305,18 +309,17 @@ static int rule_for_in(struct lexer *lex, struct ast_for *for_node)
 
     if (strcmp("do", lex->tok->data))
     {
-
         if (strcmp("in", lex->tok->data))
             return 2;
 
         free_peek(lex);
 
-        while(lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
+        while (lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
         {
             vector_append(for_node->arg, strdup(lex->tok->data));
             free_peek(lex);
         }
-        //vector_append(for_node->arg, NULL);
+        // vector_append(for_node->arg, NULL);
 
         if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
             return 2;
@@ -325,7 +328,7 @@ static int rule_for_in(struct lexer *lex, struct ast_for *for_node)
     }
 
     return 0;
-} 
+}
 
 static struct ast *compound_list(struct lexer *lex)
 {
@@ -367,13 +370,15 @@ static void compound_list2(struct lexer *lex, struct ast_list *list)
     new_lines(lex);
     if (lex->tok->type == SEMICOLON)
     {
-        error_handler(lex, 1, "ERROR: COMPOUND_LIST2: INVALID AND_OR AFTER VALID \";\"");
+        error_handler(
+            lex, 1, "ERROR: COMPOUND_LIST2: INVALID AND_OR AFTER VALID \";\"");
         return;
     }
     struct ast *node = and_or(lex);
     if (!node)
     {
-        //error_handler(lex, 1, "ERROR: COMPOUND_LIST2: INVALID AND_OR AFTER VALID \";\"");
+        // error_handler(lex, 1, "ERROR: COMPOUND_LIST2: INVALID AND_OR AFTER
+        // VALID \";\"");
         lex->error = 0;
         return;
     }

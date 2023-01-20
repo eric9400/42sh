@@ -54,20 +54,5 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
         count++;
     }
     hash_map_insert(hashmap, "#", buf);
-    /*
-        int count = 1;
-        char buf[1000] = { 0 };
-        for (; i < argc; i++)
-        {
-            sprintf(buf, "%d", count);
-            hash_map_insert(hashmap, buf, argv[i]);
-            count++;
-        }
-
-        hash_map_insert(hashmap, "#", buf);
-
-        hash_map_insert(hashmap, "@", buf);
-        hash_map_insert(hashmap, "*", buf);
-    */
     return 0;
 }

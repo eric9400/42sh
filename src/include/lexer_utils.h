@@ -31,4 +31,4 @@ int is_number(char *str);
 int my_isspace(char c);
 int is_assign_word(char *str);
 
-#endif /*LEXER_UTILS_H*/
+#endif /* LEXER_UTILS_H */

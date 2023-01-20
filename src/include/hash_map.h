@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+extern struct hash_map *hashmap;
+
 struct pair_list
 {
     char *key;
@@ -19,13 +21,9 @@ struct hash_map
 
 struct hash_map *hash_map_init(size_t size);
 void hash_map_free(struct hash_map *hash_map);
-
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value);
 char *hash_map_get(const struct hash_map *hash_map, const char *key);
 bool hash_map_remove(struct hash_map *hash_map, const char *key);
-
-extern struct hash_map *hashmap;
-
 char *hashmap_get_copy(struct hash_map *hashmap, char *hkey);
 
 #endif /* !HASH_MAP_H */

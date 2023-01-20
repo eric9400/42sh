@@ -14,7 +14,7 @@
 #include "vector.h"
 
 static int phoenix_destroyer(struct string *str, struct string *new_str,
-        struct vector *v, int return_value)
+                             struct vector *v, int return_value)
 {
     if (v)
         vector_destroy(v);
@@ -26,7 +26,7 @@ static int phoenix_destroyer(struct string *str, struct string *new_str,
 }
 
 static void expandinho_phoenix_2(struct string *str, struct string *new_str,
-        struct vector **vect_temp)
+                                 struct vector **vect_temp)
 {
     new_str->str = realloc(new_str->str, new_str->index + 1);
     new_str->str[new_str->index] = '\0';
@@ -92,10 +92,10 @@ static size_t size_according_ast(struct ast *ast)
     return ast->data->ast_for->arg->size;
 }
 
-// 38 lines
+// 39 lines
 int expandinho_phoenix(struct ast *ast, int return_value)
 {
-    //size_t size = ast->data->ast_cmd->arg->size - 1;
+    // size_t size = ast->data->ast_cmd->arg->size - 1;
     size_t size = size_according_ast(ast);
     struct vector *vect_temp = vector_init(10);
     char buf[2] = { 0 };
@@ -193,7 +193,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
             else if (buf[0] == '$')
             {
                 if (dollar_expansion(str, new_str, return_value, in_d_quotes))
-                {    // error case
+                { // error case
                     phoenix_destroyer(str, new_str, NULL, 1);
                     return NULL;
                 }
@@ -212,7 +212,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
             if (buf[0] == '$')
             {
                 if (dollar_expansion(str, new_str, return_value, in_d_quotes))
-                {    // error case
+                { // error case
                     phoenix_destroyer(str, new_str, NULL, 1);
                     return NULL;
                 }

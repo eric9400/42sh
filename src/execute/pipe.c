@@ -8,14 +8,15 @@
 #include "execute.h"
 #include "lexer.h"
 
-static pid_t exec_pipe(struct ast *ast, int fds[2], enum pipe side, int return_value)
+static pid_t exec_pipe(struct ast *ast, int fds[2], enum pipe side,
+                       int return_value)
 {
-	pid_t pid = fork();
-	if (pid != 0)
-		return pid;
+    pid_t pid = fork();
+    if (pid != 0)
+        return pid;
 
-	// fds[0] = READ & fds[1] = WRITE;
-	close(fds[side]);
+    // fds[0] = READ & fds[1] = WRITE;
+    close(fds[side]);
 
     int old_dup;
     if (side == WRITE)
@@ -31,7 +32,7 @@ static pid_t exec_pipe(struct ast *ast, int fds[2], enum pipe side, int return_v
     close(fds[1 - side]);
 
     int res = execute(ast, return_value);
- 
+
     // restore
     if (side == WRITE)
         dup2(old_dup, STDOUT_FILENO);
@@ -43,22 +44,25 @@ static pid_t exec_pipe(struct ast *ast, int fds[2], enum pipe side, int return_v
 
 int func_pipe(struct ast *ast, int return_value)
 {
-	int pipe_fds[2]; // file descriptor used to redirect stdin & stdout
-	
-	if (pipe(pipe_fds) < 0)
-	       return 1;	// TODO check error
+    int pipe_fds[2]; // file descriptor used to redirect stdin & stdout
 
-	pid_t left_pid = -1;
-	pid_t right_pid = -1;
+    // TODO check error
+    if (pipe(pipe_fds) < 0)
+        return 1;
 
-	int status1;
-	int status2;
-	left_pid = exec_pipe(ast->data->ast_pipe->left, pipe_fds, WRITE, return_value);
-	right_pid = exec_pipe(ast->data->ast_pipe->right, pipe_fds, READ, return_value);
+    pid_t left_pid = -1;
+    pid_t right_pid = -1;
+
+    int status1;
+    int status2;
+    left_pid =
+        exec_pipe(ast->data->ast_pipe->left, pipe_fds, WRITE, return_value);
+    right_pid =
+        exec_pipe(ast->data->ast_pipe->right, pipe_fds, READ, return_value);
     close(pipe_fds[0]);
     close(pipe_fds[1]);
-	waitpid(right_pid, &status1, 0);
-	waitpid(left_pid, &status2, 0);
+    waitpid(right_pid, &status1, 0);
+    waitpid(left_pid, &status2, 0);
 
-	return WEXITSTATUS(status1);
+    return WEXITSTATUS(status1);
 }

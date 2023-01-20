@@ -30,7 +30,7 @@ static void free_list(struct ast *ast)
     free(ast->data->ast_list->cmd_if);
     free(ast->data->ast_list);
 }
-    
+
 static void free_cmd(struct ast *ast)
 {
     vector_destroy(ast->data->ast_cmd->arg);
@@ -133,7 +133,7 @@ void free_node(struct ast *ast)
         free_while(ast);
     else if (ast->type == AST_FOR)
         free_for(ast);
-    else if(ast->type == AST_UNTIL)
+    else if (ast->type == AST_UNTIL)
         free_until(ast);
     else if (ast->type == AST_LIST)
         free_list(ast);

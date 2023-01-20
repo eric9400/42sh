@@ -43,8 +43,8 @@ static inline char *is_special_var(char *str, int return_value)
     char buf[1000];
 
     /*if (!strcmp(str, "@") || !strcmp(str, "*")){}else */
-    if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
-        || !strcmp(str, "IFS"))
+    if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD")
+        || !strcmp(str, "PWD") || !strcmp(str, "IFS"))
     {
         const char *res = hash_map_get(hashmap, str);
         if (!res)
@@ -150,7 +150,8 @@ static void append_concatenate_args(struct string *new_str)
     destroy_string(res);
 }
 
-static void expand_from_hashmap(struct string *new_str, char *buf, int return_value, int in_d_quotes)
+static void expand_from_hashmap(struct string *new_str, char *buf,
+                                int return_value, int in_d_quotes)
 {
     if (!in_d_quotes && (buf[0] == '@' || buf[0] == '*'))
         append_no_quotes(new_str);
@@ -176,7 +177,9 @@ static int is_special_char(char c)
     return c == '@' || c == '?' || c == '$' || c == '#' || c == '*';
 }
 
-int dollar_expansion(struct string *str, struct string *new_str, int return_value, int in_d_quotes)
+// 34 lines
+int dollar_expansion(struct string *str, struct string *new_str,
+                     int return_value, int in_d_quotes)
 {
     str->index += 1;
     char buf[5] = { 0 };
@@ -212,7 +215,7 @@ int dollar_expansion(struct string *str, struct string *new_str, int return_valu
         else
         {
             size_t start = str->index;
-            while(is_valid_char(str->str[str->index]))
+            while (is_valid_char(str->str[str->index]))
                 str->index += 1;
             char *key = strndup(str->str + start, str->index - start);
             expand_from_hashmap(new_str, key, return_value, in_d_quotes);
@@ -242,7 +245,8 @@ static int is_valid_escape_d_quotes(char c)
     return c == '$' || c == '`' || c == '"' || c == '\\' || c == '\n';
 }
 
-void slash_expansion_in_d_quotes(struct string *str, struct string *new_str, int in_d_quotes)
+void slash_expansion_in_d_quotes(struct string *str, struct string *new_str,
+                                 int in_d_quotes)
 {
     str->index++;
     char buf[3] = { 0 };

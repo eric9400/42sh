@@ -6,7 +6,7 @@
 #include "ast.h"
 #include "vector.h"
 
-struct string 
+struct string
 {
     char *str;
     size_t index;
