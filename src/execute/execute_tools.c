@@ -35,11 +35,20 @@ static void expandinho_phoenix_2(struct string *str, struct string *new_str,
     phoenix_destroyer(str, new_str, NULL, 0);
 }
 
-static void vector_replace(struct vector *vect_temp, struct ast *ast)
+static int vector_replace(struct vector *vect_temp, struct ast *ast)
 {
-    vect_temp = vector_append(vect_temp, NULL);
-    vector_destroy(ast->data->ast_cmd->arg);
-    ast->data->ast_cmd->arg = vect_temp;
+    if (vect_temp->size == 0)
+    {
+        vector_destroy(vect_temp);
+        return 1;
+    }
+    else
+    {
+        vect_temp = vector_append(vect_temp, NULL);
+        vector_destroy(ast->data->ast_cmd->arg);
+        ast->data->ast_cmd->arg = vect_temp;
+        return 0;
+    }
 }
 
 static int in_quotes(int *in_s_quotes, int *in_d_quotes, char c)
@@ -49,13 +58,22 @@ static int in_quotes(int *in_s_quotes, int *in_d_quotes, char c)
     return *in_d_quotes || *in_s_quotes;
 }
 
-// TODO
-static inline void add_assign_word(char *str)
+static int add_assign_word(char *str, struct string *s, struct string *new_str)
 {
+    if (str[0] != '#')
+        return 0;
+    str++;
     char *value = strstr(str, "=");
-    value[0] = '\0';
-    value++;
-    hash_map_insert(hashmap, str, value);
+    if (value != NULL)
+    {
+        value[0] = '\0';
+        value++;
+        hash_map_insert(hashmap, str, value);
+        destroy_string(s);
+        destroy_string(new_str);
+        return 1;
+    }
+    return 0;
 }
 
 // 38 lines
@@ -70,6 +88,8 @@ int expandinho_phoenix(struct ast *ast, int return_value)
         struct string *new_str = init_string(ast, i);
         int in_s_quotes = 0;
         int in_d_quotes = 0;
+        if (add_assign_word(str->str, str, new_str))
+            continue;
         for (; str->index < str->len; str->index++)
         {
             buf[0] = str->str[str->index];
@@ -118,8 +138,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
         }
         expandinho_phoenix_2(str, new_str, &vect_temp);
     }
-    vector_replace(vect_temp, ast);
-    return 0;
+    return vector_replace(vect_temp, ast);
 }
 
 static char *expandinho_junior_2(struct string *new_str)

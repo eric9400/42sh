@@ -118,7 +118,7 @@ int dollar_expansion(struct string *str, struct string *new_str, int return_valu
         // if no matching '}' => error
         return 1;
     }
-    // $a
+    // $a $RANDOM $UID $HOME
     else if (is_valid_char(str->str[str->index]))
     {
         // case $n
