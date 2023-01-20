@@ -5,10 +5,10 @@
 
 #include "ast.h"
 #include "execute.h"
+#include "hash_map.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
-#include "hash_map.h"
 
 static struct flags *global_flags = NULL;
 
@@ -38,10 +38,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
     struct ast *ast = NULL;
     int return_value = 0;
     hash_map_init_basic();
-    /*
-    if (file == stdin)
-        printf("42sh$ ");
-    */
     // RAJOUTER UN ETAT D'AST POUR QUAND
     while (1)
     {
@@ -50,12 +46,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             break;
         if (lex->error)
         {
-            /*
-            if (file == stdin)
-                fprintf(stderr, "Parsing error TO COMPLETE\n");
-            else
-                return freeAll(file, lex, ast, lex->error);
-            */
             if (file != stdin)
                 return freeAll(file, lex, ast, lex->error);
         }
@@ -98,10 +88,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             }
         }
         free_node(ast);
-        /*
-        if (file == stdin)
-            printf("42sh$ ");
-        */
         fflush(stdout);
     }
     if (lex->error)
