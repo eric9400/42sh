@@ -166,15 +166,6 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int
     return stock_fd;
 }
 
-// TODO
-static inline void add_assign_word(char *str)
-{
-    char *value = strstr(str, "=");
-    value[0] = '\0';
-    value++;
-    hash_map_insert(hashmap, str, value);
-}
-
 static int func_cmd(struct ast *ast, int return_value)
 {
     int error_redir = 0;

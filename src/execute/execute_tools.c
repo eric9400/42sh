@@ -13,7 +13,8 @@
 #include "my_string.h"
 #include "vector.h"
 
-static int expandinho_phoenix_destroyer(struct string *str, struct string *new_str, struct vector *v, int return_value)
+static int phoenix_destroyer(struct string *str, struct string *new_str,
+        struct vector *v, int return_value)
 {
     if (v)
         vector_destroy(v);
@@ -24,13 +25,14 @@ static int expandinho_phoenix_destroyer(struct string *str, struct string *new_s
     return return_value;
 }
 
-static void expandinho_phoenix_2(struct string *str, struct string *new_str, struct vector **vect_temp)
+static void expandinho_phoenix_2(struct string *str, struct string *new_str,
+        struct vector **vect_temp)
 {
     new_str->str = realloc(new_str->str, new_str->index + 1);
     new_str->str[new_str->index] = '\0';
     if (new_str->index != 0)
         *vect_temp = vector_append(*vect_temp, strdup(new_str->str));
-    expandinho_phoenix_destroyer(str, new_str, NULL, 0);
+    phoenix_destroyer(str, new_str, NULL, 0);
 }
 
 static void vector_replace(struct vector *vect_temp, struct ast *ast)
@@ -40,7 +42,23 @@ static void vector_replace(struct vector *vect_temp, struct ast *ast)
     ast->data->ast_cmd->arg = vect_temp;
 }
 
-// 40 lines
+static int in_quotes(int *in_s_quotes, int *in_d_quotes, char c)
+{
+    *in_d_quotes = c == '"';
+    *in_s_quotes = c == '\'';
+    return *in_d_quotes || *in_s_quotes;
+}
+
+// TODO
+static inline void add_assign_word(char *str)
+{
+    char *value = strstr(str, "=");
+    value[0] = '\0';
+    value++;
+    hash_map_insert(hashmap, str, value);
+}
+
+// 38 lines
 int expandinho_phoenix(struct ast *ast, int return_value)
 {
     size_t size = ast->data->ast_cmd->arg->size - 1;
@@ -48,8 +66,8 @@ int expandinho_phoenix(struct ast *ast, int return_value)
     char buf[2] = { 0 };
     for (size_t i = 0; i < size; i++)
     {
-        struct string *str = init_string(ast->data->ast_cmd->arg->data[i], 0, strlen(ast->data->ast_cmd->arg->data[i]));
-        struct string *new_str = init_string(str->str, 0, str->len);
+        struct string *str = init_string(ast, i);
+        struct string *new_str = init_string(ast, i);
         int in_s_quotes = 0;
         int in_d_quotes = 0;
         for (; str->index < str->len; str->index++)
@@ -72,7 +90,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
                 {
                     if (dollar_expansion(str, new_str, return_value))
                         // error case
-                        return expandinho_phoenix_destroyer(str, new_str, vect_temp, 1);
+                        return phoenix_destroyer(str, new_str, vect_temp, 1);
                 }
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
@@ -83,15 +101,13 @@ int expandinho_phoenix(struct ast *ast, int return_value)
             // other char
             else
             {
-                in_d_quotes = buf[0] == '"';
-                in_s_quotes = buf[0] == '\'';
-                if (in_d_quotes || in_s_quotes)
+                if (in_quotes(&in_s_quotes, &in_d_quotes, buf[0]))
                     continue;
                 if (buf[0] == '$')
                 {
                     if (dollar_expansion(str, new_str, return_value))
                         // error case
-                        return expandinho_phoenix_destroyer(str, new_str, vect_temp, 1);
+                        return phoenix_destroyer(str, new_str, vect_temp, 1);
                 }
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
@@ -113,14 +129,15 @@ static char *expandinho_junior_2(struct string *new_str)
     char *return_str = strdup(new_str->str);
     return return_str;
 }
-// 39 lines
+
+// 37 lines
 char *expandinho_phoenix_junior(char *s, int return_value)
 {
     int in_s_quotes = 0;
     int in_d_quotes = 0;
     char buf[2] = { 0 };
-    struct string *str = init_string(s, 0, strlen(s));
-    struct string *new_str = init_string(str->str, 0, str->len);
+    struct string *str = init_string2(s, 0, strlen(s));
+    struct string *new_str = init_string2(str->str, 0, str->len);
     for (; str->index < str->len; str->index++)
     {
         buf[0] = str->str[str->index];
@@ -141,7 +158,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
             {
                 if (dollar_expansion(str, new_str, return_value))
                 {    // error case
-                    expandinho_phoenix_destroyer(str, new_str, NULL, 1);
+                    phoenix_destroyer(str, new_str, NULL, 1);
                     return NULL;
                 }
             }
@@ -154,15 +171,13 @@ char *expandinho_phoenix_junior(char *s, int return_value)
         // other char
         else
         {
-            in_d_quotes = buf[0] == '"';
-            in_s_quotes = buf[0] == '\'';
-            if (in_d_quotes || in_s_quotes)
+            if (in_quotes(&in_s_quotes, &in_d_quotes, buf[0]))
                 continue;
             if (buf[0] == '$')
             {
                 if (dollar_expansion(str, new_str, return_value))
                 {    // error case
-                    expandinho_phoenix_destroyer(str, new_str, NULL, 1);
+                    phoenix_destroyer(str, new_str, NULL, 1);
                     return NULL;
                 }
             }
@@ -175,6 +190,6 @@ char *expandinho_phoenix_junior(char *s, int return_value)
     }
 
     char *return_str = expandinho_junior_2(new_str);
-    expandinho_phoenix_destroyer(str, new_str, NULL, 1);
+    phoenix_destroyer(str, new_str, NULL, 1);
     return return_str;
 }

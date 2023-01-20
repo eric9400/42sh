@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "ast.h"
+
 struct string 
 {
     char *str;
@@ -10,7 +12,8 @@ struct string
     size_t len;
 };
 
-struct string *init_string(char *str, size_t index, size_t len);
+struct string *init_string(struct ast *ast, int i);
+struct string *init_string2(char *str, size_t index, size_t len);
 void destroy_string(struct string *str);
 void my_strcat(char *dest, char *src);
 
