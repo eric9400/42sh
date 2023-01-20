@@ -139,11 +139,12 @@ static int export(char **s)
         if (value != NULL)
         {
             size_t lenvalue = strlen(value); 
-            var = realloc(var, lenvar + 1 + lenvalue);
+            var = realloc(var, lenvar + 1 + lenvalue + 1);
             var[lenvar] = '=';
             size_t j = 0;
             for (size_t i = lenvar + 1; j < lenvalue; i++, j++)
                 var[i] = value[j];
+            var[lenvar + lenvalue + 1] = '\0';
             putenv(var);
             free(var);
         }
@@ -294,7 +295,7 @@ static void hash_map_restore(char **values)
     sprintf(key, "%d", i+1);
     while (values[i] != NULL)
     {
-        hash_map_insert(hashmap, key, value);
+        hash_map_insert(hashmap, key, values[i]);
         free(values[i]);
         i++;
         sprintf(key, "%d", i+1);
@@ -334,11 +335,12 @@ static int dot2(char **s, FILE *filedot)
     FILE *old_file = file;
     char **old_hashmap = copy_values();
     int i = 2;
-    while (s[i++] != NULL)
+    while (s[i] != NULL)
     {
         char value[4] = { 0 };
         sprintf(value, "%d", i-1);
         hash_map_insert(hashmap, value, s[i]);
+        i++;
     }
     is_in_dot = 1;
     int res = parse_execute_loop(filedot, global_flags);
@@ -398,7 +400,10 @@ static int dot(char **s)
 static int my_exit(char **s, int return_value)
 {
     if (s[1] == NULL)
+    {
+        freeAll(0);
         exit(return_value);
+    }
     int isnum = 1;
     int len = strlen(s[1]);
     for (int i = 0; i < len; i++)

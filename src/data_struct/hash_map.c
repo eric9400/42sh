@@ -28,7 +28,7 @@ struct hash_map *hash_map_init(size_t size)
     return hm;
 }
 
-struct pair_list *is_key_in(struct pair_list **p, const char *key)
+static struct pair_list *is_key_in(struct pair_list **p, const char *key)
 {
     while (*p)
     {
@@ -37,17 +37,6 @@ struct pair_list *is_key_in(struct pair_list **p, const char *key)
         *p = (*p)->next;
     }
     return NULL;
-}
-
-struct pair_list *is_key_in(struct pair_list *p, const char *key)
-{
-    while (p)
-    {
-        if (!strcmp(p->key, key))
-            return p;
-        p = p->next;
-    }
-    return p;
 }
 
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
