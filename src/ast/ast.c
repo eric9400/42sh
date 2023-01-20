@@ -34,6 +34,10 @@ struct ast *convert_node_ast(enum ast_type type, void *node)
         ast_node->data->ast_not = (struct ast_not *)node;
     if (type == AST_PIPE)
         ast_node->data->ast_pipe = (struct ast_pipe *)node;
+    if (type == AST_FUNC)
+        ast_node->data->ast_func = (struct ast_func *)node;
+    if (type == AST_SUBSHELL)
+        ast_node->data->ast_subshell = (struct ast_subshell *)node;
     // ADD NEW AST CONVERT HERE
 
     return ast_node;
@@ -43,4 +47,9 @@ void add_to_list(struct ast_list *list, struct ast *node)
 {
     list->cmd_if[list->size] = node;
     list->size++;
+    if (list->size >= list->capacity)
+    {
+        list->capacity *= 2;
+        list->cmd_if = realloc(list->cmd_if, list->capacity);
+    }
 }

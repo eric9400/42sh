@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
+#include "parser_cmd_sp.h"
 
 struct ast *simple_command(struct lexer *lex);
 static int element(struct lexer *lex, struct ast_cmd *cmd);
@@ -38,7 +38,8 @@ struct ast *simple_command(struct lexer *lex)
         return convert_node_ast(AST_CMD, cmd);
     }
 
-    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || is_shell_command(lex))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+         || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;

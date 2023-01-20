@@ -1,21 +1,61 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
+#include "parser_cmd_sh.h"
 
 #define SIZE 150
 
 struct ast *shell_command(struct lexer *lex);
 static struct ast *rule_if(struct lexer *lex, int opt);
 static struct ast *else_clause(struct lexer *lex);
-static struct ast *compound_list(struct lexer *lex);
-static void compound_list2(struct lexer *lex, struct ast_list *list);
 static struct ast *rule_while(struct lexer *lex);
 static struct ast *rule_until(struct lexer *lex);
 static struct ast *rule_for(struct lexer *lex);
+static int rule_for_in(struct lexer *lex, struct ast_for *for_node);
+static struct ast *compound_list(struct lexer *lex);
+static void compound_list2(struct lexer *lex, struct ast_list *list);
+
+static void free_peek(struct lexer *lex)
+{
+    free_token(lex);
+    peek_token(lex);
+    return;
+}
 
 struct ast *shell_command(struct lexer *lex)
 {
+    peek_token(lex);
+    if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "(") == 0)
+    {
+        free_peek(lex);
+        struct ast_subshell *ast_sub = init_ast(AST_SUBSHELL);
+        ast_sub->sub = compound_list(lex);
+        peek_token(lex);
+        if (!ast_sub->sub || lex->error == 2 || lex->tok->type != OPERATOR
+            || strcmp(lex->tok->data, ")") != 0)
+        {
+            free_node(convert_node_ast(AST_SUBSHELL, ast_sub));
+            return error_handler(lex, 1, "ERROR SUBSHELL: INVALID COMPOUND LIST");
+        }
+        free_token(lex);
+        return convert_node_ast(AST_SUBSHELL, ast_sub);
+    }
+
+    if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "{") == 0)
+    {
+        free_peek(lex);
+        struct ast *comp_list = compound_list(lex);
+        peek_token(lex);
+        if (!comp_list || lex->error == 2 || lex->tok->type != OPERATOR
+            || strcmp(lex->tok->data, "}") != 0)
+        {
+            free_node(comp_list);
+            return error_handler(lex, 1, "ERROR BLOCKCOMMAND: INVALID COMPOUND LIST");
+        }
+        free_token(lex);
+        return comp_list;
+    }
+
     struct ast *cmd_if = rule_if(lex, 1);
 
     if (cmd_if)
@@ -36,7 +76,6 @@ struct ast *shell_command(struct lexer *lex)
     if (cmd_for)
         return cmd_for;
 
-    lex->error = 2;
     return NULL;
 }
 
@@ -200,22 +239,15 @@ static struct ast *rule_until(struct lexer *lex)
 static void *rule_for_error(struct ast_for *for_node, struct lexer *lex)
 {
     free_node(convert_node_ast(AST_FOR, for_node));
-    lex->error = 2;
-    return NULL;
-}
-
-static void free_peek(struct lexer *lex)
-{
-    free_token(lex);
-    peek_token(lex);
-    return;
+    return error_handler(lex, 1, "ERROR FOR: INVALID MATCHING PATERN");
 }
 
 struct ast *rule_for(struct lexer *lex)
 {
     peek_token(lex);
 
-    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || strcmp("for", lex->tok->data))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+         || strcmp("for", lex->tok->data))
         return NULL;
 
     struct ast_for *for_node = init_ast(AST_FOR);
@@ -232,31 +264,8 @@ struct ast *rule_for(struct lexer *lex)
         free_peek(lex);
     else
     {
-        new_lines(lex);
-
-        if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+        if (rule_for_in(lex, for_node))
             return rule_for_error(for_node, lex);
-
-        if (strcmp("do", lex->tok->data))
-        {
-
-            if (strcmp("in", lex->tok->data))
-                return rule_for_error(for_node, lex);
-
-            free_peek(lex);
-
-            while(lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
-            {
-                vector_append(for_node->arg, strdup(lex->tok->data));
-                free_peek(lex);
-            }
-            //vector_append(for_node->arg, NULL);
-
-            if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
-                return rule_for_error(for_node, lex);
-
-            free_token(lex);
-        }
     }
 
     next_token(lex);
@@ -286,6 +295,37 @@ struct ast *rule_for(struct lexer *lex)
 
     return convert_node_ast(AST_FOR,for_node);
 }
+
+static int rule_for_in(struct lexer *lex, struct ast_for *for_node)
+{
+    new_lines(lex);
+
+    if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+        return 2;
+
+    if (strcmp("do", lex->tok->data))
+    {
+
+        if (strcmp("in", lex->tok->data))
+            return 2;
+
+        free_peek(lex);
+
+        while(lex->tok->type == WORD || lex->tok->type == ASSIGNMENT_WORD)
+        {
+            vector_append(for_node->arg, strdup(lex->tok->data));
+            free_peek(lex);
+        }
+        //vector_append(for_node->arg, NULL);
+
+        if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
+            return 2;
+
+        free_token(lex);
+    }
+
+    return 0;
+} 
 
 static struct ast *compound_list(struct lexer *lex)
 {

@@ -121,21 +121,37 @@ static void comments(struct lexer *lex, struct token *tok)
 static void rule_5(struct lexer *lex, struct token *tok, char curr)
 {
     struct lex_flags *f = lex->flags;
-    if (f->in_acollade)
+    if (f->in_parenthese)
     {
         tok->data[f->i] = curr;
-        if (curr == '}')
-            f->in_acollade = 1;
+        if (curr == ')' && !f->in_dquote && !f->in_squote)
+            f->in_parenthese--;
+        else if (curr == '(' && !f->in_dquote && !f->in_squote)
+            f->in_parenthese++;   
     }
-    else
+    else if (f->in_acollade)
+    {
+        tok->data[f->i] = curr;
+        if (curr == '}' && !f->in_dquote && !f->in_squote)
+            f->in_acollade--;
+        else if (curr == '{' && !f->in_dquote && !f->in_squote)
+            f->in_acollade++;
+    }
+    else //curr == '$'
     {
         tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
-        if (curr == '{')
+        if (curr == '(')
         {
             f->i++;
             tok->data[f->i] = curr;
-            f->in_acollade = 1;
+            f->in_parenthese++;
+        }
+        else if (curr == '{')
+        {
+            f->i++;
+            tok->data[f->i] = curr;
+            f->in_acollade++;
         }
         else
             ungetc(curr, lex->filename);
@@ -223,7 +239,8 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *
 {
     struct lex_flags *f = lex->flags; 
     
-    if (!f->in_squote && !f->in_dquote && f->was_operator)
+    if (!f->in_squote && !f->in_dquote && !f->in_acollade
+        && !f->in_parenthese && f->was_operator)
     {
         if (is_operator(*p, *c))
         {
@@ -239,29 +256,30 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *
             || *c == '\"' || *c == '\\')
         quote(lex, tok, *c);
 
-    else if (f->in_acollade || *c == '$') //|| curr == '`')
+    else if (f->in_acollade || f->in_parenthese || *c == '$')
         rule_5(lex, tok, *c);
 
-    else if (!f->in_squote && !f->in_dquote && start_operator(*c))
+    else if (!f->in_squote && !f->in_dquote && !f->in_acollade
+             && !f->in_parenthese && start_operator(*c))
     {
-        if (is_number(tok->data))
+        if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
         ungetc(*c, lex->filename);
         return 1;
     }
 
-    else if (*c == ';' || *c == '\n')
+    else if (!f->in_parenthese && (*c == ';' || *c == '\n'))
     {
         ungetc(*c, lex->filename);
         return 1;
     }
-    else if (my_isspace(*c))
+    else if (!f->in_parenthese && my_isspace(*c))
         return 1; // RETURN TOKEN WITHOUT BLANK
 
-    else if (f->is_word)
+    else if (!f->in_parenthese && f->is_word)
         tok->data[f->i] = *c;
 
-    else if (*c == '#')
+    else if (!f->in_parenthese && *c == '#')
     {
         comments(lex, tok);
         return 2;
