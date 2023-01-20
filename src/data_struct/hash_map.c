@@ -72,7 +72,7 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     }
     else
     {
-        struct pair_list *temp  = is_key_in(hash_map->data[i], key);
+        struct pair_list *temp = is_key_in(hash_map->data[i], key);
         if (temp != NULL)
         {
             if (temp->value != NULL)
