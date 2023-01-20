@@ -9,33 +9,45 @@
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
+#include "hash_map.h"
+#include "builtin.h"
 
-static struct flags *global_flags = NULL;
+struct flags *global_flags = NULL;
+struct lexer *lex = NULL;
+struct ast *ast = NULL;
+FILE *file = NULL;
 
-static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
+int freeAll(int error)
 {
     free_lexer(lex);
     free_node(ast);
     fclose(file);
-    free(global_flags);
-    hash_map_free(hashmap);
+    if (!is_in_dot)
+    {
+        hash_map_free(hashmap);
+        free(global_flags);
+    }
     return error;
 }
 
 void hash_map_init_basic(void)
 {
-    char pwd[1000];
-    getcwd(pwd, sizeof(pwd));
-    hash_map_insert(hashmap, "PWD", pwd);
-    hash_map_insert(hashmap, "OLDPWD", pwd);
-    hash_map_insert(hashmap, "IFS", " \t\n");
+    if (!is_in_dot)
+    {
+        char pwd[1000];
+        getcwd(pwd, sizeof(pwd));
+        hash_map_insert(hashmap, "PWD", pwd);
+        hash_map_insert(hashmap, "OLDPWD", pwd);
+        hash_map_insert(hashmap, "IFS", " \t\n");
+    }
 }
 
-int parse_execute_loop(FILE *file, struct flags *flags)
+int parse_execute_loop(FILE *f, struct flags *flags)
 {
     global_flags = flags;
-    struct lexer *lex = init_lexer(file);
-    struct ast *ast = NULL;
+    lex = init_lexer(f);
+    ast = NULL;
+    file = f;
     int return_value = 0;
     hash_map_init_basic();
     // RAJOUTER UN ETAT D'AST POUR QUAND
@@ -47,7 +59,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
         if (lex->error)
         {
             if (file != stdin)
-                return freeAll(file, lex, ast, lex->error);
+                return freeAll(lex->error);
         }
         else if (!ast && file != stdin)
             break;
@@ -77,20 +89,14 @@ int parse_execute_loop(FILE *file, struct flags *flags)
             return_value = execute(ast, return_value);
             if (return_value)
             {
-                /*
-                if (file == stdin)
-                    fprintf(stderr, "Execute error TO COMPLETE\n");
-                else
-                    return freeAll(file, lex, ast, lex->error);
-                */
                 if (file != stdin)
-                    return freeAll(file, lex, ast, return_value);
+                    return freeAll(return_value);
             }
         }
         free_node(ast);
         fflush(stdout);
     }
     if (lex->error)
-        return freeAll(file, lex, ast, lex->error);
-    return freeAll(file, lex, ast, return_value);
+        return freeAll(lex->error);
+    return freeAll(0);
 }

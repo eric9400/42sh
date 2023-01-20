@@ -39,6 +39,17 @@ struct pair_list *is_key_in(struct pair_list **p, const char *key)
     return NULL;
 }
 
+struct pair_list *is_key_in(struct pair_list *p, const char *key)
+{
+    while (p)
+    {
+        if (!strcmp(p->key, key))
+            return p;
+        p = p->next;
+    }
+    return p;
+}
+
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
 {
     if (!hash_map || hash_map->size == 0)
@@ -102,7 +113,7 @@ void hash_map_free(struct hash_map *hash_map)
     free(hash_map);
 }
 
-const char *hash_map_get(const struct hash_map *hash_map, const char *key)
+char *hash_map_get(const struct hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
         return NULL;
