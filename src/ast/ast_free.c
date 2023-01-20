@@ -109,16 +109,18 @@ static void free_pipe(struct ast *pipe)
     free(pipe->data->ast_pipe);
 }
 
-static void free_function(struct ast *ast_func)
+static void free_function(struct ast *ast)
 {
-    free_node(ast_func->data->ast_func->func);
-    free(ast_func->data->ast_func);
+    free_node(ast->data->ast_func->func);
+    free_list2(ast->data->ast_func->redir);
+    free(ast->data->ast_func->name);
+    free(ast->data->ast_func);
 }
 
-static void free_subshell(struct ast *ast_sub)
+static void free_subshell(struct ast *ast)
 {
-    free_node(ast_sub->data->ast_subshell->sub);
-    free(ast_sub->data->ast_subshell);
+    free_node(ast->data->ast_subshell->sub);
+    free(ast->data->ast_subshell);
 }
 
 void free_node(struct ast *ast)

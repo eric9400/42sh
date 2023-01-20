@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
+#include "parser_cmd_sp.h"
 
 struct ast *simple_command(struct lexer *lex);
 static int element(struct lexer *lex, struct ast_cmd *cmd);

@@ -1,21 +1,49 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
+#include "parser_cmd_sh.h"
 
 #define SIZE 150
 
 struct ast *shell_command(struct lexer *lex);
 static struct ast *rule_if(struct lexer *lex, int opt);
 static struct ast *else_clause(struct lexer *lex);
-static struct ast *compound_list(struct lexer *lex);
-static void compound_list2(struct lexer *lex, struct ast_list *list);
 static struct ast *rule_while(struct lexer *lex);
 static struct ast *rule_until(struct lexer *lex);
 static struct ast *rule_for(struct lexer *lex);
+static struct ast *compound_list(struct lexer *lex);
+static void compound_list2(struct lexer *lex, struct ast_list *list);
 
 struct ast *shell_command(struct lexer *lex)
 {
+    peek_token(lex);
+    if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "(") == 0)
+    {
+        struct ast_subshell *ast_sub = init_ast(AST_SUBSHELL);
+        ast_sub->sub = compound_list(lex);
+        peek_token(lex);
+        if (!ast_sub->sub || lex->error == 2 || lex->tok->type != OPERATOR
+            || strcmp(lex->tok->data, ")") != 0)
+        {
+            free_node(convert_node_ast(AST_SUBSHELL, ast_sub));
+            return error_handler(lex, 1, "ERROR SUBSHELL: INVALID COMPOUND LIST");
+        }
+        return convert_node_ast(AST_SUBSHELL, ast_sub);
+    }
+
+    if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "{") == 0)
+    {
+        struct ast *comp_list = compound_list(lex);
+        peek_token(lex);
+        if (!comp_list || lex->error == 2 || lex->tok->type != OPERATOR
+            || strcmp(lex->tok->data, "}") != 0)
+        {
+            free_node(comp_list);
+            return error_handler(lex, 1, "ERROR BLOCKCOMMAND: INVALID COMPOUND LIST");
+        }
+        return comp_list;
+    }
+
     struct ast *cmd_if = rule_if(lex, 1);
 
     if (cmd_if)

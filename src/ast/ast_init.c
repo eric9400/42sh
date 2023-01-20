@@ -16,7 +16,7 @@ static struct ast_or *init_or(void);
 static struct ast_not *init_not(void);
 static struct ast_redir *init_redir(void);
 static struct ast_pipe *init_pipe(void);
-static struct ast_func *init_function(void);
+static struct ast_func *init_function(size_t capacity);
 static struct ast_subshell *init_subshell(void);
 
 void *init_ast(enum ast_type type)
@@ -44,7 +44,7 @@ void *init_ast(enum ast_type type)
     else if (type == AST_PIPE)
         return init_pipe();
     else if (type == AST_FUNC)
-        return init_function();
+        return init_function(SIZE);
     else if (type == AST_SUBSHELL)
         return init_subshell();
     return NULL;
@@ -145,10 +145,12 @@ static struct ast_pipe *init_pipe(void)
     return ast_pipe;
 }
 
-static struct ast_func *init_function(void)
+static struct ast_func *init_function(size_t capacity)
 {
     struct ast_func *ast_func = calloc(1, sizeof(struct ast_func));
     ast_func->func = NULL;
+    ast_func->name = NULL;
+    ast_func->redir = init_list(capacity);
     return ast_func;
 }
 

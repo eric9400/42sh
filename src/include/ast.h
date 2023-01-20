@@ -114,6 +114,8 @@ struct ast_pipe
 struct ast_func
 {
     struct ast *func;
+    struct ast_list *redir;
+    char *name;
 };
 
 struct ast_subshell

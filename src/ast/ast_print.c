@@ -115,9 +115,7 @@ static void print_for(struct ast *ast, int tab)
         printf(" %s", ast->data->ast_for->arg->data[i]);
     printf(":\n");
     ugly_print(ast->data->ast_for->for_list, tab + 1);
-    printf("\n");
     print_list2(ast->data->ast_for->redir, tab + 1);
-    printf("\n");
 }
 
 static void print_while(struct ast *ast, int tab)
@@ -128,9 +126,7 @@ static void print_while(struct ast *ast, int tab)
     print_tab(tab);
     printf("DO:\n");
     ugly_print(ast->data->ast_while->while_body, tab + 1);
-    printf("\n");
     print_list2(ast->data->ast_while->redir, tab + 1);
-    printf("\n");
 }
 
 static void print_until(struct ast *ast, int tab)
@@ -141,9 +137,7 @@ static void print_until(struct ast *ast, int tab)
     print_tab(tab);
     printf("DO:\n");
     ugly_print(ast->data->ast_until->until_body, tab + 1);
-    printf("\n");
     print_list2(ast->data->ast_until->redir, tab + 1);
-    printf("\n");
 }
 
 static void print_and(struct ast *ast, int tab)
@@ -207,8 +201,9 @@ static void print_pipe(struct ast *ast, int tab)
 static void print_function(struct ast *ast, int tab)
 {
     print_tab(tab);
-    printf(" FUNCTION :\n");
+    printf(" FUNC %s :\n", ast->data->ast_func->name);
     ugly_print(ast->data->ast_func->func, tab + 1);
+    print_list2(ast->data->ast_func->redir, tab + 1);
 }
 
 static void print_subshell(struct ast *ast, int tab)
