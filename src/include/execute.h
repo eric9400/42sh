@@ -5,10 +5,10 @@
 
 struct c_or_b 
 {
-    int is_in_loop = 0;
-    int loop_deep = 0;
-    int cbdeep = 0;
-    int is_break = -1;
+    int is_in_loop;
+    int loop_deep;
+    int cbdeep;
+    int is_break;
 };
 
 int execute(struct ast *ast, int return_value);

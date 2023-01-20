@@ -6,11 +6,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stderr.h>
 
 #include "vector.h"
 #include "execute.h"
 #include "hash_map.h"
+#include "parse_execute_loop.h"
 
 int is_in_dot = 0;
 
@@ -212,7 +212,7 @@ static int is_flag_for_unset(char *s, int *f_f, int *f_v)
     return 0;
 }
 
-int unset(char **str) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
+int unset(char **s) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
 {
     int f_f = 0;
     int f_v = 0;
@@ -221,7 +221,7 @@ int unset(char **str) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
     while (s[i] != NULL)
     {
         // break if detecting a non flag
-        if (!is_flag(s[i], &f_f, &f_v))
+        if (!is_flag_for_unset(s[i], &f_f, &f_v))
             break;
         i++;
     }
@@ -247,45 +247,71 @@ int unset(char **str) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
     return return_value;
 }
 
-int cd(char **s)
+/*int cd(char **s)
 {
-    
+   //TO DO 
+}*/
+
+int exit_dot(void)
+{
+    if (file == stdin)
+    {
+        fprintf(stderr, "Bad file for . builtin\n");
+        return 1;
+    }
+    else
+    {
+        freeAll(0);
+        exit(1);
+    }
 }
 
-int dot(char **s)
+int dot(char **s) //44 lines
 {
     char *filename = s[1];
-    int as_slash = 0;
+    int has_slash = 0;
     int len_filename = strlen(s[1]);
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len_filename; i++)
     {
         if (s[1][i] == '/')
         {
-            as_slash = 1;
+            has_slash = 1;
             break;
         }
     }
     FILE *filedot = NULL;
     if ((filedot = fopen(filename, "r")) == NULL)
     {
-        if ((filedot = fopen(PATH + filename, "r")) == NULL)
+        if (!has_slash)
         {
-            if (file == stdin)
+            char *path = getenv("PATH");
+            char *curr = strtok(path, ":");
+            char *all;
+            int curlen = strlen(curr);
+            while (curr != NULL)
             {
-                fprintf(stderr, "Bad file for . builtin\n");
-                return 1;
+                all = strndup(curr, curlen + 2 + len_filename);
+                all[curlen] = '/';
+                for (int i = 0; i < len_filename; i++)
+                    all[i + curlen + 1] = filename[i];
+                if ((filedot = fopen(all, "r")) != NULL)
+                {
+                    free(all);
+                    break;
+                }
+                free(all);
+                strtok(NULL, ":");
             }
-            else
-            {
-                freeAll();
-                exit(1);
-            }
+            if (!has_slash)
+                return exit_dot();
         }
+        else
+            return exit_dot();
     }
     struct lexer *old_lex = lex;
     lex = NULL;
     struct ast *old_ast = ast;
-    ast = NULL:
+    ast = NULL;
     FILE *old_file = file;
 
     int i = 2;
@@ -298,7 +324,7 @@ int dot(char **s)
     is_in_dot = 1;
     int res = parse_execute_loop(filedot, global_flags);
     lex = old_lex;
-    ast = old_ast:
+    ast = old_ast;
     file = old_file;
     is_in_dot = 0;
     return res;
@@ -307,10 +333,7 @@ int dot(char **s)
 int my_exit(char **s, int return_value)
 {
     if (s[1] == NULL)
-    {
-        freeAll();
         exit(return_value);
-    }
     int isnum = 1;
     int len = strlen(s[1]);
     for (int i = 0; i < len; i++)
@@ -324,7 +347,6 @@ int my_exit(char **s, int return_value)
     if (!isnum)
     {
         fprintf(stderr, "exit: need numeric argument\n");
-        freeAll();
         exit(1);
     }
     if (s[2] != NULL)
@@ -332,26 +354,29 @@ int my_exit(char **s, int return_value)
         fprintf(stderr, "exit: too many arguments\n");
         return 1;
     }
-    freeAll();
     exit(atoi(s[1]));
 }
 
-int corb(char **s, struct c_or_b **no_to_racismo, int i)
+int corb(char **s, struct c_or_b *no_to_racismo, int i)
 {
     if (s[1] == NULL)
+    {
+        no_to_racismo->is_break = i;
+        no_to_racismo->cbdeep = 1;
         return 1;
+    }
     else
     {
-        int r = atoi(str[1]);
+        int r = atoi(s[1]);
         if (s[2] != NULL || r == 0)
         {
             fprintf(stderr, "Bad argument\n");
             return 128;
         }
-        if(*no_to_racismo->is_in_loop)
+        if(no_to_racismo->is_in_loop)
         {
-            *no_to_racismo->is_break = i;
-            *no_to_racismo->cbdeep = r;
+            no_to_racismo->is_break = i;
+            no_to_racismo->cbdeep = r;
         }
         return 0;
     }
@@ -370,15 +395,14 @@ int check_builtin(char **str, struct c_or_b *no_to_racismo, int return_value)
     if (!strcmp(str[0], "unset"))
         return unset(str);
     if (!strcmp(str[0], "continue"))
-        return corb(str, &no_to_racismo, 0);
+        return corb(str, no_to_racismo, 0);
     if (!strcmp(str[0], "break"))
-        return corb(str, &no_to_racismo, 1);
+        return corb(str, no_to_racismo, 1);
     if (!strcmp(str[0], "exit"))
         return my_exit(str, return_value);
-
-    if (!strcmp(str[0], "cd"))
-        return cd(str);
     if (!strcmp(str[0], "."))
         return dot(str);
+    /*if (!strcmp(str[0], "cd"))
+        return cd(str);*/
     return -1;
 }

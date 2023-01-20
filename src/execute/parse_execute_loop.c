@@ -9,18 +9,18 @@
 #include "parser.h"
 #include "utils.h"
 #include "hash_map.h"
+#include "builtin.h"
 
 struct flags *global_flags = NULL;
 struct lexer *lex = NULL;
 struct ast *ast = NULL;
 FILE *file = NULL;
 
-int freeAll()
+int freeAll(int error)
 {
     free_lexer(lex);
     free_node(ast);
     fclose(file);
-    free(global_flags);
     if (!is_in_dot)
     {
         hash_map_free(hashmap);
@@ -31,19 +31,22 @@ int freeAll()
 
 void hash_map_init_basic(void)
 {
-    char pwd[1000];
-    getcwd(pwd, sizeof(pwd));
-    hash_map_insert(hashmap, "PWD", pwd);
-    hash_map_insert(hashmap, "OLDPWD", pwd);
-    hash_map_insert(hashmap, "IFS", " \t\n");
+    if (!is_in_dot)
+    {
+        char pwd[1000];
+        getcwd(pwd, sizeof(pwd));
+        hash_map_insert(hashmap, "PWD", pwd);
+        hash_map_insert(hashmap, "OLDPWD", pwd);
+        hash_map_insert(hashmap, "IFS", " \t\n");
+    }
 }
 
-int parse_execute_loop(FILE *file, struct flags *flags)
+int parse_execute_loop(FILE *f, struct flags *flags)
 {
     global_flags = flags;
-    lex = init_lexer(file);
+    lex = init_lexer(f);
     ast = NULL;
-    file = file;
+    file = f;
     int return_value = 0;
     hash_map_init_basic();
     /*
@@ -65,7 +68,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                 return freeAll(file, lex, ast, lex->error);
             */
             if (file != stdin)
-                return freeAll();
+                return freeAll(lex->error);
         }
         else if (!ast && file != stdin)
             break;
@@ -102,7 +105,7 @@ int parse_execute_loop(FILE *file, struct flags *flags)
                     return freeAll(file, lex, ast, lex->error);
                 */
                 if (file != stdin)
-                    return freeAll();
+                    return freeAll(return_value);
             }
         }
         free_node(ast);
@@ -113,6 +116,6 @@ int parse_execute_loop(FILE *file, struct flags *flags)
         fflush(stdout);
     }
     if (lex->error)
-        return freeAll();
-    return freeAll();
+        return freeAll(lex->error);
+    return freeAll(0);
 }

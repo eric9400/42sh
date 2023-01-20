@@ -42,10 +42,8 @@ static int func_for(struct ast *ast, int return_value);
 static int func_and(struct ast *ast, int return_value);
 static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
-//static int func_redir(struct ast *ast, int return_value);
-//static int func_pipe(struct ast *ast, int return_value);
 
-struct c_or_b wat;
+struct c_or_b wat = {0, 0, 0, -1};
 
 static int func_while(struct ast *ast, int return_value)
 {
@@ -55,16 +53,20 @@ static int func_while(struct ast *ast, int return_value)
     while (!execute(ast->data->ast_while->condition, return_value))
     {
         res = execute(ast->data->ast_while->while_body, return_value);
-        if (wat.is_in_loop && wat.isbreak != -1)
+        if (wat.is_in_loop && wat.is_break != -1)
         {
             if (wat.loop_deep == 1 || wat.cbdeep == 1)
             {
-                wat.is_in_loop = 0;
                 wat.loop_deep = 0;
                 wat.cbdeep = 0;
-                wat.is_break = -1;
                 if (wat.is_break)
+                {
+                    wat.is_break = -1;
+                    wat.is_in_loop = 0;
                     break;
+                }
+                else
+                    wat.is_break = -1;
             }
             else
                 break;
@@ -73,7 +75,7 @@ static int func_while(struct ast *ast, int return_value)
     if (wat.is_in_loop)
     {
         wat.cbdeep--;
-        wat.loop_dep--;
+        wat.loop_deep--;
     }
     return res;    
 }
@@ -86,16 +88,20 @@ static int func_until(struct ast *ast, int return_value)
     while (execute(ast->data->ast_until->condition, return_value))
     {
         res = execute(ast->data->ast_until->until_body, return_value);
-        if (wat.is_in_loop && wat.isbreak != -1)
+        if (wat.is_in_loop && wat.is_break != -1)
         {
             if (wat.loop_deep == 1 || wat.cbdeep == 1)
             {
-                wat.is_in_loop = 0;
                 wat.loop_deep = 0;
                 wat.cbdeep = 0;
-                wat.is_break = -1;
                 if (wat.is_break)
+                {
+                    wat.is_break = -1;
+                    wat.is_in_loop = 0;
                     break;
+                }
+                else
+                    wat.is_break = -1;
             }
             else
                 break;
@@ -104,7 +110,7 @@ static int func_until(struct ast *ast, int return_value)
     if (wat.is_in_loop)
     {
         wat.cbdeep--;
-        wat.loop_dep--;
+        wat.loop_deep--;
     }
     return res;
 }
@@ -118,16 +124,20 @@ static int func_for(struct ast *ast, int return_value)
     {
         hash_map_insert(hashmap, ast->data->ast_for->var, ast->data->ast_for->arg->data[i]); 
         res = execute(ast->data->ast_for->for_list, return_value);
-        if (wat.is_in_loop && wat.isbreak != -1)
+        if (wat.is_in_loop && wat.is_break != -1)
         {
             if (wat.loop_deep == 1 || wat.cbdeep == 1)
             {
-                wat.is_in_loop = 0;
                 wat.loop_deep = 0;
                 wat.cbdeep = 0;
-                wat.is_break = -1;
                 if (wat.is_break)
+                {
+                    wat.is_break = -1;
+                    wat.is_in_loop = 0;
                     break;
+                }
+                else
+                    wat.is_break = -1;
             }
             else
                 break;
@@ -136,7 +146,7 @@ static int func_for(struct ast *ast, int return_value)
     if (wat.is_in_loop)
     {
         wat.cbdeep--;
-        wat.loop_dep--;
+        wat.loop_deep--;
     }
     return res;
 }
@@ -253,7 +263,7 @@ static void add_assign_word(char *str)
 
 static int func_cmd(struct ast *ast, int return_value)
 {
-    if (wat.is_in_loop && is_break != -1)
+    if (wat.is_in_loop && wat.is_break != -1)
         return 0;
     int error_redir = 0;
     struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
