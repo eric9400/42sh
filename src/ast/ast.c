@@ -47,4 +47,9 @@ void add_to_list(struct ast_list *list, struct ast *node)
 {
     list->cmd_if[list->size] = node;
     list->size++;
+    if (list->size >= list->capacity)
+    {
+        list->capacity *= 2;
+        list->cmd_if = realloc(list->cmd_if, list->capacity);
+    }
 }
