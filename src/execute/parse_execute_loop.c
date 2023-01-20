@@ -48,7 +48,7 @@ int parse_execute_loop(FILE *f, struct flags *flags)
     ast = NULL;
     file = f;
     int return_value = 0;
-    hash_map_init_basic();
+    //hash_map_init_basic();
     /*
     if (file == stdin)
         printf("42sh$ ");

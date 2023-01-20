@@ -28,17 +28,31 @@ struct hash_map *hash_map_init(size_t size)
     return hm;
 }
 
+/*
 int is_key_in(struct pair_list *p, const char *key)
 {
     int i = 0;
-    while (p)
+    struct pair_list *temp = p;
+    while (temp)
     {
-        if (!strcmp(p->key, key))
+        if (!strcmp(temp->key, key))
             return i;
-        p = p->next;
+        temp = temp->next;
         i++;
     }
     return -1;
+}
+*/
+
+struct pair_list *is_key_in(struct pair_list *p, const char *key)
+{
+    while (p)
+    {
+        if (!strcmp(p->key, key))
+            return p;
+        p = p->next;
+    }
+    return p;
 }
 
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
@@ -58,9 +72,13 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     }
     else
     {
-        int sisi = is_key_in(hash_map->data[i], key);
-        if (sisi != -1)
-            hash_map->data[sisi]->value = value;
+        struct pair_list *temp  = is_key_in(hash_map->data[i], key);
+        if (temp != NULL)
+        {
+            if (temp->value != NULL)
+                free(temp->value);
+            temp->value = strdup(value);
+        }
         else
         {
             struct pair_list *p = malloc(sizeof(struct pair_list));
@@ -100,7 +118,7 @@ void hash_map_free(struct hash_map *hash_map)
     free(hash_map);
 }
 
-const char *hash_map_get(const struct hash_map *hash_map, const char *key)
+char *hash_map_get(const struct hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
         return NULL;

@@ -59,13 +59,13 @@ static int func_while(struct ast *ast, int return_value)
             {
                 wat.loop_deep = 0;
                 wat.cbdeep = 0;
-                if (wat.is_break)
+                if (wat.is_break) //break
                 {
                     wat.is_break = -1;
                     wat.is_in_loop = 0;
                     break;
                 }
-                else
+                else //continue
                     wat.is_break = -1;
             }
             else

@@ -1,11 +1,12 @@
 #define _XOPEN_SOURCE 600
 
-#include <stdio.h>
-#include <string.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "vector.h"
 #include "execute.h"
@@ -112,7 +113,7 @@ static int is_flag(char *s, int *f_n, int *f_e)
     return 0;
 }
 
-int echo(char **s)
+static int echo(char **s)
 {
     if (fcntl(STDOUT_FILENO, F_GETFD))
     {
@@ -147,7 +148,7 @@ int echo(char **s)
     return 0;
 }
 
-int export(char **s)
+static int export(char **s)
 {
     int lenvar = 0;
     size_t lens = strlen(s[1]);
@@ -212,7 +213,7 @@ static int is_flag_for_unset(char *s, int *f_f, int *f_v)
     return 0;
 }
 
-int unset(char **s) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
+static int unset(char **s) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
 {
     int f_f = 0;
     int f_v = 0;
@@ -247,12 +248,62 @@ int unset(char **s) //REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
     return return_value;
 }
 
-/*int cd(char **s)
+static int cd(char **s)
 {
-   //TO DO 
-}*/
+    int res = 0;
+    char cwd[PATH_MAX];
+    char cwd2[PATH_MAX];
+    getcwd(cwd, sizeof(cwd));
+    if (s[1] == NULL)
+    {
+        char *home = getenv("HOME");
+        if (home == NULL) //STEP 1
+        {
+            fprintf(stderr, "cd: HOME undefined\n");
+            return 1;
+        }
+        res = chdir(home); //STEP 2
+        if (!res)
+        {
+            hash_map_insert(hashmap, "OLDPWD", cwd);
+            getcwd(cwd2, sizeof(cwd2));
+            hash_map_insert(hashmap, "PWD", cwd2);
+            return 0;
+        }
+        fprintf(stderr, "cd: error with HOME\n");
+        return 1;
+    }
+    if (s[2] != NULL)
+    {
+        fprintf(stderr, "cd: too much arguments\n");
+        return 1;
+    }
+    if (!strcmp(s[1], "-"))
+    {
+        const char *oldpwd = hash_map_get(hashmap, "OLDPWD");
+        res = chdir(oldpwd);
+        if (!res)
+        {
+            hash_map_insert(hashmap, "OLDPWD", cwd);
+            getcwd(cwd2, sizeof(cwd2));
+            hash_map_insert(hashmap, "PWD", cwd2);
+            printf("%s\n", cwd2);
+            return 0;
+        }
+    }
+    res = chdir(s[1]);
+    if (!res)
+    {
+        hash_map_insert(hashmap, "OLDPWD", cwd);
+        getcwd(cwd2, sizeof(cwd2));
+        hash_map_insert(hashmap, "PWD", cwd2);
+        return 0;
+    }
+    fprintf(stderr, "cd: wrong directory (might be something else)\n");
+    return 1;
+}
 
-int exit_dot(void)
+static int exit_dot(void)
 {
     if (file == stdin)
     {
@@ -266,7 +317,71 @@ int exit_dot(void)
     }
 }
 
-int dot(char **s) //44 lines
+static void hash_map_restore(char **values)
+{
+    int i = 0;
+    char *value = NULL;
+    char key[4];
+    sprintf(key, "%d", i+1);
+    while (values[i] != NULL)
+    {
+        hash_map_insert(hashmap, key, value);
+        free(values[i]);
+        i++;
+        sprintf(key, "%d", i+1);
+    }
+    while ((value = hash_map_get(hashmap, key)) != NULL)
+    {
+        hash_map_remove(hashmap, key);
+        i++;
+        sprintf(key, "%d", i+1);
+    }
+    free(values);
+}
+
+static char **copy_values()
+{
+    char **result = calloc(100, 1);
+    int len = 0;
+    char key[4];
+    char *value;
+    sprintf(key, "%d", len+1);
+    while ((value = hash_map_get(hashmap, key)) != NULL)
+    {
+        result[len] = strdup(value);
+        len++;
+        sprintf(key, "%d", len+1);
+    }
+    result = realloc(result, (len+1) * sizeof(char *));
+    return result;
+}
+
+static int dot2(char **s, FILE *filedot)
+{
+    struct lexer *old_lex = lex;
+    lex = NULL;
+    struct ast *old_ast = ast;
+    ast = NULL;
+    FILE *old_file = file;
+    char **old_hashmap = copy_values();
+    int i = 2;
+    while (s[i++] != NULL)
+    {
+        char value[4] = { 0 };
+        sprintf(value, "%d", i-1);
+        hash_map_insert(hashmap, value, s[i]);
+    }
+    is_in_dot = 1;
+    int res = parse_execute_loop(filedot, global_flags);
+    hash_map_restore(old_hashmap);
+    lex = old_lex;
+    ast = old_ast;
+    file = old_file;
+    is_in_dot = 0;
+    return res;
+}
+
+static int dot(char **s)
 {
     char *filename = s[1];
     int has_slash = 0;
@@ -308,29 +423,10 @@ int dot(char **s) //44 lines
         else
             return exit_dot();
     }
-    struct lexer *old_lex = lex;
-    lex = NULL;
-    struct ast *old_ast = ast;
-    ast = NULL;
-    FILE *old_file = file;
-
-    int i = 2;
-    while (s[i++] != NULL)
-    {
-        char value[100] = { 0 };
-        sprintf(value, "%d", i-1);
-        hash_map_insert(hashmap, value, s[i]);
-    }
-    is_in_dot = 1;
-    int res = parse_execute_loop(filedot, global_flags);
-    lex = old_lex;
-    ast = old_ast;
-    file = old_file;
-    is_in_dot = 0;
-    return res;
+    return dot2(s, filedot);
 }
 
-int my_exit(char **s, int return_value)
+static int my_exit(char **s, int return_value)
 {
     if (s[1] == NULL)
         exit(return_value);
@@ -357,7 +453,7 @@ int my_exit(char **s, int return_value)
     exit(atoi(s[1]));
 }
 
-int corb(char **s, struct c_or_b *no_to_racismo, int i)
+static int corb(char **s, struct c_or_b *no_to_racismo, int i)
 {
     if (s[1] == NULL)
     {
@@ -402,7 +498,7 @@ int check_builtin(char **str, struct c_or_b *no_to_racismo, int return_value)
         return my_exit(str, return_value);
     if (!strcmp(str[0], "."))
         return dot(str);
-    /*if (!strcmp(str[0], "cd"))
-        return cd(str);*/
+    if (!strcmp(str[0], "cd"))
+        return cd(str);
     return -1;
 }
