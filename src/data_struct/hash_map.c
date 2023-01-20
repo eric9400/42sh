@@ -44,7 +44,7 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     if (!hash_map || hash_map->size == 0)
         return false;
     size_t i = hash(key) % hash_map->size;
-    if (hash_map->data[i] == 0)
+    if (hash_map->data[i] == NULL)
     {
         struct pair_list *q = malloc(sizeof(struct pair_list));
         if (!q)
@@ -56,6 +56,7 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     }
     else
     {
+        struct pair_list *cpy = hash_map->data[i];
         struct pair_list *temp = is_key_in(&hash_map->data[i], key);
         if (temp != NULL)
         {
@@ -65,6 +66,7 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
         }
         else
         {
+            hash_map->data[i] = cpy;
             struct pair_list *p = malloc(sizeof(struct pair_list));
             if (!p)
                 return false;
@@ -133,8 +135,10 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
     {
         if (!strcmp(q->key, key))
         {
+            free(hash_map->data[i]->key);
+            free(hash_map->data[i]->value);
             free(hash_map->data[i]);
-            hash_map->data[i] = 0;
+            hash_map->data[i] = NULL;
             return true;
         }
         return false;
@@ -142,6 +146,8 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
     if (!strcmp(q->key, key))
     {
         q = q->next;
+        free(hash_map->data[i]->key);
+        free(hash_map->data[i]->value);
         free(hash_map->data[i]);
         hash_map->data[i] = q;
         return true;
