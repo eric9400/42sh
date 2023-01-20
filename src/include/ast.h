@@ -21,7 +21,9 @@ enum ast_type
     AST_PIPE,
 
     AST_FUNC,
-    AST_SUBSHELL
+    AST_SUBSHELL,
+
+    NONE
 };
 
 enum redir_type

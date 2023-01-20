@@ -26,7 +26,8 @@ void new_lines(struct lexer *lex)
  *Error handler puts an error in the "lex struct" and print the "error_message"
  *only if the flag "print" is 1
  */
-struct ast *error_handler(struct lexer *lex, int print, char *error_message)
+struct ast *error_handler(struct lexer *lex, int print,
+                          char *error_message)
 {
     lex->error = 2;
     char var = error_message[0];
