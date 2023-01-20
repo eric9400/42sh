@@ -124,7 +124,7 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int
     for (size_t i = 0; i < redir->size && !res; i++)
     {
         // expandinho(&(redir->cmd_if[i]->data->ast_redir->exit_file), return_value, marker, 0);
-        char *tmp = expandinho_phoenix_junior(redir->cmd_if[i]->data->ast_redir->exit_file);
+        char *tmp = expandinho_phoenix_junior(redir->cmd_if[i]->data->ast_redir->exit_file, return_value);
         free(redir->cmd_if[i]->data->ast_redir->exit_file);
         redir->cmd_if[i]->data->ast_redir->exit_file = tmp;
         switch (redir->cmd_if[i]->data->ast_redir->type)
@@ -182,7 +182,7 @@ static int func_cmd(struct ast *ast, int return_value)
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
 
-    if (expandinho_phoenix(ast) == 1)
+    if (expandinho_phoenix(ast, return_value) == 1)
     {
         destroy_stock_fd(stock_fd);
         return 1;

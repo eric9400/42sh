@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "hash_map.h"
 #include "my_string.h"
@@ -36,9 +38,51 @@ void string_append(struct string *new_str, char *buf)
     new_str->index += strlen(buf);
 }
 
-static void expand_from_hashmap(struct string *new_str, char *buf)
+static inline char *is_special_var(char *str, int return_value)
 {
-    char *value = hashmap_get_copy(hashmap, buf);
+    char buf[1000];
+
+    /*if (!strcmp(str, "@") || !strcmp(str, "*")){}else */
+    if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD") || !strcmp(str, "PWD")
+        || !strcmp(str, "IFS"))
+    {
+        const char *res = hash_map_get(hashmap, str);
+        if (!res)
+            return NULL;
+        return strdup(res);
+    }
+    else if (!strcmp(str, "?"))
+    {
+        sprintf(buf, "%d", return_value);
+        return strdup(buf);
+    }
+    else if (!strcmp(str, "$"))
+    {
+        sprintf(buf, "%d", getpid());
+        return strdup(buf);
+    }
+    else if (!strcmp(str, "RANDOM"))
+    {
+        srand(time(NULL));
+        // max random possible
+        int temp = rand() % 32768;
+        sprintf(buf, "%d", temp);
+        return strdup(buf);
+    }
+    else if (!strcmp(str, "UID"))
+    {
+        uid_t uid = getuid();
+        sprintf(buf, "%d", uid);
+        return strdup(buf);
+    }
+    return NULL;
+}
+
+static void expand_from_hashmap(struct string *new_str, char *buf, int return_value)
+{
+    char *value = NULL;
+    if ((value = is_special_var(buf, return_value)) == NULL)
+        value = hashmap_get_copy(hashmap, buf);
     if (value)
     {
         string_append(new_str, value);
@@ -46,7 +90,12 @@ static void expand_from_hashmap(struct string *new_str, char *buf)
     }
 }
 
-int dollar_expansion(struct string *str, struct string *new_str)
+static int is_special_char(char c)
+{
+    return c == '@' || c == '?' || c == '$' || c == '#' || c == '*';
+}
+
+int dollar_expansion(struct string *str, struct string *new_str, int return_value)
 {
     str->index += 1;
     char buf[5] = { 0 };
@@ -60,7 +109,7 @@ int dollar_expansion(struct string *str, struct string *new_str)
         char *key = strndup(str->str, str->index - start);
         if (str->str[str->index] == '}')
         {
-            expand_from_hashmap(new_str, key);
+            expand_from_hashmap(new_str, key, return_value);
             free(key);
             return 0;
         }
@@ -72,21 +121,31 @@ int dollar_expansion(struct string *str, struct string *new_str)
     // $a
     else if (is_valid_char(str->str[str->index]))
     {
+        // case $n
         if (isdigit(str->str[str->index]))
         {
             buf[0] = str->str[str->index];
-            expand_from_hashmap(new_str, buf);
+            expand_from_hashmap(new_str, buf, return_value);
         }
+        // case $abc
         else
         {
             size_t start = str->index;
             while(is_valid_char(str->str[str->index]))
                 str->index += 1;
-            char *key = strndup(str->str, str->index - start);
-            expand_from_hashmap(new_str, key);
+            char *key = strndup(str->str + start, str->index - start);
+            expand_from_hashmap(new_str, key, return_value);
             free(key);
         }
     }
+    // case $@ $* $? $$ $#
+    else if (is_special_char(str->str[str->index]))
+    {
+        char *key = strndup(str->str + str->index, 1);
+        expand_from_hashmap(new_str, key, return_value);
+        free(key);
+    }
+    // non substituable var
     else
     {
         // $_ with invalid char after $, just print $_
