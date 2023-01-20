@@ -45,9 +45,9 @@ echo "ninja done"
 cp "$dir"/"$bin" "."
 echo "build finish"
 
-if [ "$1" = "debug" ]; then
-    cp -r "../tests/""$testsuite" "."
-    ./test_shell/test_suite.sh
-fi
+# if [ "$1" = "debug" ]; then
+#     cp -r "../tests/""$testsuite" "."
+#     ./test_shell/test_suite.sh
+# fi
 
 exit 0

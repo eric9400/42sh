@@ -45,8 +45,16 @@ static int vector_replace(struct vector *vect_temp, struct ast *ast)
     else
     {
         vect_temp = vector_append(vect_temp, NULL);
-        vector_destroy(ast->data->ast_cmd->arg);
-        ast->data->ast_cmd->arg = vect_temp;
+        if (ast->type == AST_CMD)
+        {
+            vector_destroy(ast->data->ast_cmd->arg);
+            ast->data->ast_cmd->arg = vect_temp;
+        }
+        else
+        {
+            vector_destroy(ast->data->ast_for->arg);
+            ast->data->ast_for->arg = vect_temp;
+        }
         return 0;
     }
 }
@@ -76,16 +84,25 @@ static int add_assign_word(char *str, struct string *s, struct string *new_str)
     return 0;
 }
 
+static size_t size_according_ast(struct ast *ast)
+{
+    if (ast->type == AST_CMD)
+        return ast->data->ast_cmd->arg->size - 1;
+    // ast_for vector is not NULL terminated
+    return ast->data->ast_for->arg->size;
+}
+
 // 38 lines
 int expandinho_phoenix(struct ast *ast, int return_value)
 {
-    size_t size = ast->data->ast_cmd->arg->size - 1;
+    //size_t size = ast->data->ast_cmd->arg->size - 1;
+    size_t size = size_according_ast(ast);
     struct vector *vect_temp = vector_init(10);
     char buf[2] = { 0 };
     for (size_t i = 0; i < size; i++)
     {
-        struct string *str = init_string(ast, i);
-        struct string *new_str = init_string(ast, i);
+        struct string *str = init_string(ast, i, vect_temp);
+        struct string *new_str = init_string(ast, i, vect_temp);
         int in_s_quotes = 0;
         int in_d_quotes = 0;
         if (add_assign_word(str->str, str, new_str))
@@ -108,7 +125,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
                     in_d_quotes = 0;
                 else if (buf[0] == '$')
                 {
-                    if (dollar_expansion(str, new_str, return_value))
+                    if (dollar_expansion(str, new_str, return_value, 1))
                         // error case
                         return phoenix_destroyer(str, new_str, vect_temp, 1);
                 }
@@ -125,7 +142,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
                     continue;
                 if (buf[0] == '$')
                 {
-                    if (dollar_expansion(str, new_str, return_value))
+                    if (dollar_expansion(str, new_str, return_value, 0))
                         // error case
                         return phoenix_destroyer(str, new_str, vect_temp, 1);
                 }
@@ -175,7 +192,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
                 in_d_quotes = 0;
             else if (buf[0] == '$')
             {
-                if (dollar_expansion(str, new_str, return_value))
+                if (dollar_expansion(str, new_str, return_value, in_d_quotes))
                 {    // error case
                     phoenix_destroyer(str, new_str, NULL, 1);
                     return NULL;
@@ -194,7 +211,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
                 continue;
             if (buf[0] == '$')
             {
-                if (dollar_expansion(str, new_str, return_value))
+                if (dollar_expansion(str, new_str, return_value, in_d_quotes))
                 {    // error case
                     phoenix_destroyer(str, new_str, NULL, 1);
                     return NULL;

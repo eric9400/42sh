@@ -65,7 +65,9 @@ static int func_until(struct ast *ast, int return_value)
 static int func_for(struct ast *ast, int return_value)
 {
     int res = 0;
-    for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)
+    if (expandinho_phoenix(ast, return_value) == 1)
+        return 1;
+    for (size_t i = 0; i < ast->data->ast_for->arg->size - 1; i++)
     {
         hash_map_insert(hashmap, ast->data->ast_for->var, ast->data->ast_for->arg->data[i]); 
         res = execute(ast->data->ast_for->for_list, return_value);
@@ -166,30 +168,31 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value, int
     return stock_fd;
 }
 
+static void swap_vector(struct ast *ast, struct vector **vect_copy)
+{
+    vector_destroy(ast->data->ast_cmd->arg);
+    ast->data->ast_cmd->arg = *vect_copy;
+}
+
 static int func_cmd(struct ast *ast, int return_value)
 {
     int error_redir = 0;
     struct stock_fd *stock_fd = func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-
+    struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg);
     if (expandinho_phoenix(ast, return_value) == 1)
     {
         destroy_stock_fd(stock_fd);
+        swap_vector(ast, &vect_copy);
         return 1;
     }
-/*
-    if (ast->data->ast_cmd->arg->data[0] == NULL)
-    {
-        destroy_stock_fd(stock_fd);
-        return 0;
-    }
-    */
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, return_value);
     if (code != -1)
     {
         destroy_stock_fd(stock_fd);
+        swap_vector(ast, &vect_copy);
         return code;
     }
     int pid = fork();
@@ -202,8 +205,6 @@ static int func_cmd(struct ast *ast, int return_value)
         if (errno == ENOENT)
         {
             fprintf(stderr, "%s\n%s: command not found\n", buf, ast->data->ast_cmd->arg->data[0]);
-            //fprintf(stderr, "%s: command not found\n",
-            //        ast->data->ast_cmd->arg->data[0]);
             exit(127);
         }
         if (errno == ENOEXEC)
@@ -213,6 +214,7 @@ static int func_cmd(struct ast *ast, int return_value)
     destroy_stock_fd(stock_fd);
     int status;
     waitpid(pid, &status, 0);
+    swap_vector(ast, &vect_copy);
     return WEXITSTATUS(status);
 }
 

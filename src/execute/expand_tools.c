@@ -78,15 +78,96 @@ static inline char *is_special_var(char *str, int return_value)
     return NULL;
 }
 
-static void expand_from_hashmap(struct string *new_str, char *buf, int return_value)
+// $* and $@
+static void append_no_quotes(struct string *new_str)
 {
-    char *value = NULL;
-    if ((value = is_special_var(buf, return_value)) == NULL)
-        value = hashmap_get_copy(hashmap, buf);
-    if (value)
+    int count = 1;
+    char buf[1000] = { 0 };
+    while (1)
     {
-        string_append(new_str, value);
+        sprintf(buf, "%d", count);
+        const char *temp = hash_map_get(hashmap, buf);
+        if (temp == NULL)
+            break;
+        char *value = strdup(temp);
+        char *keep = value;
+        char *tok = strtok(value, " ");
+        while (tok != NULL)
+        {
+            new_str->v = vector_append(new_str->v, strdup(tok));
+            tok = strtok(NULL, "    ");
+        }
+        count++;
+        free(keep);
+    }
+}
+
+// "$@"
+static void append_args(struct string *new_str)
+{
+    int count = 1;
+    char buf[1000] = { 0 };
+    while (1)
+    {
+        sprintf(buf, "%d", count);
+        const char *temp = hash_map_get(hashmap, buf);
+        if (temp == NULL)
+            break;
+        char *value = strdup(temp);
+        new_str->v = vector_append(new_str->v, value);
+        count++;
+    }
+}
+
+// "$*"
+static void append_concatenate_args(struct string *new_str)
+{
+    struct string *res = init_string3(5);
+    int count = 1;
+    char buf[1000] = { 0 };
+    sprintf(buf, "%d", count);
+    const char *temp = hash_map_get(hashmap, buf);
+    while (1)
+    {
+        if (temp == NULL)
+            break;
+        char *value = strdup(temp);
+        string_append(res, value);
+
+        count++;
+        sprintf(buf, "%d", count);
+        temp = hash_map_get(hashmap, buf);
+        if (temp != NULL)
+        {
+            buf[0] = ' ';
+            buf[1] = '\0';
+            string_append(res, buf);
+        }
         free(value);
+    }
+    res->str = realloc(res->str, res->index + 1);
+    new_str->v = vector_append(new_str->v, strdup(res->str));
+    destroy_string(res);
+}
+
+static void expand_from_hashmap(struct string *new_str, char *buf, int return_value, int in_d_quotes)
+{
+    if (!in_d_quotes && (buf[0] == '@' || buf[0] == '*'))
+        append_no_quotes(new_str);
+    else if (buf[0] == '@')
+        append_args(new_str);
+    else if (buf[0] == '*')
+        append_concatenate_args(new_str);
+    else
+    {
+        char *value = NULL;
+        if ((value = is_special_var(buf, return_value)) == NULL)
+            value = hashmap_get_copy(hashmap, buf);
+        if (value)
+        {
+            string_append(new_str, value);
+            free(value);
+        }
     }
 }
 
@@ -95,7 +176,7 @@ static int is_special_char(char c)
     return c == '@' || c == '?' || c == '$' || c == '#' || c == '*';
 }
 
-int dollar_expansion(struct string *str, struct string *new_str, int return_value)
+int dollar_expansion(struct string *str, struct string *new_str, int return_value, int in_d_quotes)
 {
     str->index += 1;
     char buf[5] = { 0 };
@@ -109,7 +190,7 @@ int dollar_expansion(struct string *str, struct string *new_str, int return_valu
         char *key = strndup(str->str, str->index - start);
         if (str->str[str->index] == '}')
         {
-            expand_from_hashmap(new_str, key, return_value);
+            expand_from_hashmap(new_str, key, return_value, in_d_quotes);
             free(key);
             return 0;
         }
@@ -125,7 +206,7 @@ int dollar_expansion(struct string *str, struct string *new_str, int return_valu
         if (isdigit(str->str[str->index]))
         {
             buf[0] = str->str[str->index];
-            expand_from_hashmap(new_str, buf, return_value);
+            expand_from_hashmap(new_str, buf, return_value, in_d_quotes);
         }
         // case $abc
         else
@@ -134,7 +215,7 @@ int dollar_expansion(struct string *str, struct string *new_str, int return_valu
             while(is_valid_char(str->str[str->index]))
                 str->index += 1;
             char *key = strndup(str->str + start, str->index - start);
-            expand_from_hashmap(new_str, key, return_value);
+            expand_from_hashmap(new_str, key, return_value, in_d_quotes);
             free(key);
         }
     }
@@ -142,7 +223,7 @@ int dollar_expansion(struct string *str, struct string *new_str, int return_valu
     else if (is_special_char(str->str[str->index]))
     {
         char *key = strndup(str->str + str->index, 1);
-        expand_from_hashmap(new_str, key, return_value);
+        expand_from_hashmap(new_str, key, return_value, in_d_quotes);
         free(key);
     }
     // non substituable var

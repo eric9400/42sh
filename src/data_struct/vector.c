@@ -1,5 +1,6 @@
 #include "vector.h"
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -94,4 +95,15 @@ struct vector *vector_reset(struct vector *v, size_t n)
     v->capacity = n;
 
     return v;
+}
+
+struct vector *vector_copy(struct vector *v)
+{
+    struct vector *res = malloc(sizeof(struct vector));
+    res->size = v->size;
+    res->capacity = v->capacity;
+    res->data = malloc(sizeof(char *) * v->capacity);
+    for (size_t i = 0; i < v->size - 1; i++)
+        res->data[i] = strdup(v->data[i]);
+    return res;
 }
