@@ -105,5 +105,6 @@ struct vector *vector_copy(struct vector *v)
     res->data = malloc(sizeof(char *) * v->capacity);
     for (size_t i = 0; i < v->size - 1; i++)
         res->data[i] = strdup(v->data[i]);
+    res->data[v->size - 1] = NULL;
     return res;
 }
