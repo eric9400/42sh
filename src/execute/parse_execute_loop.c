@@ -29,6 +29,7 @@ int freeAll(int error)
         {
             if (tofree->env_variables[i] != NULL)
                 free(tofree->env_variables[i]);
+            i++;
         }
         free(tofree->env_variables);
         free(tofree);
