@@ -40,7 +40,7 @@ static int vector_replace(struct vector *vect_temp, struct ast *ast)
     if (vect_temp->size == 0)
     {
         vector_destroy(vect_temp);
-        return -1;
+        return 1;
     }
     else
     {
@@ -66,9 +66,11 @@ static int in_quotes(int *in_s_quotes, int *in_d_quotes, char c)
     return *in_d_quotes || *in_s_quotes;
 }
 
-static int add_assign_word(struct ast *ast, char *str, struct string *s, struct string *new_str)
+static int add_assign_word(struct ast *ast, char *str, struct string *s,
+                           struct string *new_str)
 {
-    if (ast->type == AST_CMD && !strcmp(ast->data->ast_cmd->arg->data[0], "export"))
+    if (ast->type == AST_CMD
+        && !strcmp(ast->data->ast_cmd->arg->data[0], "export"))
     {
         if (str[0] == '#')
         {

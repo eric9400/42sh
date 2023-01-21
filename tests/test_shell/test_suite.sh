@@ -52,17 +52,32 @@ test_error()
 {
     test=$(($test+1));
     bash --posix -c "$1" > /dev/null 2> /dev/null
-#ref=$(echo $?)
-#    if [ $ref -eq 1 ]; then
-#        ref=$(($ref+1));
-#    fi;
-    echo $? > "$REF_OUT"
+    ref=$(echo $?)
+    if [ $ref -eq 1 ]; then
+        ref=$(($ref+1));
+    fi;
     ./42sh -c "$1" > /dev/null 2> /dev/null
-    echo $? > "$TEST_OUT"
-    var=$(diff "$REF_OUT" "$TEST_OUT")
-    if [ $(echo "$var" | wc -c) -gt 1 ]; then
+    tst=$(echo $?)
+    if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |  $1"
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+    elif [ $p_all -eq 1 ]; then
+        echo "$green      OK      |  $1"
+    else
+        pass=$(($pass+1));
+    fi
+}
+
+test_error2()
+{
+    test=$(($test+1));
+    bash --posix -c "$1" > /dev/null 2> /dev/null
+    ref=$(echo $?)
+    ./42sh -c "$1" > /dev/null 2> /dev/null
+    tst=$(echo $?)
+    if [ $tst -ne $ref ]; then
+        fail=$(($fail+1));
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     else
@@ -78,13 +93,11 @@ test_stdin_error()
     if [ $ref -eq 1 ]; then
         ref=$(($ref+1));
     fi;
-    echo $ref > "$REF_OUT"
     ./42sh "$1" > /dev/null 2>&1
-    echo $? > "$TEST_OUT"
-    var=$(diff "$REF_OUT" "$TEST_OUT")
-    if [ $(echo "$var" | wc -c) -gt 1 ]; then
+    tst=$(echo $?)
+    if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |  $1"
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     else
@@ -151,13 +164,12 @@ test_input "'coucou'"
 test_input "'echo toto'"
 test_input "echo 'toto'"
 
-
 test_input "echo '\n'"
 test_input "echo \"\n\""
 test_input "echo $1"
 test_input "echo \"\n\""
 test_input "echo 'a   \'b\z' \'c\z"
-
+test_input "if coucou; then echo toto; else echo tata; fi"
 
 test_input "'#'quote"
 test_input "'ls'"
@@ -205,8 +217,14 @@ test_error "echo 'aaa"
 test_error 'echo "aaa'
 test_error "''"
 test_error "' '"
+test_error " "
 test_error "' arg '"
 test_error "'if' true; then echo toto; fi"
+test_error2 "false"
+test_error2 "\"false\""
+test_error2 "\'false\'"
+test_error2 "'false'"
+test_error2 "false echo foo"
 echo
 echo $blue "===================STEP 2==================="
 echo 
@@ -284,6 +302,15 @@ test_input 'until true; do echo clement; done'
 test_input "until true; do echo foofoooo; done"
 test_input "until true; do echo foo; echo fooooo; echo fooooo; done"
 test_input "until true; do ls; done"
+
+test_input "a=1"
+test_input "b=c"
+test_input "\$b=a"
+test_input "echo \$c"
+test_input "a=toto"
+test_input "export \$a=AAAAAAAAAAAAAAAAAA"
+test_input "env"
+test_input "exit"
 echo
 echo $blue " SUS ERRORS" $red
 test_error "\"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bourre ou quoi\""
@@ -301,6 +328,7 @@ test_error "\"'c'\\\\''est l' \\\\' 'le bonheur' \\\\ ''\""
 test_error "\"\\\\\#escaped\""
 test_error "\"cont\\\\\nent\""
 test_error "\"quoi?\nfeur\""
+
 test_error "for n do echo foo; done"
 test_error "for coucou;;; do echo foo; done"
 test_error "for $n; do echo foo; done"
@@ -308,16 +336,42 @@ test_error "for $n; echo foo; done"
 test_error "for n; do echo foo;"
 test_error "for n in foo bar do echo toto; done"
 test_error "for $n in $foo; do echo toto; done"
-test_error "! "
+
+test_error "fooo |"
+test_error "| true"
+test_error "true | | false"
 test_error "! echo foo |"
 test_error "true ||"
 test_error "false && "
+test_error "|| false"
+test_error "&& true"
+test_error "|| ||"
+test_error "|| false ||"
+test_error "|| true ||"
+test_error "|| || true"
+test_error "false || ||"
+test_error "|| &&"
+test_error "&& false &&"
+test_error "|| true &&"
+test_error "&& && true"
+test_error "false && &&"
+test_error "false || |"
+test_error "false || true |"
+test_error "|| |"
+test_error "|||"
+test_error "! "
+test_error2 "! false"
+test_error2 "! true"
+test_error2 "! echo foo"
+test_error2 "! coucou"
 test_error "true \n&& false"
+
 test_error "echo foo |"
 test_error "echo foo >"
 test_error "echo foo >>"
 test_error "echo foo <"
 test_error "echo foo 2>"
+
 test_error "while ; do echo foo; done"
 test_error "while false; echo foo; done"
 test_error "while false; do echo foo;"

@@ -1,3 +1,5 @@
+#include "parse_execute_loop.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,20 +13,25 @@
 #include "parser.h"
 #include "utils.h"
 
-struct flags *global_flags = NULL;
-struct lexer *lex = NULL;
-struct ast *ast = NULL;
-FILE *file = NULL;
+struct toFree *tofree = NULL;
 
 int freeAll(int error)
 {
-    free_lexer(lex);
-    free_node(ast);
-    fclose(file);
+    free_lexer(tofree->lex);
+    free_node(tofree->ast);
+    fclose(tofree->file);
     if (!is_in_dot)
     {
         hash_map_free(hashmap);
-        free(global_flags);
+        free(tofree->global_flags);
+        int i = 0;
+        while (i < 10)
+        {
+            if (tofree->env_variables[i] != NULL)
+                free(tofree->env_variables[i]);
+        }
+        free(tofree->env_variables);
+        free(tofree);
     }
     return error;
 }
@@ -44,59 +51,62 @@ void hash_map_init_basic(void)
 // 36 lines
 int parse_execute_loop(FILE *f, struct flags *flags)
 {
-    global_flags = flags;
-    lex = init_lexer(f);
-    ast = NULL;
-    file = f;
+    if (!is_in_dot)
+        tofree = calloc(1, sizeof(struct toFree));
+    tofree->global_flags = flags;
+    tofree->lex = init_lexer(f);
+    tofree->ast = NULL;
+    tofree->file = f;
+    tofree->env_variables = calloc(20, sizeof(char *));
     int return_value = 0;
     hash_map_init_basic();
     // RAJOUTER UN ETAT D'AST POUR QUAND
     while (1)
     {
-        ast = input(lex);
-        if (lex->error == 0 && !ast)
+        tofree->ast = input(tofree->lex);
+        if (tofree->lex->error == 0 && !tofree->ast)
             break;
-        if (lex->error)
+        if (tofree->lex->error)
         {
-            if (file != stdin)
-                return freeAll(lex->error);
+            if (tofree->file != stdin)
+                return freeAll(tofree->lex->error);
         }
-        else if (!ast && file != stdin)
+        else if (!tofree->ast && tofree->file != stdin)
             break;
         else
         {
             // pretty print
             if (flags->p)
             {
-                ugly_print(ast, 0);
+                ugly_print(tofree->ast, 0);
                 printf("\n");
             }
 
             // ugly print && exit
             if (flags->u)
             {
-                ugly_print(ast, 0);
+                ugly_print(tofree->ast, 0);
                 printf("\n");
                 break;
             }
             // if (ast != SPECIFIC_AST_FOR_END_OF_LINE (FOR EXAMPLE))
-            if (ast->type == AST_CMD
-                && ast->data->ast_cmd->arg->data[0][0] == '\0')
+            if (tofree->ast->type == AST_CMD
+                && tofree->ast->data->ast_cmd->arg->data[0][0] == '\0')
             {
-                free_node(ast);
+                free_node(tofree->ast);
                 continue;
             }
-            return_value = execute(ast, return_value);
+            return_value = execute(tofree->ast, return_value);
             if (return_value)
             {
-                if (file != stdin)
+                if (tofree->file != stdin)
                     return freeAll(return_value);
             }
         }
-        free_node(ast);
+        free_node(tofree->ast);
         fflush(stdout);
     }
-    if (lex->error)
-        return freeAll(lex->error);
+    if (tofree->lex->error)
+        return freeAll(tofree->lex->error);
     return freeAll(0);
 }

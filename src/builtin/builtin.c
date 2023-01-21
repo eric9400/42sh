@@ -117,41 +117,63 @@ static int echo(char **s)
     return 0;
 }
 
+static void export_insert(char *s)
+{
+    int i = 0;
+    while (tofree->env_variables[i] != NULL)
+        i++;
+    char *result = strdup(s);
+    tofree->env_variables[i] = result;
+    putenv(result);
+}
+
 static int export(char **s)
 {
     int lenvar = 0;
-    size_t lens = strlen(s[1]);
+    size_t lens;
     int isseton = 0;
-    for (size_t i = 0; i < lens; i++, lenvar++)
+    int k = 1;
+    int returnvalue = 0;
+    while (s[k] != NULL)
     {
-        if (s[1][i] == '=')
+        lens = strlen(s[k]);
+        for (size_t i = 0; i < lens; i++, lenvar++)
         {
-            isseton = 1;
-            break;
+            if (s[k][i] == '=')
+            {
+                isseton = 1;
+                break;
+            }
         }
-    }
-    if (isseton) // export n=b
-        putenv(strdup(s[1])); // est ce qu'il faut utiliser putenv
-    else
-    {
-        char *var = strndup(s[1], lenvar);
-        const char *value = hash_map_get(hashmap, var);
-        if (value != NULL)
-        {
-            size_t lenvalue = strlen(value);
-            var = realloc(var, lenvar + 1 + lenvalue + 1);
-            var[lenvar] = '=';
-            size_t j = 0;
-            for (size_t i = lenvar + 1; j < lenvalue; i++, j++)
-                var[i] = value[j];
-            var[lenvar + lenvalue + 1] = '\0';
-            putenv(strdup(var));
-            free(var);
-        }
+        if (isseton) // export n=b
+            export_insert(s[k]);
         else
-            free(var);
+        {
+            char *var = strndup(s[k], lenvar);
+            const char *value = hash_map_get(hashmap, var);
+            if (value != NULL)
+            {
+                size_t lenvalue = strlen(value);
+                var = realloc(var, lenvar + 1 + lenvalue + 1);
+                var[lenvar] = '=';
+                size_t j = 0;
+                for (size_t i = lenvar + 1; j < lenvalue; i++, j++)
+                    var[i] = value[j];
+                var[lenvar + lenvalue + 1] = '\0';
+                export_insert(var);
+                free(var);
+            }
+            else
+            {
+                returnvalue = 1;
+                free(var);
+            }
+        }
+        isseton = 0;
+        k++;
+        lenvar = 0;
     }
-    return 0;
+    return returnvalue;
 }
 
 static int is_flag_for_unset(char *s, int *f_f, int *f_v)
@@ -183,6 +205,22 @@ static int is_flag_for_unset(char *s, int *f_f, int *f_v)
     return 0;
 }
 
+void check_free_unset(char *s)
+{
+    int i = 0;
+    while (i < 10)
+    {
+        if (tofree->env_variables[i] != NULL
+            && !strcmp(tofree->env_variables[i], s))
+        {
+            free(tofree->env_variables[i]);
+            tofree->env_variables[i] = NULL;
+            break;
+        }
+        i++;
+    }
+}
+
 // REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
 static int unset(char **s)
 {
@@ -205,6 +243,7 @@ static int unset(char **s)
         {
             bool hash_var = hash_map_remove(hashmap, s[i]);
             int env_var = unsetenv(s[i]);
+            check_free_unset(s[i]);
             if (!hash_var && env_var == -1)
                 return_value = 1;
         }
@@ -276,7 +315,7 @@ static int cd(char **s)
 
 static int exit_dot(void)
 {
-    if (file == stdin)
+    if (tofree->file == stdin)
     {
         fprintf(stderr, "Bad file for . builtin\n");
         return 1;
@@ -310,7 +349,7 @@ static void hash_map_restore(char **values)
     free(values);
 }
 
-static char **copy_values()
+static char **copy_values(void)
 {
     char **result = calloc(100, 1);
     int len = 0;
@@ -329,11 +368,11 @@ static char **copy_values()
 
 static int dot2(char **s, FILE *filedot)
 {
-    struct lexer *old_lex = lex;
-    lex = NULL;
-    struct ast *old_ast = ast;
-    ast = NULL;
-    FILE *old_file = file;
+    struct lexer *old_lex = tofree->lex;
+    tofree->lex = NULL;
+    struct ast *old_ast = tofree->ast;
+    tofree->ast = NULL;
+    FILE *old_file = tofree->file;
     char **old_hashmap = copy_values();
     int i = 2;
     while (s[i] != NULL)
@@ -344,11 +383,11 @@ static int dot2(char **s, FILE *filedot)
         i++;
     }
     is_in_dot = 1;
-    int res = parse_execute_loop(filedot, global_flags);
+    int res = parse_execute_loop(filedot, tofree->global_flags);
     hash_map_restore(old_hashmap);
-    lex = old_lex;
-    ast = old_ast;
-    file = old_file;
+    tofree->lex = old_lex;
+    tofree->ast = old_ast;
+    tofree->file = old_file;
     is_in_dot = 0;
     return res;
 }
@@ -402,8 +441,12 @@ static int my_exit(char **s, int return_value)
 {
     if (s[1] == NULL)
     {
-        freeAll(0);
         exit(return_value);
+    }
+    if (s[2] != NULL)
+    {
+        fprintf(stderr, "exit: too many arguments\n");
+        return 1;
     }
     int isnum = 1;
     int len = strlen(s[1]);
@@ -417,13 +460,12 @@ static int my_exit(char **s, int return_value)
     }
     if (!isnum)
     {
-        fprintf(stderr, "exit: need numeric argument\n");
-        exit(1);
-    }
-    if (s[2] != NULL)
-    {
-        fprintf(stderr, "exit: too many arguments\n");
-        return 1;
+        char *testing = hash_map_get(hashmap, s[1] + 1);
+        if (testing == NULL)
+        {
+            fprintf(stderr, "exit: need numeric argument\n");
+            exit(1);
+        }
     }
     exit(atoi(s[1]));
 }

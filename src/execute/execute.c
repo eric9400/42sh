@@ -187,8 +187,6 @@ static int func_if(struct ast *ast, int return_value)
     int a = execute(ast->data->ast_if->condition, return_value);
     if (!a)
         return execute(ast->data->ast_if->then, return_value);
-    else if (a == 127 || a == 126 || a == 2)
-        return a;
     return execute(ast->data->ast_if->else_body, return_value);
 }
 

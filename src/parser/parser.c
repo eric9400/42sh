@@ -7,6 +7,8 @@ struct ast *input(struct lexer *lex);
 static struct ast *list(struct lexer *lex);
 static void list2(struct lexer *lex, struct ast_list *exec_tree);
 struct ast *and_or(struct lexer *lex);
+static int rule_and(struct lexer *lex, struct ast **child, struct ast **pipe);
+static int rule_or(struct lexer *lex, struct ast **child, struct ast **pipe);
 static struct ast *pipeline(struct lexer *lex);
 
 /*
@@ -119,7 +121,6 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
     list2(lex, exec_tree);
 }
 
-// 45 lines
 struct ast *and_or(struct lexer *lex)
 {
     struct ast *pipe = pipeline(lex);
@@ -140,52 +141,16 @@ struct ast *and_or(struct lexer *lex)
     {
         if (!strcmp(lex->tok->data, "&&"))
         {
-            free_token(lex);
-            struct ast_and *ast_op = init_ast(AST_AND);
-            new_lines(lex);
-
-            struct ast *pipe2 = pipeline(lex);
-            if (!pipe2)
-            {
-                free_node(convert_node_ast(AST_AND, ast_op));
+            if (rule_and(lex, &child, &pipe))
                 return error_handler(
-                    lex, 1, "Error and_or: inside && : NO MATCHING PATERN\n");
-            }
-            ast_op->right = pipe2;
-
-            if (pipe)
-            {
-                ast_op->left = pipe;
-                pipe = NULL;
-            }
-            else
-                ast_op->left = child;
-            child = convert_node_ast(AST_AND, ast_op);
+                    lex, 1, "Error and_or: inside && : NO MATCHING PATERN");
         }
 
         else if (!strcmp(lex->tok->data, "||"))
         {
-            free_token(lex);
-            struct ast_or *ast_op = init_ast(AST_OR);
-            new_lines(lex);
-
-            struct ast *pipe2 = pipeline(lex);
-            if (!pipe2)
-            {
-                free_node(convert_node_ast(AST_OR, ast_op));
+            if (rule_or(lex, &child, &pipe))
                 return error_handler(
-                    lex, 1, "Error and_or: inside || : NO MATCHING PATERN\n");
-            }
-            ast_op->right = pipe2;
-
-            if (pipe)
-            {
-                ast_op->left = pipe;
-                pipe = NULL;
-            }
-            else
-                ast_op->left = child;
-            child = convert_node_ast(AST_OR, ast_op);
+                    lex, 1, "Error and_or: inside || : NO MATCHING PATERN");
         }
 
         else
@@ -194,22 +159,91 @@ struct ast *and_or(struct lexer *lex)
     return child;
 }
 
+static int rule_and(struct lexer *lex, struct ast **child, struct ast **pipe)
+{
+    free_token(lex);
+    struct ast_and *ast_op = init_ast(AST_AND);
+    new_lines(lex);
+
+    struct ast *pipe2 = pipeline(lex);
+    if (!pipe2)
+    {
+        free_node(convert_node_ast(AST_AND, ast_op));
+        free_node(*child);
+        if (*pipe != NULL)
+            free_node(*pipe);
+        return 1;
+    }
+    ast_op->right = pipe2;
+
+    if (*pipe)
+    {
+        ast_op->left = *pipe;
+        *pipe = NULL;
+    }
+    else
+        ast_op->left = *child;
+    *child = convert_node_ast(AST_AND, ast_op);
+    return 0;
+}
+
+static int rule_or(struct lexer *lex, struct ast **child, struct ast **pipe)
+{
+    free_token(lex);
+    struct ast_or *ast_op = init_ast(AST_OR);
+    new_lines(lex);
+
+    struct ast *pipe2 = pipeline(lex);
+    if (!pipe2)
+    {
+        free_node(convert_node_ast(AST_OR, ast_op));
+        free_node(*child);
+        if (*pipe != NULL)
+            free_node(*pipe);
+        return 1;
+    }
+    ast_op->right = pipe2;
+
+    if (*pipe)
+    {
+        ast_op->left = *pipe;
+        *pipe = NULL;
+    }
+    else
+        ast_op->left = *child;
+    *child = convert_node_ast(AST_OR, ast_op);
+    return 0;
+}
+
+static void error_pipeline(struct ast *parent, struct ast_not * not )
+{
+    if (parent != NULL)
+        free_node(parent);
+    if (not != NULL)
+        free_node(convert_node_ast(AST_NOT, not ));
+}
+
 static struct ast *pipeline(struct lexer *lex)
 {
     peek_token(lex);
+    if (lex->tok->type == END_OF_FILE)
+        return NULL;
 
     struct ast_not *not = NULL;
 
     if (lex->tok->type == OPERATOR && !strcmp(lex->tok->data, "!"))
     {
         free_token(lex);
+        peek_token(lex);
+        if (lex->tok->type == END_OF_FILE)
+            return error_handler(lex, 1, "ERROR PIPELINE : NEGATION INVALID");
         not = init_ast(AST_NOT);
     }
 
     struct ast *cmd = command(lex);
     if (!cmd)
     {
-        if (not )
+        if (not != NULL)
         {
             free_node(convert_node_ast(AST_NOT, not ));
             return error_handler(lex, 1,
@@ -220,9 +254,7 @@ static struct ast *pipeline(struct lexer *lex)
 
     peek_token(lex);
 
-    struct ast *parent = NULL;
-
-    parent = cmd;
+    struct ast *parent = cmd;
 
     while (lex->tok->type == OPERATOR && !strcmp(lex->tok->data, "|"))
     {
@@ -230,11 +262,17 @@ static struct ast *pipeline(struct lexer *lex)
 
         new_lines(lex);
 
+        if (lex->tok->type == END_OF_FILE)
+        {
+            error_pipeline(parent, not );
+            return error_handler(lex, 1, "ERROR PIPELINE : INVALID PIPE");
+        }
+
         struct ast *cmd2 = command(lex);
 
         if (!cmd2)
         {
-            free_node(parent); // l'implémenter !!!!
+            error_pipeline(parent, not );
             return error_handler(lex, 1,
                                  "ERROR PIPELINE : CMD 2 NO MATCHING PATTERN");
         }
@@ -246,7 +284,7 @@ static struct ast *pipeline(struct lexer *lex)
         parent = convert_node_ast(AST_PIPE, pipe);
     }
 
-    if (not )
+    if (not != NULL)
     {
         not ->node = parent;
         return convert_node_ast(AST_NOT, not );
