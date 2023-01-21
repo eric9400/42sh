@@ -275,12 +275,15 @@ static int func_cmd(struct ast *ast, int return_value)
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
     struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg);
-    if (expandinho_phoenix(ast, return_value) == 1)
+    int coucou = expandinho_phoenix(ast, return_value);
+    if (coucou == 1)
     {
         destroy_stock_fd(stock_fd);
         swap_vector(ast, &vect_copy);
         return 1;
     }
+    else if (coucou == -1)
+        return 0;
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, &wat, return_value);
     if (code != -1)

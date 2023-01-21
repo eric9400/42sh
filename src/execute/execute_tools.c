@@ -40,7 +40,7 @@ static int vector_replace(struct vector *vect_temp, struct ast *ast)
     if (vect_temp->size == 0)
     {
         vector_destroy(vect_temp);
-        return 1;
+        return -1;
     }
     else
     {
@@ -66,8 +66,19 @@ static int in_quotes(int *in_s_quotes, int *in_d_quotes, char c)
     return *in_d_quotes || *in_s_quotes;
 }
 
-static int add_assign_word(char *str, struct string *s, struct string *new_str)
+static int add_assign_word(struct ast *ast, char *str, struct string *s, struct string *new_str)
 {
+    if (ast->type == AST_CMD && !strcmp(ast->data->ast_cmd->arg->data[0], "export"))
+    {
+        if (str[0] == '#')
+        {
+            char *tmp = strdup(ast->data->ast_cmd->arg->data[1] + 1);
+            free(ast->data->ast_cmd->arg->data[1]);
+            ast->data->ast_cmd->arg->data[1] = tmp;
+            s->index++;
+        }
+        return 0;
+    }
     if (str[0] != '#')
         return 0;
     str++;
@@ -105,7 +116,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
         struct string *new_str = init_string(ast, i, vect_temp);
         int in_s_quotes = 0;
         int in_d_quotes = 0;
-        if (add_assign_word(str->str, str, new_str))
+        if (add_assign_word(ast, str->str, str, new_str))
             continue;
         for (; str->index < str->len; str->index++)
         {

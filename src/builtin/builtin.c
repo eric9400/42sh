@@ -131,7 +131,7 @@ static int export(char **s)
         }
     }
     if (isseton) // export n=b
-        putenv(s[1]); // est ce qu'il faut utiliser putenv
+        putenv(strdup(s[1])); // est ce qu'il faut utiliser putenv
     else
     {
         char *var = strndup(s[1], lenvar);
@@ -145,7 +145,7 @@ static int export(char **s)
             for (size_t i = lenvar + 1; j < lenvalue; i++, j++)
                 var[i] = value[j];
             var[lenvar + lenvalue + 1] = '\0';
-            putenv(var);
+            putenv(strdup(var));
             free(var);
         }
         else
