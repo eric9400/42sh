@@ -12,6 +12,8 @@
 #include "hash_map.h"
 #include "my_string.h"
 #include "vector.h"
+#include "redirection.h"
+#include "execute.h"
 
 static int phoenix_destroyer(struct string *str, struct string *new_str,
                              struct vector *v, int return_value)
@@ -89,7 +91,7 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
     {
         value[0] = '\0';
         value++;
-        hash_map_insert(hashmap, str, value);
+        hash_map_insert(hashM->hashmap, str, value);
         destroy_string(s);
         destroy_string(new_str);
         return 1;
@@ -241,4 +243,19 @@ char *expandinho_phoenix_junior(char *s, int return_value)
     char *return_str = expandinho_junior_2(new_str);
     phoenix_destroyer(str, new_str, NULL, 1);
     return return_str;
+}
+
+int check_function(char **str, int return_value)
+{
+    struct ast *ast = f_hash_map_get(hashM->fhashmap, str[0]);
+    if (ast == NULL) //if this is not a function in the hash_map
+        return -1;
+   
+    int error_redir = 0;
+    struct stock_fd *stock_fd =
+        func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
+    if (stock_fd == NULL && error_redir != 0)
+        return error_redir;
+    //NEED TO PASS ARGUMENTS TO FUNCTION
+    return execute(ast->data->ast_func->func, return_value);
 }

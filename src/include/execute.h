@@ -12,5 +12,6 @@ struct c_or_b
 };
 
 int execute(struct ast *ast, int return_value);
+struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error);
 
 #endif /* EXECUTE_H */

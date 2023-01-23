@@ -9,7 +9,7 @@
 #include "ast.h"
 #include "hash_map.h"
 
-struct hash_map *hashmap = NULL;
+struct hash_maps *hashM = NULL;
 
 /*
  * \brief Parsing of inputs
@@ -18,7 +18,9 @@ struct hash_map *hashmap = NULL;
  */
 int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
 {
-    hashmap = hash_map_init(20);
+    hashM = malloc(sizeof(struct hash_maps));
+    hashM->hashmap = hash_map_init(20);
+    hashM->fhashmap = f_hash_map_init(10);
     if (argc == 0)
         return 0;
     int i = 1;
@@ -50,9 +52,9 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     for (; i < argc; i++)
     {
         sprintf(buf, "%d", count);
-        hash_map_insert(hashmap, buf, argv[i]);
+        hash_map_insert(hashM->hashmap, buf, argv[i]);
         count++;
     }
-    hash_map_insert(hashmap, "#", buf);
+    hash_map_insert(hashM->hashmap, "#", buf);
     return 0;
 }

@@ -109,23 +109,25 @@ static void free_pipe(struct ast *pipe)
     free(pipe->data->ast_pipe);
 }
 
-static void free_function(struct ast *ast)
-{
-    free_node(ast->data->ast_func->func);
-    free_list2(ast->data->ast_func->redir);
-    free(ast->data->ast_func->name);
-    free(ast->data->ast_func);
-}
-
 static void free_subshell(struct ast *ast)
 {
     free_node(ast->data->ast_subshell->sub);
     free(ast->data->ast_subshell);
 }
 
+void free_func(struct ast *ast)
+{
+    free_node(ast->data->ast_func->func); 
+    free_list2(ast->data->ast_func->redir);
+    free(ast->data->ast_func->name);
+    free(ast->data->ast_func);
+    free(ast->data);
+    free(ast);
+}
+
 void free_node(struct ast *ast)
 {
-    if (!ast)
+    if (!ast || ast->type == AST_FUNC)
         return;
     if (ast->type == AST_IF)
         free_if(ast);
@@ -147,8 +149,6 @@ void free_node(struct ast *ast)
         free_pipe(ast);
     else if (ast->type == AST_NOT)
         free_not(ast);
-    else if (ast->type == AST_FUNC)
-        free_function(ast);
     else if (ast->type == AST_SUBSHELL)
         free_subshell(ast);
 

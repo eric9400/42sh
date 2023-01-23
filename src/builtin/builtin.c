@@ -150,7 +150,7 @@ static int export(char **s)
         else
         {
             char *var = strndup(s[k], lenvar);
-            const char *value = hash_map_get(hashmap, var);
+            const char *value = hash_map_get(hashM->hashmap, var);
             if (value != NULL)
             {
                 size_t lenvalue = strlen(value);
@@ -241,7 +241,7 @@ static int unset(char **s)
     {
         if (f_v || !f_f)
         {
-            bool hash_var = hash_map_remove(hashmap, s[i]);
+            bool hash_var = hash_map_remove(hashM->hashmap, s[i]);
             int env_var = unsetenv(s[i]);
             check_free_unset(s[i]);
             if (!hash_var && env_var == -1)
@@ -249,9 +249,8 @@ static int unset(char **s)
         }
         else
         {
-            printf("IT HAS TO BE A FUNCTION REMOVE IN HASHMAP\n");
-            // if (!hash_map_f_remove(hashmap_f, s[i])
-            //   return_value = 1;
+            if (!f_hash_map_remove(hashM->fhashmap, s[i]))
+               return_value = 1;
         }
         i++;
     }
@@ -263,7 +262,8 @@ static int cd(char **s)
     int res = 0;
     char cwd[PATH_MAX];
     char cwd2[PATH_MAX];
-    getcwd(cwd, sizeof(cwd));
+    if (getcwd(cwd, sizeof(cwd)))
+        return 1;
     if (s[1] == NULL)
     {
         char *home = getenv("HOME");
@@ -275,9 +275,9 @@ static int cd(char **s)
         res = chdir(home); // STEP 2
         if (!res)
         {
-            hash_map_insert(hashmap, "OLDPWD", cwd);
+            hash_map_insert(hashM->hashmap, "OLDPWD", cwd);
             getcwd(cwd2, sizeof(cwd2));
-            hash_map_insert(hashmap, "PWD", cwd2);
+            hash_map_insert(hashM->hashmap, "PWD", cwd2);
             return 0;
         }
         fprintf(stderr, "cd: error with HOME\n");
@@ -290,13 +290,13 @@ static int cd(char **s)
     }
     if (!strcmp(s[1], "-"))
     {
-        const char *oldpwd = hash_map_get(hashmap, "OLDPWD");
+        const char *oldpwd = hash_map_get(hashM->hashmap, "OLDPWD");
         res = chdir(oldpwd);
         if (!res)
         {
-            hash_map_insert(hashmap, "OLDPWD", cwd);
+            hash_map_insert(hashM->hashmap, "OLDPWD", cwd);
             getcwd(cwd2, sizeof(cwd2));
-            hash_map_insert(hashmap, "PWD", cwd2);
+            hash_map_insert(hashM->hashmap, "PWD", cwd2);
             printf("%s\n", cwd2);
             return 0;
         }
@@ -304,9 +304,9 @@ static int cd(char **s)
     res = chdir(s[1]);
     if (!res)
     {
-        hash_map_insert(hashmap, "OLDPWD", cwd);
+        hash_map_insert(hashM->hashmap, "OLDPWD", cwd);
         getcwd(cwd2, sizeof(cwd2));
-        hash_map_insert(hashmap, "PWD", cwd2);
+        hash_map_insert(hashM->hashmap, "PWD", cwd2);
         return 0;
     }
     fprintf(stderr, "cd: wrong directory (might be something else)\n");
@@ -335,14 +335,14 @@ static void hash_map_restore(char **values)
     sprintf(key, "%d", i + 1);
     while (values[i] != NULL)
     {
-        hash_map_insert(hashmap, key, values[i]);
+        hash_map_insert(hashM->hashmap, key, values[i]);
         free(values[i]);
         i++;
         sprintf(key, "%d", i + 1);
     }
-    while ((value = hash_map_get(hashmap, key)) != NULL)
+    while ((value = hash_map_get(hashM->hashmap, key)) != NULL)
     {
-        hash_map_remove(hashmap, key);
+        hash_map_remove(hashM->hashmap, key);
         i++;
         sprintf(key, "%d", i + 1);
     }
@@ -356,7 +356,7 @@ static char **copy_values(void)
     char key[1000];
     char *value;
     sprintf(key, "%d", len + 1);
-    while ((value = hash_map_get(hashmap, key)) != NULL)
+    while ((value = hash_map_get(hashM->hashmap, key)) != NULL)
     {
         result[len] = strdup(value);
         len++;
@@ -379,7 +379,7 @@ static int dot2(char **s, FILE *filedot)
     {
         char value[1000] = { 0 };
         sprintf(value, "%d", i - 1);
-        hash_map_insert(hashmap, value, s[i]);
+        hash_map_insert(hashM->hashmap, value, s[i]);
         i++;
     }
     is_in_dot = 1;
@@ -460,7 +460,7 @@ static int my_exit(char **s, int return_value)
     }
     if (!isnum)
     {
-        char *testing = hash_map_get(hashmap, s[1] + 1);
+        char *testing = hash_map_get(hashM->hashmap, s[1] + 1);
         if (testing == NULL)
         {
             fprintf(stderr, "exit: need numeric argument\n");

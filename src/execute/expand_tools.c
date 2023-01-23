@@ -46,7 +46,7 @@ static inline char *is_special_var(char *str, int return_value)
     if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD")
         || !strcmp(str, "PWD") || !strcmp(str, "IFS"))
     {
-        const char *res = hash_map_get(hashmap, str);
+        const char *res = hash_map_get(hashM->hashmap, str);
         if (!res)
             return NULL;
         return strdup(res);
@@ -86,7 +86,7 @@ static void append_no_quotes(struct string *new_str)
     while (1)
     {
         sprintf(buf, "%d", count);
-        const char *temp = hash_map_get(hashmap, buf);
+        const char *temp = hash_map_get(hashM->hashmap, buf);
         if (temp == NULL)
             break;
         char *value = strdup(temp);
@@ -110,7 +110,7 @@ static void append_args(struct string *new_str)
     while (1)
     {
         sprintf(buf, "%d", count);
-        const char *temp = hash_map_get(hashmap, buf);
+        const char *temp = hash_map_get(hashM->hashmap, buf);
         if (temp == NULL)
             break;
         char *value = strdup(temp);
@@ -126,7 +126,7 @@ static void append_concatenate_args(struct string *new_str)
     int count = 1;
     char buf[1000] = { 0 };
     sprintf(buf, "%d", count);
-    const char *temp = hash_map_get(hashmap, buf);
+    const char *temp = hash_map_get(hashM->hashmap, buf);
     while (1)
     {
         if (temp == NULL)
@@ -136,7 +136,7 @@ static void append_concatenate_args(struct string *new_str)
 
         count++;
         sprintf(buf, "%d", count);
-        temp = hash_map_get(hashmap, buf);
+        temp = hash_map_get(hashM->hashmap, buf);
         if (temp != NULL)
         {
             buf[0] = ' ';
@@ -163,7 +163,7 @@ static void expand_from_hashmap(struct string *new_str, char *buf,
     {
         char *value = NULL;
         if ((value = is_special_var(buf, return_value)) == NULL)
-            value = hashmap_get_copy(hashmap, buf);
+            value = hashmap_get_copy(hashM->hashmap, buf);
         if (value)
         {
             string_append(new_str, value);
