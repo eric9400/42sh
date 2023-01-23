@@ -65,7 +65,8 @@ int parse_execute_loop(FILE *f, struct flags *flags)
     while (1)
     {
         tofree->ast = input(tofree->lex);
-        if (tofree->lex->error == 0 && !tofree->ast)
+        // case when error during parsing OR eof
+        if (tofree->lex->error || (tofree->lex->error == 0 && !tofree->ast))
             break;
         if (tofree->lex->error)
         {
