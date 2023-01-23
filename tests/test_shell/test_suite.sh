@@ -1,5 +1,8 @@
 #!/bin/sh
 
+color=0 #1 if there is not a color default in echo  
+p_all=0 #print all test even the ones that passes
+
 REF_OUT=".42suuu.txt"
 TEST_OUT=".my_42suuu.txt"
 blue='\033[35m'
@@ -9,7 +12,12 @@ nc='\033[0m'
 pass=0
 test=0
 fail=0
-p_all=0
+
+if [ $color -eq 1 ]; then
+    alias ecco='echo -e'
+else
+    alias ecco='echo'
+fi
 
 test_input()
 {
@@ -21,9 +29,9 @@ test_input()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
@@ -40,9 +48,9 @@ test_stdin()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
@@ -58,9 +66,9 @@ test_stdin2()
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
@@ -78,9 +86,9 @@ test_error()
     tst=$(echo $?);
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
@@ -95,9 +103,9 @@ test_error2()
     tst=$(echo $?);
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
@@ -112,9 +120,9 @@ test_stdin_error()
     tst=$(echo $?)
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
@@ -132,22 +140,23 @@ test_stdin_error2()
     tst=$(echo $?)
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
-        echo "$green      OK      |  $1"
+        ecco "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
 }
 
-echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo $blue "@@@@@@@@@@@@@@@@@TEST SUITE@@@@@@@@@@@@@@@@@"
-echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo
-echo
-echo $blue "===================STEP 1==================="
-echo
-echo $blue " SCRIPTS" $red
+ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ecco $blue "@@@@@@@@@@@@@@@@@TEST SUITE@@@@@@@@@@@@@@@@@"
+ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ecco
+ecco
+ecco $blue "===================STEP 1==================="
+ecco
+ecco $blue " SCRIPTS" $red
+
 test_stdin "test_shell/step1/test1.sh"
 test_stdin "test_shell/step1/test2.sh"
 test_stdin "test_shell/step1/test3.sh"
@@ -196,8 +205,10 @@ test_stdin_error "test_shell/block_suite/test_1_8.sh"
 test_stdin_error "test_shell/block_suite/test_1_9.sh"
 test_stdin_error "test_shell/block_suite/test_1_10.sh"
 #test_stdin "test_shell/step1/cursed.sh"
-echo
-echo $blue " ALL INPUT" $red
+
+ecco
+ecco $blue " ALL INPUT" $red
+
 test_input "echo foo bar"
 test_input "echo foo ; echo bar"
 test_input "if true; then echo ok; else echo ko; fi"
@@ -236,8 +247,10 @@ test_input "if coucou; then echo toto; else echo tata; fi"
 
 test_input "'#'quote"
 test_input "'ls'"
-echo
-echo $blue " AMOUNG SUS ERRORS" $red
+
+ecco
+ecco $blue " AMOUNG SUS ERRORS" $red
+
 test_error 'if'
 test_error "if true; echo toto; fi"
 test_error "coucou"
@@ -288,10 +301,12 @@ test_error2 "\"false\""
 test_error2 "\'false\'"
 test_error2 "'false'"
 test_error2 "false echo foo"
-echo
-echo $blue "===================STEP 2==================="
-echo 
-echo $blue " SCRIPTS"
+
+ecco
+ecco $blue "===================STEP 2==================="
+ecco 
+ecco $blue " SCRIPTS"
+
 test_stdin "test_shell/step2/for1_10.sh"
 test_stdin "test_shell/step2/for12345.sh"
 test_stdin "test_shell/step2/pipe.sh"
@@ -335,8 +350,10 @@ test_stdin_error "test_shell/block_suite/test_2_30.sh"
 test_stdin_error "test_shell/block_suite/test_2_31.sh"
 test_stdin_error "test_shell/block_suite/test_2_32.sh"
 test_stdin_error "test_shell/block_suite/test_2_33.sh"
-echo
-echo $blue " INPUT" $red
+
+ecco
+ecco $blue " INPUT" $red
+
 test_input "echo \"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bourre ou quoi\""
 test_input "echo \"\""
 test_input "echo \"toto\""
@@ -412,8 +429,10 @@ test_input "a=toto"
 test_input "export \$a=AAAAAAAAAAAAAAAAAA"
 test_input "env"
 test_input "exit"
-echo
-echo $blue " SUS ERRORS" $red
+
+ecco
+ecco $blue " SUS ERRORS" $red
+
 test_error "\"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bourre ou quoi\""
 test_error "\"\""
 test_error "\"toto\""
@@ -486,14 +505,16 @@ test_error "$a"
 test_error "a=b; $a"
 test_error "a=====================f; $a"
 test_error "$$$$$$$$$$$$$$==D"
-echo
-echo $blue "RONALDO SCORED [$green $pass $blue] TIMES"
-echo $blue "RONALDO FAILED [$red $fail $blue] TIMES"
-echo $blue "OUT OF [$nc $test $blue] TESTS!!"
-echo
-echo
-echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo $nc
+
+ecco
+ecco $blue "RONALDO SCORED [$green $pass $blue] TIMES"
+ecco $blue "RONALDO FAILED [$red $fail $blue] TIMES"
+ecco $blue "OUT OF [$nc $test $blue] TESTS!!"
+ecco
+ecco
+ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ecco $nc
+unlias ecco
 rm $REF_OUT $TEST_OUT
