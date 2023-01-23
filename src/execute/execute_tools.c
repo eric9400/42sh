@@ -13,6 +13,11 @@
 #include "my_string.h"
 #include "vector.h"
 
+static int in_s_quotes = 0;
+static int in_d_quotes = 0;
+// check if we found a single or double quote at least once
+static int quotes = 0;
+
 static int phoenix_destroyer(struct string *str, struct string *new_str,
                              struct vector *v, int return_value)
 {
@@ -39,31 +44,33 @@ static int vector_replace(struct vector *vect_temp, struct ast *ast)
 {
     if (vect_temp->size == 0)
     {
-        vector_destroy(vect_temp);
-        return 1;
+        if (!quotes)
+        {
+            vector_destroy(vect_temp);
+            return 1;
+        }
+        vect_temp = vector_append(vect_temp, strdup(""));
+    }
+    vect_temp = vector_append(vect_temp, NULL);
+    if (ast->type == AST_CMD)
+    {
+        vector_destroy(ast->data->ast_cmd->arg);
+        ast->data->ast_cmd->arg = vect_temp;
     }
     else
     {
-        vect_temp = vector_append(vect_temp, NULL);
-        if (ast->type == AST_CMD)
-        {
-            vector_destroy(ast->data->ast_cmd->arg);
-            ast->data->ast_cmd->arg = vect_temp;
-        }
-        else
-        {
-            vector_destroy(ast->data->ast_for->arg);
-            ast->data->ast_for->arg = vect_temp;
-        }
-        return 0;
+        vector_destroy(ast->data->ast_for->arg);
+        ast->data->ast_for->arg = vect_temp;
     }
+    return 0;
 }
 
-static int in_quotes(int *in_s_quotes, int *in_d_quotes, char c)
+static int in_quotes(char c)
 {
-    *in_d_quotes = c == '"';
-    *in_s_quotes = c == '\'';
-    return *in_d_quotes || *in_s_quotes;
+    in_d_quotes = c == '"';
+    in_s_quotes = c == '\'';
+    quotes = quotes || in_d_quotes || in_s_quotes;
+    return in_d_quotes || in_s_quotes;
 }
 
 static int add_assign_word(struct ast *ast, char *str, struct string *s,
@@ -99,6 +106,8 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
 
 static size_t size_according_ast(struct ast *ast)
 {
+    // init quotes value
+    quotes = 0;
     if (ast->type == AST_CMD)
         return ast->data->ast_cmd->arg->size - 1;
     // ast_for vector is not NULL terminated
@@ -108,7 +117,6 @@ static size_t size_according_ast(struct ast *ast)
 // 39 lines
 int expandinho_phoenix(struct ast *ast, int return_value)
 {
-    // size_t size = ast->data->ast_cmd->arg->size - 1;
     size_t size = size_according_ast(ast);
     struct vector *vect_temp = vector_init(10);
     char buf[2] = { 0 };
@@ -116,8 +124,8 @@ int expandinho_phoenix(struct ast *ast, int return_value)
     {
         struct string *str = init_string(ast, i, vect_temp);
         struct string *new_str = init_string(ast, i, vect_temp);
-        int in_s_quotes = 0;
-        int in_d_quotes = 0;
+        in_s_quotes = 0;
+        in_d_quotes = 0;
         if (add_assign_word(ast, str->str, str, new_str))
             continue;
         for (; str->index < str->len; str->index++)
@@ -151,7 +159,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
             // other char
             else
             {
-                if (in_quotes(&in_s_quotes, &in_d_quotes, buf[0]))
+                if (in_quotes(buf[0]))
                     continue;
                 if (buf[0] == '$')
                 {
@@ -220,7 +228,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
         // other char
         else
         {
-            if (in_quotes(&in_s_quotes, &in_d_quotes, buf[0]))
+            if (in_quotes(buf[0]))
                 continue;
             if (buf[0] == '$')
             {
