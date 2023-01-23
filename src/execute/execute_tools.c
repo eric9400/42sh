@@ -17,9 +17,10 @@ static int in_s_quotes = 0;
 static int in_d_quotes = 0;
 // check if we found a single or double quote at least once
 static int quotes = 0;
+static int return_value = 0;
 
 static int phoenix_destroyer(struct string *str, struct string *new_str,
-                             struct vector *v, int return_value)
+                             struct vector *v)
 {
     if (v)
         vector_destroy(v);
@@ -35,9 +36,9 @@ static void expandinho_phoenix_2(struct string *str, struct string *new_str,
 {
     new_str->str = realloc(new_str->str, new_str->index + 1);
     new_str->str[new_str->index] = '\0';
-    if (new_str->index != 0)
+    if (new_str->index != 0 )
         *vect_temp = vector_append(*vect_temp, strdup(new_str->str));
-    phoenix_destroyer(str, new_str, NULL, 0);
+    phoenix_destroyer(str, new_str, NULL);
 }
 
 static int vector_replace(struct vector *vect_temp, struct ast *ast)
@@ -51,9 +52,9 @@ static int vector_replace(struct vector *vect_temp, struct ast *ast)
         }
         vect_temp = vector_append(vect_temp, strdup(""));
     }
-    vect_temp = vector_append(vect_temp, NULL);
     if (ast->type == AST_CMD)
     {
+        vect_temp = vector_append(vect_temp, NULL);
         vector_destroy(ast->data->ast_cmd->arg);
         ast->data->ast_cmd->arg = vect_temp;
     }
@@ -96,7 +97,17 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
     {
         value[0] = '\0';
         value++;
+        // a=$1
+        int need_to_free = 0;
+        if (value[0] == '$')
+        {
+            need_to_free = 1;
+            value = expandinho_phoenix_junior(value, return_value);
+        }
+        // a=b
         hash_map_insert(hashmap, str, value);
+        if (need_to_free)
+            free(value);
         destroy_string(s);
         destroy_string(new_str);
         return 1;
@@ -104,9 +115,10 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
     return 0;
 }
 
-static size_t size_according_ast(struct ast *ast)
+static size_t size_according_ast(struct ast *ast, int ret_value)
 {
     // init quotes value
+    return_value = ret_value;
     quotes = 0;
     if (ast->type == AST_CMD)
         return ast->data->ast_cmd->arg->size - 1;
@@ -115,9 +127,9 @@ static size_t size_according_ast(struct ast *ast)
 }
 
 // 39 lines
-int expandinho_phoenix(struct ast *ast, int return_value)
+int expandinho_phoenix(struct ast *ast, int ret_value)
 {
-    size_t size = size_according_ast(ast);
+    size_t size = size_according_ast(ast, ret_value);
     struct vector *vect_temp = vector_init(10);
     char buf[2] = { 0 };
     for (size_t i = 0; i < size; i++)
@@ -148,7 +160,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
                 {
                     if (dollar_expansion(str, new_str, return_value, 1))
                         // error case
-                        return phoenix_destroyer(str, new_str, vect_temp, 1);
+                        return phoenix_destroyer(str, new_str, vect_temp);
                 }
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
@@ -165,7 +177,7 @@ int expandinho_phoenix(struct ast *ast, int return_value)
                 {
                     if (dollar_expansion(str, new_str, return_value, 0))
                         // error case
-                        return phoenix_destroyer(str, new_str, vect_temp, 1);
+                        return phoenix_destroyer(str, new_str, vect_temp);
                 }
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
@@ -215,7 +227,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
             {
                 if (dollar_expansion(str, new_str, return_value, in_d_quotes))
                 { // error case
-                    phoenix_destroyer(str, new_str, NULL, 1);
+                    phoenix_destroyer(str, new_str, NULL);
                     return NULL;
                 }
             }
@@ -234,7 +246,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
             {
                 if (dollar_expansion(str, new_str, return_value, in_d_quotes))
                 { // error case
-                    phoenix_destroyer(str, new_str, NULL, 1);
+                    phoenix_destroyer(str, new_str, NULL);
                     return NULL;
                 }
             }
@@ -247,6 +259,6 @@ char *expandinho_phoenix_junior(char *s, int return_value)
     }
 
     char *return_str = expandinho_junior_2(new_str);
-    phoenix_destroyer(str, new_str, NULL, 1);
+    phoenix_destroyer(str, new_str, NULL);
     return return_str;
 }

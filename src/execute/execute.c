@@ -121,7 +121,7 @@ static int func_for(struct ast *ast, int return_value)
         return 1;
     wat.is_in_loop = 1;
     wat.loop_deep++;
-    for (size_t i = 0; i < ast->data->ast_for->arg->size - 1; i++)
+    for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)
     {
         hash_map_insert(hashmap, ast->data->ast_for->var,
                         ast->data->ast_for->arg->data[i]);

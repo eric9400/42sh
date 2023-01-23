@@ -220,6 +220,7 @@ int dollar_expansion(struct string *str, struct string *new_str,
             char *key = strndup(str->str + start, str->index - start);
             expand_from_hashmap(new_str, key, return_value, in_d_quotes);
             free(key);
+            str->index -= 1;
         }
     }
     // case $@ $* $? $$ $#
