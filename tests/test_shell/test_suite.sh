@@ -2,7 +2,7 @@
 
 REF_OUT=".42suuu.txt"
 TEST_OUT=".my_42suuu.txt"
-blue='\033[36m'
+blue='\033[35m'
 red='\033[31m'
 green='\033[32m'
 nc='\033[0m'
@@ -15,31 +15,32 @@ test_input()
 {
     test=$(($test+1));
     bash --posix -c "$1" > "$REF_OUT" 2> /dev/null
-    echo $? >> "$REF_OUT"
+    ref=$(echo $?);
     ./42sh -c "$1" > "$TEST_OUT" 2> /dev/null
-    echo $? >> "$TEST_OUT"
+    tst=$(echo $?);
     var=$(diff "$REF_OUT" "$TEST_OUT")
-    if [ $(echo "$var" | wc -c) -gt 1 ]; then
+    if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |  $1"
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     else
         pass=$(($pass+1));
     fi
 }
+
 
 test_stdin()
 {
     test=$(($test+1));
     bash --posix "$1" > "$REF_OUT" 2> /dev/null
-    echo $? >> "$REF_OUT"
+    ref=$(echo $?);
     ./42sh "$1" > "$TEST_OUT" 2> /dev/null
-    echo $? >> "$TEST_OUT"
+    tst=$(echo $?);
     var=$(diff "$REF_OUT" "$TEST_OUT")
-    if [ $(echo "$var" | wc -c) -gt 1 ]; then
+    if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
         fail=$(($fail+1));
-        echo "$red     NAN!     |  $1"
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
     elif [ $p_all -eq 1 ]; then
         echo "$green      OK      |  $1"
     else
@@ -47,17 +48,34 @@ test_stdin()
     fi
 }
 
+test_stdin2()
+{
+    test=$(($test+1));
+    bash --posix < "$1" > "$REF_OUT" 2> /dev/null
+    ref=$(echo $?);
+    ./42sh < "$1" > "$TEST_OUT" 2> /dev/null
+    tst=$(echo $?);
+    var=$(diff "$REF_OUT" "$TEST_OUT")
+    if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
+        fail=$(($fail+1));
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+    elif [ $p_all -eq 1 ]; then
+        echo "$green      OK      |  $1"
+    else
+        pass=$(($pass+1));
+    fi
+}
 
 test_error()
 {
     test=$(($test+1));
     bash --posix -c "$1" > /dev/null 2> /dev/null
-    ref=$(echo $?)
+    ref=$(echo $?);
     if [ $ref -eq 1 ]; then
         ref=$(($ref+1));
     fi;
     ./42sh -c "$1" > /dev/null 2> /dev/null
-    tst=$(echo $?)
+    tst=$(echo $?);
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
         echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
@@ -72,9 +90,9 @@ test_error2()
 {
     test=$(($test+1));
     bash --posix -c "$1" > /dev/null 2> /dev/null
-    ref=$(echo $?)
+    ref=$(echo $?);
     ./42sh -c "$1" > /dev/null 2> /dev/null
-    tst=$(echo $?)
+    tst=$(echo $?);
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
         echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
@@ -88,12 +106,29 @@ test_error2()
 test_stdin_error()
 {
     test=$(($test+1));
-    bash --posix ./"$1" > /dev/null 2>&1
+    bash --posix < "$1" > /dev/null 2>&1
+    ref=$(echo $?);
+    ./42sh < "$1" > /dev/null 2>&1
+    tst=$(echo $?)
+    if [ $tst -ne $ref ]; then
+        fail=$(($fail+1));
+        echo "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+    elif [ $p_all -eq 1 ]; then
+        echo "$green      OK      |  $1"
+    else
+        pass=$(($pass+1));
+    fi
+}
+
+test_stdin_error2()
+{
+    test=$(($test+1));
+    bash --posix < "$1" > /dev/null 2>&1
     ref=$(echo $?);
     if [ $ref -eq 1 ]; then
         ref=$(($ref+1));
     fi;
-    ./42sh "$1" > /dev/null 2>&1
+    ./42sh < "$1" > /dev/null 2>&1
     tst=$(echo $?)
     if [ $tst -ne $ref ]; then
         fail=$(($fail+1));
@@ -131,7 +166,35 @@ test_stdin "test_shell/step1/echo_backslash_dquote.sh"
 test_stdin "test_shell/step1/backlash_newline.sh"
 test_stdin "test_shell/step1/backlash_newline2.sh"
 test_stdin "test_shell/step1/ascii_house.sh"
+test_stdin2 "test_shell/step1/test1.sh"
+test_stdin2 "test_shell/step1/test2.sh"
+test_stdin2 "test_shell/step1/test3.sh"
+test_stdin2 "test_shell/step1/test4.sh"
+test_stdin2 "test_shell/step1/test5.sh"
+test_stdin2 "test_shell/step1/test6.sh"
+test_stdin2 "test_shell/step1/test7.sh"
+test_stdin2 "test_shell/step1/test8.sh"
+test_stdin2 "test_shell/step1/test9.sh"
+test_stdin2 "test_shell/step1/test10.sh"
+test_stdin2 "test_shell/step1/test11.sh"
+test_stdin2 "test_shell/step1/if_else_comment.sh"
+test_stdin2 "test_shell/step1/if_else_comment2.sh"
+test_stdin2 "test_shell/step1/if_else.sh"
+test_stdin2 "test_shell/step1/echo_backslash_dquote.sh"
+test_stdin2 "test_shell/step1/backlash_newline.sh"
+test_stdin2 "test_shell/step1/backlash_newline2.sh"
+test_stdin2 "test_shell/step1/ascii_house.sh"
 test_stdin_error "test_shell/step1/command_list_err.sh"
+test_stdin_error "test_shell/block_suite/test_1_1.sh"
+test_stdin_error "test_shell/block_suite/test_1_2.sh"
+test_stdin_error "test_shell/block_suite/test_1_3.sh"
+test_stdin_error "test_shell/block_suite/test_1_4.sh"
+test_stdin_error "test_shell/block_suite/test_1_5.sh"
+test_stdin_error "test_shell/block_suite/test_1_6.sh"
+test_stdin_error "test_shell/block_suite/test_1_7.sh"
+test_stdin_error "test_shell/block_suite/test_1_8.sh"
+test_stdin_error "test_shell/block_suite/test_1_9.sh"
+test_stdin_error "test_shell/block_suite/test_1_10.sh"
 #test_stdin "test_shell/step1/cursed.sh"
 echo
 echo $blue " ALL INPUT" $red
@@ -234,6 +297,44 @@ test_stdin "test_shell/step2/for12345.sh"
 test_stdin "test_shell/step2/pipe.sh"
 test_stdin "test_shell/step2/var.sh"
 test_stdin "test_shell/step2/while_if.sh"
+test_stdin2 "test_shell/step2/for1_10.sh"
+test_stdin2 "test_shell/step2/for12345.sh"
+test_stdin2 "test_shell/step2/pipe.sh"
+test_stdin2 "test_shell/step2/var.sh"
+test_stdin2 "test_shell/step2/while_if.sh"
+test_stdin_error "test_shell/block_suite/test_2_1.sh"
+test_stdin_error "test_shell/block_suite/test_2_2.sh"
+test_stdin_error "test_shell/block_suite/test_2_3.sh"
+test_stdin_error "test_shell/block_suite/test_2_4.sh"
+#test_stdin_error "test_shell/block_suite/test_2_5.sh"
+test_stdin_error "test_shell/block_suite/test_2_6.sh"
+test_stdin_error "test_shell/block_suite/test_2_7.sh"
+test_stdin_error "test_shell/block_suite/test_2_8.sh"
+test_stdin_error "test_shell/block_suite/test_2_9.sh"
+test_stdin_error "test_shell/block_suite/test_2_10.sh"
+test_stdin_error "test_shell/block_suite/test_2_11.sh"
+test_stdin_error "test_shell/block_suite/test_2_12.sh"
+test_stdin_error "test_shell/block_suite/test_2_13.sh"
+test_stdin_error "test_shell/block_suite/test_2_14.sh"
+test_stdin_error "test_shell/block_suite/test_2_15.sh"
+test_stdin_error "test_shell/block_suite/test_2_16.sh"
+test_stdin_error "test_shell/block_suite/test_2_17.sh"
+test_stdin_error "test_shell/block_suite/test_2_18.sh"
+test_stdin_error "test_shell/block_suite/test_2_19.sh"
+test_stdin_error "test_shell/block_suite/test_2_20.sh"
+test_stdin_error "test_shell/block_suite/test_2_21.sh"
+test_stdin_error "test_shell/block_suite/test_2_22.sh"
+test_stdin_error "test_shell/block_suite/test_2_23.sh"
+test_stdin_error "test_shell/block_suite/test_2_24.sh"
+test_stdin_error "test_shell/block_suite/test_2_25.sh"
+test_stdin_error "test_shell/block_suite/test_2_26.sh"
+test_stdin_error "test_shell/block_suite/test_2_27.sh"
+#test_stdin_error "test_shell/block_suite/test_2_28.sh"
+test_stdin_error "test_shell/block_suite/test_2_29.sh"
+test_stdin_error "test_shell/block_suite/test_2_30.sh"
+test_stdin_error "test_shell/block_suite/test_2_31.sh"
+test_stdin_error "test_shell/block_suite/test_2_32.sh"
+test_stdin_error "test_shell/block_suite/test_2_33.sh"
 echo
 echo $blue " INPUT" $red
 test_input "echo \"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bourre ou quoi\""
@@ -380,6 +481,11 @@ test_error "until ; do echo foo; done"
 test_error "until true; echo foo; done"
 test_error "until true; do echo foo;"
 test_error "until true; do echo foo done"
+
+test_error "$a"
+test_error "a=b; $a"
+test_error "a=====================f; $a"
+test_error "$$$$$$$$$$$$$$==D"
 echo
 echo $blue "RONALDO SCORED [$green $pass $blue] TIMES"
 echo $blue "RONALDO FAILED [$red $fail $blue] TIMES"
