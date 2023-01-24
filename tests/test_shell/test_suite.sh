@@ -5,10 +5,10 @@ p_all=0 #print all test even the ones that passes
 
 REF_OUT=".42suuu.txt"
 TEST_OUT=".my_42suuu.txt"
-blue='\033[35m'
-red='\033[31m'
-green='\033[32m'
-nc='\033[0m'
+blue='\033[1;35m'
+red='\033[1;31m'
+green='\033[1;32m'
+nc='\033[1;0m'
 pass=0
 test=0
 fail=0
@@ -375,6 +375,7 @@ test_stdin "test_shell/step2/test23.sh"
 test_stdin "test_shell/step2/test24.sh"
 test_stdin "test_shell/step2/test25.sh"
 test_stdin "test_shell/step2/test26.sh"
+test_stdin "test_shell/step2/test27.sh"
 test_stdin2 "test_shell/step2/for1_10.sh"
 test_stdin2 "test_shell/step2/for12345.sh"
 test_stdin2 "test_shell/step2/pipe.sh"
@@ -406,6 +407,7 @@ test_stdin2 "test_shell/step2/test23.sh"
 test_stdin2 "test_shell/step2/test24.sh"
 #test_stdin2 "test_shell/step2/test25.sh"
 test_stdin2 "test_shell/step2/test26.sh"
+test_stdin2 "test_shell/step2/test27.sh"
 test_var_arg "test_shell/step2/var_arg1.sh" 'a b' c
 test_var_arg "test_shell/step2/var_arg2.sh" 'a b' c
 test_var_arg "test_shell/step2/var_arg3.sh" 'a b' c
@@ -488,10 +490,8 @@ test_input "c=3; echo \$c"
 test_input "echo \$@"
 test_input "echo \$*"
 test_input "echo \$?"
-test_input "echo \$\$"
 test_input "echo \$1"
 test_input "echo \$#"
-test_input "echo \$RANDOM"
 test_input "echo \$UID"
 test_input "echo \$OLDPWD"
 test_input "echo \$IFS"
@@ -591,7 +591,7 @@ test_error2 "! false"
 test_error2 "! true"
 test_error2 "! echo foo"
 test_error2 "! coucou"
-test_error "true \n&& false"
+test_error2 "true \n&& false"
 
 test_error "echo foo |"
 test_error "echo foo >"

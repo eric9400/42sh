@@ -95,7 +95,7 @@ static void quote(struct lexer *lex, struct token *tok, char curr)
     {
         tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
-        if (curr == EOF)
+        if (curr == EOF || curr == '\'')
         {
             ungetc(curr, lex->filename);
             return;
