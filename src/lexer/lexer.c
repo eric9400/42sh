@@ -16,7 +16,8 @@ void peek_token(struct lexer *lex)
     }
     else if (!lex->tok)
         next_token(lex);
-    else if (lex->tok && lex->tok->type != END_OF_FILE && !lex->tok2)
+    else if (lex->tok && lex->tok->type != END_OF_FILE
+             && lex->tok->type != NEWLINE && !lex->tok2)
     //case of full sfirst register token we add to the second token register a token
     {
         struct token *tokk = lex->tok;
@@ -275,13 +276,10 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
     if (!f->in_squote && !f->in_dquote && !f->in_acollade && !f->in_parenthese
         && f->was_operator)
     {
-        if (is_operator(*p, *c))
-        {
-            tok->data[f->i] = *c;
-            f->i++;
-        }
-        else
-            ungetc(*c, lex->filename);
+        if (!is_operator(*p, *c))
+            return next_token_dog(lex, c);
+        tok->data[f->i] = *c;
+        f->i++;
         return 1;
     }
 
@@ -298,15 +296,12 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
     {
         if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
-        ungetc(*c, lex->filename);
-        return 1;
+        return next_token_dog(lex, c);
     }
 
     else if (!f->in_parenthese && (*c == ';' || *c == '\n'))
-    {
-        ungetc(*c, lex->filename);
-        return 1;
-    }
+        return next_token_dog(lex, c);
+
     else if (!f->in_parenthese && my_isspace(*c))
         return 1; // RETURN TOKEN WITHOUT BLANK
 
