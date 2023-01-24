@@ -9,8 +9,22 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr,
 
 void peek_token(struct lexer *lex)
 {
-    if (!lex->tok)
+    if (!lex->tok && lex->tok2)
+    {
+        lex->tok = lex->tok2;
+        lex->tok2 = NULL;
+    }
+    else if (!lex->tok)
         next_token(lex);
+    else if (lex->tok && lex->tok->type != END_OF_FILE && !lex->tok2)
+    //case of full sfirst register token we add to the second token register a token
+    {
+        struct token *tokk = lex->tok;
+        lex->tok = NULL;
+        next_token(lex);
+        lex->tok2 = lex->tok;
+        lex->tok = tokk;
+    }
 }
 
 void free_token(struct lexer *lex)
@@ -18,6 +32,11 @@ void free_token(struct lexer *lex)
     free(lex->tok->data);
     free(lex->tok);
     lex->tok = NULL;
+    if (lex->tok2)
+    {
+        lex->tok = lex->tok2;
+        lex->tok2 = NULL;
+    }
 }
 
 struct lexer *init_lexer(FILE *file)
@@ -28,12 +47,15 @@ struct lexer *init_lexer(FILE *file)
     lex->flags = calloc(1, sizeof(struct lex_flags));
     lex->filename = file;
     lex->tok = NULL;
+    lex->tok2 = NULL;
     lex->error = 0;
     return lex;
 }
 
 void free_lexer(struct lexer *lex)
 {
+    if (lex->tok != NULL)
+        free_token(lex);
     if (lex->tok != NULL)
         free_token(lex);
     free(lex->flags);
