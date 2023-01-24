@@ -1,0 +1,13 @@
+echo ${RANDOM}
+echo ${UID}
+echo ${PWD}
+echo ${OLDPWD}
+echo ${IFS}
+echo ${q}
+echo ${@}
+echo ${*}
+echo ${#}
+echo ${1}
+echo ${10}
+echo ${2}
+echo ${unmotextraloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong}

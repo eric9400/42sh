@@ -155,7 +155,7 @@ static struct ast *funcdec(struct lexer *lex)
         free_node(convert_node_ast(AST_FUNC, ast_func));
         return error_handler(lex, 1, "ERROR FUNCDEX : LACK OF \")\"");
     }
-
+    free_token(lex);
     new_lines(lex);
 
     ast_func->func = shell_command(lex);

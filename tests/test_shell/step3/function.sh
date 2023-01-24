@@ -1,0 +1,4 @@
+baabji ()
+{
+    echo foo;
+}
