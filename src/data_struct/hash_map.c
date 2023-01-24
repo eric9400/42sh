@@ -1,8 +1,12 @@
+#define _XOPEN_SOURCE 600
+
 #include "hash_map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "builtin.h"
 
 static size_t hash(const char *key)
 {
@@ -41,6 +45,17 @@ static struct pair_list *is_key_in(struct pair_list **p, const char *key)
 
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
 {
+    if (getenv(key))
+    {
+	    char *str = calloc((strlen(key) + strlen(value) + 2), sizeof(char));
+	    str = strcat(str, key);
+	    str = strcat(str, "=");
+	    str = strcat(str, value);
+	    str = strcat(str, "\0");
+	    export_insert(str);
+	    free(str);
+	    // maybe free TODO
+    }
     if (!hash_map || hash_map->size == 0)
         return false;
     size_t i = hash(key) % hash_map->size;

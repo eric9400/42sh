@@ -117,8 +117,9 @@ static int func_until(struct ast *ast, int return_value)
 static int func_for(struct ast *ast, int return_value)
 {
     int res = 0;
-    if (expandinho_phoenix(ast, return_value) == 1)
-        return 1;
+    //if (expandinho_phoenix(ast, return_value) == 1)
+    //    return 1;
+    expandinho_phoenix(ast, return_value);
     wat.is_in_loop = 1;
     wat.loop_deep++;
     for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)

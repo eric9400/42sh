@@ -104,7 +104,7 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
             need_to_free = 1;
             value = expandinho_phoenix_junior(value, return_value);
         }
-        // a=b
+	// a=b
         hash_map_insert(hashmap, str, value);
         if (need_to_free)
             free(value);
