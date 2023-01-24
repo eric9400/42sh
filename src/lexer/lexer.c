@@ -160,9 +160,11 @@ static void rule_5(struct lexer *lex, struct token *tok, char curr)
         else if (curr == '{' && !f->in_dquote && !f->in_squote)
             f->in_acollade++;
     }
-    else // curr == '$'
+    else // curr == '$' or '#'
     {
         tok->data[f->i] = curr;
+        if (curr == '#')
+            return;
         curr = fgetc(lex->filename);
         if (curr == '(')
         {
@@ -259,6 +261,12 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
     return 0;
 }
 
+static int next_token_dog(struct lexer *lex, char *c)
+{
+    ungetc(*c, lex->filename);
+    return 1;
+}
+
 static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
                            char *p)
 {
@@ -281,7 +289,8 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
              || *c == '\\')
         quote(lex, tok, *c);
 
-    else if (f->in_acollade || f->in_parenthese || *c == '$')
+    else if (f->in_acollade || f->in_parenthese || *c == '$'
+             || (*p == '$' && *c == '#'))
         rule_5(lex, tok, *c);
 
     else if (!f->in_squote && !f->in_dquote && !f->in_acollade

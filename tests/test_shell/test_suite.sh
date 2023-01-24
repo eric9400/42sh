@@ -501,6 +501,7 @@ test_input "echo \"\$@\""
 test_input "echo \$c"
 test_input "echo \$c"
 test_input "echo \$c"
+test_input "\'echo \$#\'"
 test_input "a=toto"
 
 ecco
