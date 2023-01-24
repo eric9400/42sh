@@ -15,6 +15,7 @@
 #include "redirection.h"
 #include "execute.h"
 #include "builtin.h"
+#include "hash_map_utils.h"
 
 static int in_s_quotes = 0;
 static int in_d_quotes = 0;
@@ -121,7 +122,7 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
             value = expandinho_phoenix_junior(value, return_value);
         }
 	    // a=b
-        hash_map_insert(hashmap, str, value);
+        hash_map_insert(hashM->hashmap, str, value);
         if (need_to_free)
             free(value);
         destroy_string(s);
@@ -292,6 +293,7 @@ int check_function(char **str, int return_value)
         return error_redir;
     char **old_hashmap = copy_values();
     int i = 1;
+    print_hash_map();
     while (str[i] != NULL)
     {
         char value[100] = { 0 };
@@ -299,6 +301,7 @@ int check_function(char **str, int return_value)
         hash_map_insert(hashM->hashmap, value, str[i]);
         i++;
     }
+    print_hash_map();
     int res = execute(ast->data->ast_func->func, return_value);
     hash_map_restore(old_hashmap);
     return res;

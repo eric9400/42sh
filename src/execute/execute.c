@@ -146,6 +146,7 @@ static int func_for(struct ast *ast, int return_value)
                 break;
         }
     }
+    hash_map_remove(hashM->hashmap, ast->data->ast_for->var);
     if (wat.is_in_loop)
     {
         wat.cbdeep--;
@@ -290,7 +291,11 @@ static int func_cmd(struct ast *ast, int return_value)
     }
     code = check_function(ast->data->ast_cmd->arg->data, return_value);
     if (code != -1)
+    {
+        destroy_stock_fd(stock_fd);
+        swap_vector(ast, &vect_copy);
         return code;
+    }
     int pid = fork();
 
     // child

@@ -346,13 +346,3 @@ bool f_hash_map_remove(struct f_hash_map *hash_map, const char *key)
     }
     return false;
 }
-
-
-/* //FLEMME DE COPIER UN AST POUR L'INSTANT
-struct ast *f_hashmap_get_copy(struct hash_map *hashmap, char *hkey)
-{
-    const char *res = hash_map_get(hashmap, hkey);
-    if (res == NULL)
-        return NULL;
-    return strdup(res);
-}*/
