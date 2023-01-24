@@ -238,7 +238,6 @@ test_input "echo -n Mael arrete de geeker"
 test_input 'echo \"je suis une chauve souris\"'
 test_input 'echo \"\\n\"'
 test_input "echo -e '\n'"
-test_input 'echo -E \n"'
 test_input 'echo -E \"\n\"'
 test_input "echo -E '\n'"
 test_input "'coucou'"
@@ -320,6 +319,7 @@ test_error2 "\"false\""
 test_error2 "\'false\'"
 test_error2 "'false'"
 test_error2 "false echo foo"
+test_error 'echo -E \n"'
 #
 #
 #
@@ -420,7 +420,6 @@ test_input "echo \"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bo
 test_input "echo \"\""
 test_input "echo \"toto\""
 test_input "echo \'toto\'"
-test_input "echo \"   \"  \\\"'\""
 test_input "echo \"aaaaa\nbbbbbb\""
 test_input "echo \" $ \\\\a \\\\b \\\\z \\\\ \""
 test_input "echo $'\"\"\"\"\"\"\"\"'"
@@ -433,10 +432,7 @@ test_input "echo \"cont\\\\\nent\""
 test_input "echo \"quoi?\nfeur\""
 test_input "for n; do echo foo; done"
 test_input "for coucou; do echo foo; done"
-test_input "n=5; for \$n; do echo foo; done"
-test_input "n=5;\n for \$n; do echo foo; done"
 test_input "for n in foo bar; do echo toto; done"
-test_input "n=4; foo=7; for \$n in \$foo; do echo toto; done"
 test_input "! true"
 test_input "! echo foo"
 test_input "! echo foo | echo"
@@ -556,6 +552,7 @@ test_error "\"'c'\\\\''est l' \\\\' 'le bonheur' \\\\ ''\""
 test_error "\"\\\\\#escaped\""
 test_error "\"cont\\\\\nent\""
 test_error "\"quoi?\nfeur\""
+test_error "echo \"   \"  \\\"'\""
 
 test_error "for n do echo foo; done"
 test_error "for coucou;;; do echo foo; done"
@@ -564,6 +561,9 @@ test_error "for $n; echo foo; done"
 test_error "for n; do echo foo;"
 test_error "for n in foo bar do echo toto; done"
 test_error "for $n in $foo; do echo toto; done"
+test_error "n=5; for \$n; do echo foo; done"
+test_error "n=5;\n for \$n; do echo foo; done"
+test_error "n=4; foo=7; for \$n in \$foo; do echo toto; done"
 
 test_error "fooo |"
 test_error "| true"
@@ -637,14 +637,16 @@ ecco $blue "===================STEP 3==================="
 ecco 
 ecco $blue " SCRIPTS"
 
+ecco
 ecco $blue " INPUTE"
 
-test_input "export \$a=AAAAAAAAAAAAAAAAAA"
 test_input "env"
 test_input "exit"
 
 ecco
 ecco $blue " MAEEEEEL C'EST POUR TOI ERRORS"
+
+test_error2 "export \$a=AAAAAAAAAAAAAAAAAA"
 
 ecco
 ecco $blue "RONALDO SCORED [$green $pass $blue] TIMES"

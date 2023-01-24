@@ -1,5 +1,5 @@
-! true | echo
-| echo
-| echo
-| echo
-| ! false
+! true | echo |
+echo |
+echo |
+echo |
+! false
