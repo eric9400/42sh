@@ -14,6 +14,7 @@
 #include "vector.h"
 #include "redirection.h"
 #include "execute.h"
+#include "builtin.h"
 
 static int phoenix_destroyer(struct string *str, struct string *new_str,
                              struct vector *v, int return_value)
@@ -256,6 +257,16 @@ int check_function(char **str, int return_value)
         func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-    //NEED TO PASS ARGUMENTS TO FUNCTION
-    return execute(ast->data->ast_func->func, return_value);
+    char **old_hashmap = copy_values();
+    int i = 1;
+    while (str[i] != NULL)
+    {
+        char value[100] = { 0 };
+        sprintf(value, "%d", i);
+        hash_map_insert(hashM->hashmap, value, str[i]);
+        i++;
+    }
+    int res = execute(ast->data->ast_func->func, return_value);
+    hash_map_restore(old_hashmap);
+    return res;
 }

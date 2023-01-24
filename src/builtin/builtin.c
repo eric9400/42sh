@@ -136,14 +136,27 @@ static int export(char **s)
     int returnvalue = 0;
     while (s[k] != NULL)
     {
+        isseton = 0;
+        lenvar = 0;
         lens = strlen(s[k]);
         for (size_t i = 0; i < lens; i++, lenvar++)
         {
             if (s[k][i] == '=')
             {
+                if (i == 0)
+                {
+                    fprintf(stderr, "export: bad identifier\n");
+                    returnvalue = 2;
+                }
                 isseton = 1;
                 break;
             }
+        }
+        if (returnvalue == 2)
+        {
+            returnvalue = 1;
+            k++;
+            continue;
         }
         if (isseton) // export n=b
             export_insert(s[k]);
@@ -169,9 +182,7 @@ static int export(char **s)
                 free(var);
             }
         }
-        isseton = 0;
         k++;
-        lenvar = 0;
     }
     return returnvalue;
 }
@@ -327,7 +338,7 @@ static int exit_dot(void)
     }
 }
 
-static void hash_map_restore(char **values)
+void hash_map_restore(char **values)
 {
     int i = 0;
     char *value = NULL;
@@ -349,7 +360,7 @@ static void hash_map_restore(char **values)
     free(values);
 }
 
-static char **copy_values(void)
+char **copy_values(void)
 {
     char **result = calloc(100, 1);
     int len = 0;
