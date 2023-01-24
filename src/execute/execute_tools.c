@@ -77,14 +77,15 @@ static int in_quotes(char c)
 static int add_assign_word(struct ast *ast, char *str, struct string *s,
                            struct string *new_str)
 {
+    char *temp = NULL;
     if (ast->type == AST_CMD
         && !strcmp(ast->data->ast_cmd->arg->data[0], "export"))
     {
         if (str[0] == '#')
         {
-            char *tmp = strdup(ast->data->ast_cmd->arg->data[1] + 1);
+            temp = strdup(ast->data->ast_cmd->arg->data[1] + 1);
             free(ast->data->ast_cmd->arg->data[1]);
-            ast->data->ast_cmd->arg->data[1] = tmp;
+            ast->data->ast_cmd->arg->data[1] = temp;
             s->index++;
         }
         return 0;
@@ -97,14 +98,26 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
     {
         value[0] = '\0';
         value++;
+        int is_s_quotes = 0;
+        // a="$1"
+        if (value[0] == '"' || value[0] == '\'')
+        {
+            is_s_quotes = value[0] == '\'';
+            char buf[2] = { 0 };
+            buf[0] = value[0];
+            value++;
+            temp = strstr(value, buf);
+            if (temp)
+                temp[0] = '\0';
+        }
         // a=$1
         int need_to_free = 0;
-        if (value[0] == '$')
+        if (!is_s_quotes && value[0] == '$')
         {
             need_to_free = 1;
             value = expandinho_phoenix_junior(value, return_value);
         }
-	// a=b
+	    // a=b
         hash_map_insert(hashmap, str, value);
         if (need_to_free)
             free(value);
