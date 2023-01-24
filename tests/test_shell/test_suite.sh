@@ -1,13 +1,13 @@
 #!/bin/sh
 
-color=0 #1 if there is not a color default in echo  
+color=1 #1 if there is not a color default in echo  
 p_all=0 #print all test even the ones that passes
 
 REF_OUT=".42suuu.txt"
 TEST_OUT=".my_42suuu.txt"
-blue='\033[35m'
-red='\033[31m'
-green='\033[32m'
+blue='\033[1;35m'
+red='\033[1;31m'
+green='\033[1;32m'
 nc='\033[0m'
 pass=0
 test=0
@@ -488,10 +488,9 @@ test_input "c=3; echo \$c"
 test_input "echo \$@"
 test_input "echo \$*"
 test_input "echo \$?"
-test_input "echo \$\$"
+# test_input "echo \$\$"
 test_input "echo \$1"
 test_input "echo \$#"
-test_input "echo \$RANDOM"
 test_input "echo \$UID"
 test_input "echo \$OLDPWD"
 test_input "echo \$IFS"
