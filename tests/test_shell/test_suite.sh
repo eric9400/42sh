@@ -37,7 +37,6 @@ test_input()
     fi
 }
 
-
 test_stdin()
 {
     test=$(($test+1));
@@ -62,6 +61,24 @@ test_stdin2()
     bash --posix < "$1" > "$REF_OUT" 2> /dev/null
     ref=$(echo $?);
     ./42sh < "$1" > "$TEST_OUT" 2> /dev/null
+    tst=$(echo $?);
+    var=$(diff "$REF_OUT" "$TEST_OUT")
+    if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
+        fail=$(($fail+1));
+        ecco "$red     NAN!     |\tR: $ref \tT: $tst\t|  $1"
+    elif [ $p_all -eq 1 ]; then
+        ecco "$green      OK      |  $1"
+    else
+        pass=$(($pass+1));
+    fi
+}
+
+test_var_arg()
+{
+    test=$(($test+1));
+    bash --posix "$1" $2 $3 > "$REF_OUT" 2> /dev/null
+    ref=$(echo $?);
+    ./42sh "$1" $2 $3 > "$TEST_OUT" 2> /dev/null
     tst=$(echo $?);
     var=$(diff "$REF_OUT" "$TEST_OUT")
     if [ $(echo "$var" | wc -c) -gt 1 ] || [ $tst -ne $ref ]; then
@@ -195,17 +212,6 @@ test_stdin2 "test_shell/step1/backlash_newline.sh"
 test_stdin2 "test_shell/step1/backlash_newline2.sh"
 test_stdin2 "test_shell/step1/ascii_house.sh"
 test_stdin2 "test_shell/step1/cursed.sh"
-test_stdin_error "test_shell/step1/command_list_err.sh"
-test_stdin_error "test_shell/bad_suite/test_1_1.sh"
-test_stdin_error "test_shell/bad_suite/test_1_2.sh"
-test_stdin_error "test_shell/bad_suite/test_1_3.sh"
-test_stdin_error "test_shell/bad_suite/test_1_4.sh"
-test_stdin_error "test_shell/bad_suite/test_1_5.sh"
-test_stdin_error "test_shell/bad_suite/test_1_6.sh"
-test_stdin_error "test_shell/bad_suite/test_1_7.sh"
-test_stdin_error "test_shell/bad_suite/test_1_8.sh"
-test_stdin_error "test_shell/bad_suite/test_1_9.sh"
-test_stdin_error "test_shell/bad_suite/test_1_10.sh"
 
 ecco
 ecco $blue " ALL INPUT" $red
@@ -251,6 +257,18 @@ test_input "'ls'"
 
 ecco
 ecco $blue " AMOUNG SUS ERRORS" $red
+
+test_stdin_error "test_shell/step1/command_list_err.sh"
+test_stdin_error "test_shell/bad_suite/test_1_1.sh"
+test_stdin_error "test_shell/bad_suite/test_1_2.sh"
+test_stdin_error "test_shell/bad_suite/test_1_3.sh"
+test_stdin_error "test_shell/bad_suite/test_1_4.sh"
+test_stdin_error "test_shell/bad_suite/test_1_5.sh"
+test_stdin_error "test_shell/bad_suite/test_1_6.sh"
+test_stdin_error "test_shell/bad_suite/test_1_7.sh"
+test_stdin_error "test_shell/bad_suite/test_1_8.sh"
+test_stdin_error "test_shell/bad_suite/test_1_9.sh"
+test_stdin_error "test_shell/bad_suite/test_1_10.sh"
 
 test_error 'if'
 test_error "if true; echo toto; fi"
@@ -302,7 +320,25 @@ test_error2 "\"false\""
 test_error2 "\'false\'"
 test_error2 "'false'"
 test_error2 "false echo foo"
-
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 ecco
 ecco $blue "===================STEP 2==================="
 ecco 
@@ -313,44 +349,67 @@ test_stdin "test_shell/step2/for12345.sh"
 test_stdin "test_shell/step2/pipe.sh"
 test_stdin "test_shell/step2/var.sh"
 test_stdin "test_shell/step2/while_if.sh"
+test_stdin "test_shell/step2/test1.sh"
+test_stdin "test_shell/step2/test2.sh"
+test_stdin "test_shell/step2/test3.sh"
+test_stdin "test_shell/step2/test4.sh"
+test_stdin "test_shell/step2/test5.sh"
+test_stdin "test_shell/step2/test6.sh"
+test_stdin "test_shell/step2/test7.sh"
+test_stdin "test_shell/step2/test8.sh"
+test_stdin "test_shell/step2/test9.sh"
+test_stdin "test_shell/step2/test10.sh"
+test_stdin "test_shell/step2/test11.sh"
+test_stdin "test_shell/step2/test12.sh"
+test_stdin "test_shell/step2/test13.sh"
+test_stdin "test_shell/step2/test14.sh"
+test_stdin "test_shell/step2/test15.sh"
+test_stdin "test_shell/step2/test16.sh"
+test_stdin "test_shell/step2/test17.sh"
+test_stdin "test_shell/step2/test18.sh"
+test_stdin "test_shell/step2/test19.sh"
+test_stdin "test_shell/step2/test20.sh"
+test_stdin "test_shell/step2/test21.sh"
+test_stdin "test_shell/step2/test22.sh"
+test_stdin "test_shell/step2/test23.sh"
+test_stdin "test_shell/step2/test24.sh"
+test_stdin "test_shell/step2/test25.sh"
+test_stdin "test_shell/step2/test26.sh"
 test_stdin2 "test_shell/step2/for1_10.sh"
 test_stdin2 "test_shell/step2/for12345.sh"
 test_stdin2 "test_shell/step2/pipe.sh"
 test_stdin2 "test_shell/step2/var.sh"
 test_stdin2 "test_shell/step2/while_if.sh"
-test_stdin_error "test_shell/bad_suite/test_2_1.sh"
-test_stdin_error "test_shell/bad_suite/test_2_2.sh"
-test_stdin_error "test_shell/bad_suite/test_2_3.sh"
-test_stdin_error "test_shell/bad_suite/test_2_4.sh"
-#test_stdin_error "test_shell/bad_suite/test_2_5.sh"
-test_stdin_error "test_shell/bad_suite/test_2_6.sh"
-test_stdin_error "test_shell/bad_suite/test_2_7.sh"
-test_stdin_error "test_shell/bad_suite/test_2_8.sh"
-test_stdin_error "test_shell/bad_suite/test_2_9.sh"
-test_stdin_error "test_shell/bad_suite/test_2_10.sh"
-test_stdin_error "test_shell/bad_suite/test_2_11.sh"
-test_stdin_error "test_shell/bad_suite/test_2_12.sh"
-test_stdin_error "test_shell/bad_suite/test_2_13.sh"
-test_stdin_error "test_shell/bad_suite/test_2_14.sh"
-test_stdin_error "test_shell/bad_suite/test_2_15.sh"
-test_stdin_error "test_shell/bad_suite/test_2_16.sh"
-test_stdin_error "test_shell/bad_suite/test_2_17.sh"
-test_stdin_error "test_shell/bad_suite/test_2_18.sh"
-test_stdin_error "test_shell/bad_suite/test_2_19.sh"
-test_stdin_error "test_shell/bad_suite/test_2_20.sh"
-test_stdin_error "test_shell/bad_suite/test_2_21.sh"
-test_stdin_error "test_shell/bad_suite/test_2_22.sh"
-test_stdin_error "test_shell/bad_suite/test_2_23.sh"
-test_stdin_error "test_shell/bad_suite/test_2_24.sh"
-test_stdin_error "test_shell/bad_suite/test_2_25.sh"
-test_stdin_error "test_shell/bad_suite/test_2_26.sh"
-test_stdin_error "test_shell/bad_suite/test_2_27.sh"
-#test_stdin_error "test_shell/bad_suite/test_2_28.sh"
-test_stdin_error "test_shell/bad_suite/test_2_29.sh"
-test_stdin_error "test_shell/bad_suite/test_2_30.sh"
-test_stdin_error "test_shell/bad_suite/test_2_31.sh"
-test_stdin_error "test_shell/bad_suite/test_2_32.sh"
-test_stdin_error "test_shell/bad_suite/test_2_33.sh"
+test_stdin2 "test_shell/step2/test1.sh"
+test_stdin2 "test_shell/step2/test2.sh"
+test_stdin2 "test_shell/step2/test3.sh"
+test_stdin2 "test_shell/step2/test4.sh"
+test_stdin2 "test_shell/step2/test5.sh"
+test_stdin2 "test_shell/step2/test6.sh"
+test_stdin2 "test_shell/step2/test7.sh"
+test_stdin2 "test_shell/step2/test8.sh"
+test_stdin2 "test_shell/step2/test9.sh"
+test_stdin2 "test_shell/step2/test10.sh"
+test_stdin2 "test_shell/step2/test11.sh"
+test_stdin2 "test_shell/step2/test12.sh"
+test_stdin2 "test_shell/step2/test13.sh"
+test_stdin2 "test_shell/step2/test14.sh"
+test_stdin2 "test_shell/step2/test15.sh"
+test_stdin2 "test_shell/step2/test16.sh"
+test_stdin2 "test_shell/step2/test17.sh"
+test_stdin2 "test_shell/step2/test18.sh"
+test_stdin2 "test_shell/step2/test19.sh"
+test_stdin2 "test_shell/step2/test20.sh"
+test_stdin2 "test_shell/step2/test21.sh"
+test_stdin2 "test_shell/step2/test22.sh"
+test_stdin2 "test_shell/step2/test23.sh"
+test_stdin2 "test_shell/step2/test24.sh"
+#test_stdin2 "test_shell/step2/test25.sh"
+test_stdin2 "test_shell/step2/test26.sh"
+test_var_arg "test_shell/step2/var_arg1.sh" 'a b' c
+test_var_arg "test_shell/step2/var_arg2.sh" 'a b' c
+test_var_arg "test_shell/step2/var_arg3.sh" 'a b' c
+test_var_arg "test_shell/step2/var_arg4.sh" 'a b' c
 
 ecco
 ecco $blue " INPUT" $red
@@ -425,14 +484,61 @@ test_input "until true; do ls; done"
 test_input "a=1"
 test_input "b=c"
 test_input "\$b=a"
+test_input "c=3; echo \$c"
+test_input "echo \$@"
+test_input "echo \$*"
+test_input "echo \$?"
+test_input "echo \$\$"
+test_input "echo \$1"
+test_input "echo \$#"
+test_input "echo \$RANDOM"
+test_input "echo \$UID"
+test_input "echo \$OLDPWD"
+test_input "echo \$IFS"
+test_input "echo \$@\$@"
+test_input "echo \"\$@\""
+test_input "echo \"\$@\""
+test_input "echo \$c"
+test_input "echo \$c"
 test_input "echo \$c"
 test_input "a=toto"
-test_input "export \$a=AAAAAAAAAAAAAAAAAA"
-test_input "env"
-test_input "exit"
 
 ecco
 ecco $blue " SUS ERRORS" $red
+
+test_stdin_error "test_shell/bad_suite/test_2_1.sh"
+test_stdin_error "test_shell/bad_suite/test_2_2.sh"
+test_stdin_error "test_shell/bad_suite/test_2_3.sh"
+test_stdin_error "test_shell/bad_suite/test_2_4.sh"
+#test_stdin_error "test_shell/bad_suite/test_2_5.sh"
+test_stdin_error "test_shell/bad_suite/test_2_6.sh"
+test_stdin_error "test_shell/bad_suite/test_2_7.sh"
+test_stdin_error "test_shell/bad_suite/test_2_8.sh"
+test_stdin_error "test_shell/bad_suite/test_2_9.sh"
+test_stdin_error "test_shell/bad_suite/test_2_10.sh"
+test_stdin_error "test_shell/bad_suite/test_2_11.sh"
+test_stdin_error "test_shell/bad_suite/test_2_12.sh"
+test_stdin_error "test_shell/bad_suite/test_2_13.sh"
+test_stdin_error "test_shell/bad_suite/test_2_14.sh"
+test_stdin_error "test_shell/bad_suite/test_2_15.sh"
+test_stdin_error "test_shell/bad_suite/test_2_16.sh"
+test_stdin_error "test_shell/bad_suite/test_2_17.sh"
+test_stdin_error "test_shell/bad_suite/test_2_18.sh"
+test_stdin_error "test_shell/bad_suite/test_2_19.sh"
+test_stdin_error "test_shell/bad_suite/test_2_20.sh"
+test_stdin_error "test_shell/bad_suite/test_2_21.sh"
+test_stdin_error "test_shell/bad_suite/test_2_22.sh"
+test_stdin_error "test_shell/bad_suite/test_2_23.sh"
+test_stdin_error "test_shell/bad_suite/test_2_24.sh"
+test_stdin_error "test_shell/bad_suite/test_2_25.sh"
+test_stdin_error "test_shell/bad_suite/test_2_26.sh"
+test_stdin_error "test_shell/bad_suite/test_2_27.sh"
+#test_stdin_error "test_shell/bad_suite/test_2_28.sh"
+test_stdin_error "test_shell/bad_suite/test_2_29.sh"
+test_stdin_error "test_shell/bad_suite/test_2_30.sh"
+test_stdin_error "test_shell/bad_suite/test_2_31.sh"
+test_stdin_error "test_shell/bad_suite/test_2_32.sh"
+test_stdin_error "test_shell/bad_suite/test_2_33.sh"
 
 test_error "\"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bourre ou quoi\""
 test_error "\"\""
@@ -506,6 +612,38 @@ test_error "$a"
 test_error "a=b; $a"
 test_error "a=====================f; $a"
 test_error "$$$$$$$$$$$$$$==D"
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+ecco
+ecco $blue "===================STEP 3==================="
+ecco 
+ecco $blue " SCRIPTS"
+
+ecco $blue " INPUTE"
+
+test_input "export \$a=AAAAAAAAAAAAAAAAAA"
+test_input "env"
+test_input "exit"
+
+ecco
+ecco $blue " MAEEEEEL C'EST POUR TOI ERRORS"
 
 ecco
 ecco $blue "RONALDO SCORED [$green $pass $blue] TIMES"
