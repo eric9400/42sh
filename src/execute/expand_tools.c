@@ -177,7 +177,23 @@ static int is_special_char(char c)
     return c == '@' || c == '?' || c == '$' || c == '#' || c == '*';
 }
 
-// 34 lines
+static void expand_special_char(struct string *str, struct string *new_str, int return_value, int in_d_quotes)
+{
+    char *key = strndup(str->str + str->index, 1);
+    expand_from_hashmap(new_str, key, return_value, in_d_quotes);
+    free(key);
+}
+
+static void expand_special_char_v2(struct string *str, struct string *new_str, int return_value, int in_d_quotes)
+{
+    char *temp = strstr(str->str, "}");
+    temp[0] = '\0';
+    char *key = strndup(str->str + str->index, 1);
+    expand_from_hashmap(new_str, key, return_value, in_d_quotes);
+    free(key);
+}
+
+// 37 lines
 int dollar_expansion(struct string *str, struct string *new_str,
                      int return_value, int in_d_quotes)
 {
@@ -187,10 +203,16 @@ int dollar_expansion(struct string *str, struct string *new_str,
     // need to handle error cases "echo ${+}" for example
     if (str->str[str->index] == '{')
     {
+        str->index++;
         size_t start = str->index;
+        if (is_special_char(str->str[str->index]))
+        {
+            expand_special_char_v2(str, new_str, return_value, in_d_quotes);
+            return 0;
+        }
         while (is_valid_char(str->str[str->index]))
             str->index += 1;
-        char *key = strndup(str->str, str->index - start);
+        char *key = strndup(str->str + start, str->index - start);
         if (str->str[str->index] == '}')
         {
             expand_from_hashmap(new_str, key, return_value, in_d_quotes);
@@ -220,14 +242,18 @@ int dollar_expansion(struct string *str, struct string *new_str,
             char *key = strndup(str->str + start, str->index - start);
             expand_from_hashmap(new_str, key, return_value, in_d_quotes);
             free(key);
+            str->index -= 1;
         }
     }
     // case $@ $* $? $$ $#
     else if (is_special_char(str->str[str->index]))
     {
+        expand_special_char(str, new_str, return_value, in_d_quotes);
+        /*
         char *key = strndup(str->str + str->index, 1);
         expand_from_hashmap(new_str, key, return_value, in_d_quotes);
         free(key);
+        */
     }
     // non substituable var
     else

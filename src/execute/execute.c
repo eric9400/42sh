@@ -117,11 +117,12 @@ static int func_until(struct ast *ast, int return_value)
 static int func_for(struct ast *ast, int return_value)
 {
     int res = 0;
-    if (expandinho_phoenix(ast, return_value) == 1)
-        return 1;
+    //if (expandinho_phoenix(ast, return_value) == 1)
+    //    return 1;
+    expandinho_phoenix(ast, return_value);
     wat.is_in_loop = 1;
     wat.loop_deep++;
-    for (size_t i = 0; i < ast->data->ast_for->arg->size - 1; i++)
+    for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)
     {
         hash_map_insert(hashmap, ast->data->ast_for->var,
                         ast->data->ast_for->arg->data[i]);
@@ -273,15 +274,12 @@ static int func_cmd(struct ast *ast, int return_value)
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
     struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg);
-    int coucou = expandinho_phoenix(ast, return_value);
-    if (coucou == 1)
+    if (expandinho_phoenix(ast, return_value) == 1)
     {
         destroy_stock_fd(stock_fd);
         swap_vector(ast, &vect_copy);
-        return 1;
-    }
-    else if (coucou == -1)
         return 0;
+    }
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, &wat, return_value);
     if (code != -1)

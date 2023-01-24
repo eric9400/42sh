@@ -117,7 +117,7 @@ static int echo(char **s)
     return 0;
 }
 
-static void export_insert(char *s)
+void export_insert(char *s)
 {
     int i = 0;
     while (tofree->env_variables[i] != NULL)

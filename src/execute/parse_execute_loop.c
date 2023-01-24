@@ -110,5 +110,5 @@ int parse_execute_loop(FILE *f, struct flags *flags)
     }
     if (tofree->lex->error)
         return freeAll(tofree->lex->error);
-    return freeAll(0);
+    return freeAll(return_value);
 }

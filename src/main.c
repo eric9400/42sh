@@ -29,6 +29,13 @@ int main(int argc, char **argv)
     else
         file = stdin;
 
+    if (argc >= 3 && filename[0] == '\0' && flags->c)
+    {	    
+	    free(filename);
+	    free(flags);
+	    return 0;
+    }
+
     if (!file)
     {
         free(filename);
