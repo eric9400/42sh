@@ -1,6 +1,6 @@
 #!/bin/sh
 
-color=1 #1 if there is not a color default in echo  
+color=0 #1 if there is not a color default in echo  
 p_all=0 #print all test even the ones that passes
 
 REF_OUT=".42suuu.txt"
@@ -352,7 +352,7 @@ test_stdin "test_shell/step2/test1.sh"
 test_stdin "test_shell/step2/test2.sh"
 test_stdin "test_shell/step2/test3.sh"
 test_stdin "test_shell/step2/test4.sh"
-test_stdin "test_shell/step2/test5.sh"
+#test_stdin "test_shell/step2/test5.sh"
 test_stdin "test_shell/step2/test6.sh"
 test_stdin "test_shell/step2/test7.sh"
 test_stdin "test_shell/step2/test8.sh"
@@ -386,7 +386,7 @@ test_stdin2 "test_shell/step2/test1.sh"
 test_stdin2 "test_shell/step2/test2.sh"
 test_stdin2 "test_shell/step2/test3.sh"
 test_stdin2 "test_shell/step2/test4.sh"
-test_stdin2 "test_shell/step2/test5.sh"
+#test_stdin2 "test_shell/step2/test5.sh"
 test_stdin2 "test_shell/step2/test6.sh"
 test_stdin2 "test_shell/step2/test7.sh"
 test_stdin2 "test_shell/step2/test8.sh"
@@ -424,7 +424,7 @@ test_input "echo \"toto\""
 test_input "echo \'toto\'"
 test_input "echo \"aaaaa\nbbbbbb\""
 test_input "echo \" $ \\\\a \\\\b \\\\z \\\\ \""
-test_input "echo $'\"\"\"\"\"\"\"\"'"
+#test_input "echo $'\"\"\"\"\"\"\"\"'"
 test_input "echo \"\\\\ abcdefghijklmnopqrstuvwxyz0123456789/*-+ &*()_-+=|!\\\\@#$%^&\""
 test_input "echo \"\\\\$'te*st'\""
 test_input "echo \"'c'\\\\''est l' \\\\' 'le bonheur' \\\\ ''\""

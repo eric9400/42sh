@@ -14,6 +14,8 @@ struct ast *command(struct lexer *lex)
         return cmd;
 
     cmd = shell_command(lex);
+    if (lex->error != 0)
+        return cmd;
     if (cmd)
     {
         if (cmd->type == AST_CMD)
