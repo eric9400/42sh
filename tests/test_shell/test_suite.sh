@@ -484,10 +484,7 @@ test_input "c=3; echo \$c"
 test_input "echo \$@"
 test_input "echo \$*"
 test_input "echo \$?"
-<<<<<<< HEAD
 # test_input "echo \$\$"
-=======
->>>>>>> test_suite_maxi
 test_input "echo \$1"
 test_input "echo \$#"
 test_input "echo \$UID"
