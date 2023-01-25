@@ -103,8 +103,9 @@ int parse_execute_loop(FILE *f, struct flags *flags)
                 free_node(tofree->ast);
                 continue;
             }
+			fflush(tofree->file);
             return_value = execute(tofree->ast, return_value);
-            if (return_value)
+			if (return_value)
             {
                 if (tofree->file != stdin)
                     return freeAll(return_value);
