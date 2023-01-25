@@ -107,6 +107,7 @@ static void quote(struct lexer *lex, struct token *tok, char curr)
             return;
         }
         f->i++;
+        f->len = test_data_full(&(tok->data), f->i, f->len);
     }
     else if (f->in_squote)
     {

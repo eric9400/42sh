@@ -245,6 +245,20 @@ static void *rule_for_error(struct ast_for *for_node, struct lexer *lex)
     return error_handler(lex, 1, "ERROR FOR: INVALID MATCHING PATERN");
 }
 
+static int is_name(char *str, size_t size)
+{
+    if (str[0] != '_' && (str[0] < 'a' || str[0] > 'z')
+        && (str[0] < 'A' || str[0] > 'Z'))
+        return 0;
+    for (size_t i = 1; i < size; i++)
+    {
+        if (str[0] != '_' && (str[0] < 'a' || str[0] > 'z')
+            && (str[0] < 'A' || str[0] > 'Z') && (str[0] < '0' || str[0] > '9'))
+            return 0;
+    }
+    return 1;
+}
+
 struct ast *rule_for(struct lexer *lex)
 {
     peek_token(lex);
@@ -257,7 +271,8 @@ struct ast *rule_for(struct lexer *lex)
 
     free_peek(lex);
 
-    if (lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+        || !is_name(lex->tok->data, strlen(lex->tok->data)))
         return rule_for_error(for_node, lex);
 
     for_node->var = strdup(lex->tok->data);
