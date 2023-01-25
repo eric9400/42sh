@@ -198,7 +198,7 @@ static void expand_special_char_v2(struct string *str, struct string *new_str, i
 
 
 // 30 lines
-static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str, int return_value)
+static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 {
 	int status;
 
@@ -249,7 +249,7 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str, 
 	}
 }
 
-static int command_substitution(struct string *str, struct string *new_str, int return_value)
+static int command_substitution(struct string *str, struct string *new_str)
 {
 	str->index += 1;
 	int start = str->index;
@@ -265,7 +265,7 @@ static int command_substitution(struct string *str, struct string *new_str, int 
 	
 	char *s = strndup(str->str + start, str->index - start);
 
-	int err = exec_command_sub(s, pipe_fds, new_str, return_value);
+	int err = exec_command_sub(s, pipe_fds, new_str);
 
 	free(s);
 
@@ -306,7 +306,7 @@ int dollar_expansion(struct string *str, struct string *new_str,
 	// command substitution case $()
 	else if (str->str[str->index] == '(')
 	{
-		return command_substitution(str, new_str, return_value);
+		return command_substitution(str, new_str);
 	}
     // $a $RANDOM $UID $HOME
     else if (is_valid_char(str->str[str->index]))

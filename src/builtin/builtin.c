@@ -386,9 +386,9 @@ static int dot2(char **s, FILE *filedot)
     FILE *old_file = tofree->file;
     char **old_hashmap = copy_values();
     int i = 2;
+    char value[1000] = { 0 };
     while (s[i] != NULL)
     {
-        char value[1000] = { 0 };
         sprintf(value, "%d", i - 1);
         hash_map_insert(hashM->hashmap, value, s[i]);
         i++;
