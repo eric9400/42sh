@@ -214,25 +214,20 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str, 
 		int nb_bytes = 0;
 		size_t capacity = 20;
 		int nb_bytes_tot = 0;
-		
 		do
 		{
 			nb_bytes_tot += nb_bytes;
 			buffer = realloc(buffer, capacity + 21);
 			capacity += 20;
-			nb_bytes = read(pipe_fds[0], buffer, capacity);
+			nb_bytes = read(pipe_fds[0], buffer + nb_bytes_tot, capacity - nb_bytes_tot);
 		} while(nb_bytes > 0);
 
 		waitpid(pid, &status, 0);
-
 		buffer[nb_bytes_tot] = '\0';
-
 		if (status == 0)
 			string_append(new_str, buffer);
 		free(buffer);
-
 		close(pipe_fds[0]);
-
 		return status;
 	}
 	else
