@@ -15,7 +15,6 @@
 #include "redirection.h"
 #include "execute.h"
 #include "builtin.h"
-#include "hash_map_utils.h"
 
 static int in_s_quotes = 0;
 static int in_d_quotes = 0;
@@ -280,6 +279,25 @@ char *expandinho_phoenix_junior(char *s, int return_value)
     return return_str;
 }
 
+void print_hash_map(void)
+{
+    int size = hashM->hashmap->size;
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ->", i);
+        if (hashM->hashmap->data != NULL)
+        {
+            struct pair_list *curr = hashM->hashmap->data[i];
+            while (curr)
+            {
+                printf("( %s, %s) ", curr->key, curr->value);
+                curr = curr->next;
+            }
+        }
+        printf("\n");
+    }
+}
+
 int check_function(char **str, int return_value)
 {
     struct ast *ast = f_hash_map_get(hashM->fhashmap, str[0]);
@@ -293,7 +311,6 @@ int check_function(char **str, int return_value)
         return error_redir;
     char **old_hashmap = copy_values();
     int i = 1;
-    print_hash_map();
     while (str[i] != NULL)
     {
         char value[100] = { 0 };
@@ -301,7 +318,6 @@ int check_function(char **str, int return_value)
         hash_map_insert(hashM->hashmap, value, str[i]);
         i++;
     }
-    print_hash_map();
     int res = execute(ast->data->ast_func->func, return_value);
     hash_map_restore(old_hashmap);
     return res;

@@ -41,6 +41,7 @@ static int func_for(struct ast *ast, int return_value);
 static int func_and(struct ast *ast, int return_value);
 static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
+static void swap_vector(struct ast *ast, struct vector **vect_copy);
 
 struct c_or_b wat = { 0, 0, 0, -1 };
 
@@ -117,8 +118,7 @@ static int func_until(struct ast *ast, int return_value)
 static int func_for(struct ast *ast, int return_value)
 {
     int res = 0;
-    //if (expandinho_phoenix(ast, return_value) == 1)
-    //    return 1;
+    struct vector *vect_copy = vector_copy(ast->data->ast_for->arg, 1);
     expandinho_phoenix(ast, return_value);
     wat.is_in_loop = 1;
     wat.loop_deep++;
@@ -147,6 +147,7 @@ static int func_for(struct ast *ast, int return_value)
         }
     }
     hash_map_remove(hashM->hashmap, ast->data->ast_for->var);
+    swap_vector(ast, &vect_copy);
     if (wat.is_in_loop)
     {
         wat.cbdeep--;
@@ -260,8 +261,16 @@ struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error
 
 static void swap_vector(struct ast *ast, struct vector **vect_copy)
 {
-    vector_destroy(ast->data->ast_cmd->arg);
-    ast->data->ast_cmd->arg = *vect_copy;
+    if (ast->type == AST_CMD)
+    {
+        vector_destroy(ast->data->ast_cmd->arg);
+        ast->data->ast_cmd->arg = *vect_copy;
+    }
+    else if (ast->type == AST_FOR)
+    {
+        vector_destroy(ast->data->ast_for->arg);
+        ast->data->ast_for->arg = *vect_copy;
+    }
 }
 
 //36 lines
@@ -274,7 +283,7 @@ static int func_cmd(struct ast *ast, int return_value)
         func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-    struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg);
+    struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg, 0);
     if (expandinho_phoenix(ast, return_value) == 1)
     {
         destroy_stock_fd(stock_fd);
@@ -293,7 +302,7 @@ static int func_cmd(struct ast *ast, int return_value)
     if (code != -1)
     {
         destroy_stock_fd(stock_fd);
-        swap_vector(ast, &vect_copy);
+        vector_destroy(vect_copy);
         return code;
     }
     int pid = fork();
