@@ -16,8 +16,7 @@ void peek_token(struct lexer *lex)
     }
     else if (!lex->tok)
         next_token(lex);
-    else if (lex->tok && lex->tok->type != END_OF_FILE
-             && lex->tok->type != NEWLINE && !lex->tok2)
+    else if (lex->tok && lex->tok->type != END_OF_FILE && !lex->tok2)
     //case of full sfirst register token we add to the second token register a token
     {
         struct token *tokk = lex->tok;
@@ -96,7 +95,7 @@ static void quote(struct lexer *lex, struct token *tok, char curr)
     {
         tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
-        if (curr == EOF || curr == '\'')
+        if (curr == EOF)
         {
             ungetc(curr, lex->filename);
             return;
@@ -161,11 +160,9 @@ static void rule_5(struct lexer *lex, struct token *tok, char curr)
         else if (curr == '{' && !f->in_dquote && !f->in_squote)
             f->in_acollade++;
     }
-    else // curr == '$' or '#'
+    else // curr == '$'
     {
         tok->data[f->i] = curr;
-        if (curr == '#')
-            return;
         curr = fgetc(lex->filename);
         if (curr == '(')
         {
@@ -262,12 +259,6 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
     return 0;
 }
 
-static int next_token_dog(struct lexer *lex, char *c)
-{
-    ungetc(*c, lex->filename);
-    return 1;
-}
-
 static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
                            char *p)
 {
@@ -276,10 +267,13 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
     if (!f->in_squote && !f->in_dquote && !f->in_acollade && !f->in_parenthese
         && f->was_operator)
     {
-        if (!is_operator(*p, *c))
-            return next_token_dog(lex, c);
-        tok->data[f->i] = *c;
-        f->i++;
+        if (is_operator(*p, *c))
+        {
+            tok->data[f->i] = *c;
+            f->i++;
+        }
+        else
+            ungetc(*c, lex->filename);
         return 1;
     }
 
@@ -287,8 +281,7 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
              || *c == '\\')
         quote(lex, tok, *c);
 
-    else if (f->in_acollade || f->in_parenthese || *c == '$'
-             || (*p == '$' && *c == '#'))
+    else if (f->in_acollade || f->in_parenthese || *c == '$')
         rule_5(lex, tok, *c);
 
     else if (!f->in_squote && !f->in_dquote && !f->in_acollade
@@ -296,12 +289,15 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
     {
         if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
-        return next_token_dog(lex, c);
+        ungetc(*c, lex->filename);
+        return 1;
     }
 
     else if (!f->in_parenthese && (*c == ';' || *c == '\n'))
-        return next_token_dog(lex, c);
-
+    {
+        ungetc(*c, lex->filename);
+        return 1;
+    }
     else if (!f->in_parenthese && my_isspace(*c))
         return 1; // RETURN TOKEN WITHOUT BLANK
 

@@ -8,7 +8,7 @@ TEST_OUT=".my_42suuu.txt"
 blue='\033[1;35m'
 red='\033[1;31m'
 green='\033[1;32m'
-nc='\033[0m'
+nc='\033[1;0m'
 pass=0
 test=0
 fail=0
@@ -238,7 +238,6 @@ test_input "echo -n Mael arrete de geeker"
 test_input 'echo \"je suis une chauve souris\"'
 test_input 'echo \"\\n\"'
 test_input "echo -e '\n'"
-test_input 'echo -E \n"'
 test_input 'echo -E \"\n\"'
 test_input "echo -E '\n'"
 test_input "'coucou'"
@@ -305,7 +304,6 @@ test_error "if false; then echo toto; elif true; then; fi"
 test_error "if false; then echo toto; elif true; then echo tata fi"
 test_error "if false; then echo toto; elif true; then echo tata; else echo fi"
 test_error "if false; then echo toto; elif true; then echo tata; else echo foo;"
-#test_error "echo if; if echo"
 test_error "if true; then false; elif true; then true; else false;"
 test_error "if true;;;;;;;;;then false; fi"
 test_error "echo 'aaa"
@@ -320,6 +318,7 @@ test_error2 "\"false\""
 test_error2 "\'false\'"
 test_error2 "'false'"
 test_error2 "false echo foo"
+test_error 'echo -E \n"'
 #
 #
 #
@@ -375,6 +374,7 @@ test_stdin "test_shell/step2/test23.sh"
 test_stdin "test_shell/step2/test24.sh"
 test_stdin "test_shell/step2/test25.sh"
 test_stdin "test_shell/step2/test26.sh"
+test_stdin "test_shell/step2/test27.sh"
 test_stdin2 "test_shell/step2/for1_10.sh"
 test_stdin2 "test_shell/step2/for12345.sh"
 test_stdin2 "test_shell/step2/pipe.sh"
@@ -404,8 +404,8 @@ test_stdin2 "test_shell/step2/test21.sh"
 test_stdin2 "test_shell/step2/test22.sh"
 test_stdin2 "test_shell/step2/test23.sh"
 test_stdin2 "test_shell/step2/test24.sh"
-#test_stdin2 "test_shell/step2/test25.sh"
 test_stdin2 "test_shell/step2/test26.sh"
+test_stdin2 "test_shell/step2/test27.sh"
 test_var_arg "test_shell/step2/var_arg1.sh" 'a b' c
 test_var_arg "test_shell/step2/var_arg2.sh" 'a b' c
 test_var_arg "test_shell/step2/var_arg3.sh" 'a b' c
@@ -418,7 +418,6 @@ test_input "echo \"roger, \" \"bois ton ricard !\"; echo \"dis donc roger tes bo
 test_input "echo \"\""
 test_input "echo \"toto\""
 test_input "echo \'toto\'"
-test_input "echo \"   \"  \\\"'\""
 test_input "echo \"aaaaa\nbbbbbb\""
 test_input "echo \" $ \\\\a \\\\b \\\\z \\\\ \""
 test_input "echo $'\"\"\"\"\"\"\"\"'"
@@ -431,10 +430,7 @@ test_input "echo \"cont\\\\\nent\""
 test_input "echo \"quoi?\nfeur\""
 test_input "for n; do echo foo; done"
 test_input "for coucou; do echo foo; done"
-test_input "n=5; for \$n; do echo foo; done"
-test_input "n=5;\n for \$n; do echo foo; done"
 test_input "for n in foo bar; do echo toto; done"
-test_input "n=4; foo=7; for \$n in \$foo; do echo toto; done"
 test_input "! true"
 test_input "! echo foo"
 test_input "! echo foo | echo"
@@ -488,7 +484,10 @@ test_input "c=3; echo \$c"
 test_input "echo \$@"
 test_input "echo \$*"
 test_input "echo \$?"
+<<<<<<< HEAD
 # test_input "echo \$\$"
+=======
+>>>>>>> test_suite_maxi
 test_input "echo \$1"
 test_input "echo \$#"
 test_input "echo \$UID"
@@ -500,6 +499,7 @@ test_input "echo \"\$@\""
 test_input "echo \$c"
 test_input "echo \$c"
 test_input "echo \$c"
+test_input "\'echo \$#\'"
 test_input "a=toto"
 
 ecco
@@ -509,7 +509,6 @@ test_stdin_error "test_shell/bad_suite/test_2_1.sh"
 test_stdin_error "test_shell/bad_suite/test_2_2.sh"
 test_stdin_error "test_shell/bad_suite/test_2_3.sh"
 test_stdin_error "test_shell/bad_suite/test_2_4.sh"
-#test_stdin_error "test_shell/bad_suite/test_2_5.sh"
 test_stdin_error "test_shell/bad_suite/test_2_6.sh"
 test_stdin_error "test_shell/bad_suite/test_2_7.sh"
 test_stdin_error "test_shell/bad_suite/test_2_8.sh"
@@ -532,7 +531,6 @@ test_stdin_error "test_shell/bad_suite/test_2_24.sh"
 test_stdin_error "test_shell/bad_suite/test_2_25.sh"
 test_stdin_error "test_shell/bad_suite/test_2_26.sh"
 test_stdin_error "test_shell/bad_suite/test_2_27.sh"
-#test_stdin_error "test_shell/bad_suite/test_2_28.sh"
 test_stdin_error "test_shell/bad_suite/test_2_29.sh"
 test_stdin_error "test_shell/bad_suite/test_2_30.sh"
 test_stdin_error "test_shell/bad_suite/test_2_31.sh"
@@ -554,6 +552,7 @@ test_error "\"'c'\\\\''est l' \\\\' 'le bonheur' \\\\ ''\""
 test_error "\"\\\\\#escaped\""
 test_error "\"cont\\\\\nent\""
 test_error "\"quoi?\nfeur\""
+test_error "echo \"   \"  \\\"'\""
 
 test_error "for n do echo foo; done"
 test_error "for coucou;;; do echo foo; done"
@@ -562,6 +561,9 @@ test_error "for $n; echo foo; done"
 test_error "for n; do echo foo;"
 test_error "for n in foo bar do echo toto; done"
 test_error "for $n in $foo; do echo toto; done"
+test_error "n=5; for \$n; do echo foo; done"
+test_error "n=5;\n for \$n; do echo foo; done"
+test_error "n=4; foo=7; for \$n in \$foo; do echo toto; done"
 
 test_error "fooo |"
 test_error "| true"
@@ -590,7 +592,7 @@ test_error2 "! false"
 test_error2 "! true"
 test_error2 "! echo foo"
 test_error2 "! coucou"
-test_error "true \n&& false"
+test_error2 "true \n&& false"
 
 test_error "echo foo |"
 test_error "echo foo >"
@@ -635,14 +637,79 @@ ecco $blue "===================STEP 3==================="
 ecco 
 ecco $blue " SCRIPTS"
 
+test_stdin "test_shell/step3/block_list.sh"
+test_stdin "test_shell/step3/continue.sh"
+test_stdin "test_shell/step3/not_multilpe_pipes.sh"
+test_stdin "test_shell/step3/var_multiple_words.sh"
+test_stdin "test_shell/step3/var_substitute_embraces1.sh"
+test_stdin "test_shell/step3/weird_single_double_quotes2.sh"
+test_stdin "test_shell/step3/weird_single_double_quotes1.sh"
+test_stdin "test_shell/step3/test_export_1.sh"
+test_stdin "test_shell/step3/test_export_2.sh"
+test_stdin "test_shell/step3/function.sh"
+test_stdin "test_shell/step3/test1.sh"
+test_stdin "test_shell/step3/test2.sh"
+test_stdin "test_shell/step3/test3.sh"
+test_stdin "test_shell/step3/test4.sh"
+test_stdin "test_shell/step3/test5.sh"
+test_stdin "test_shell/step3/test6.sh"
+test_stdin2 "test_shell/step3/block_list.sh"
+test_stdin2 "test_shell/step3/continue.sh"
+test_stdin2 "test_shell/step3/not_multilpe_pipes.sh"
+test_stdin2 "test_shell/step3/var_multiple_words.sh"
+test_stdin2 "test_shell/step3/var_substitute_embraces1.sh"
+test_stdin2 "test_shell/step3/weird_single_double_quotes2.sh"
+test_stdin2 "test_shell/step3/weird_single_double_quotes1.sh"
+test_stdin2 "test_shell/step3/test_export_1.sh"
+test_stdin2 "test_shell/step3/test_export_2.sh"
+test_stdin2 "test_shell/step3/function.sh"
+test_stdin2 "test_shell/step3/test1.sh"
+test_stdin2 "test_shell/step3/test2.sh"
+test_stdin2 "test_shell/step3/test3.sh"
+test_stdin2 "test_shell/step3/test4.sh"
+test_stdin2 "test_shell/step3/test5.sh"
+test_stdin2 "test_shell/step3/test6.sh"
+
+ecco
 ecco $blue " INPUTE"
 
-test_input "export \$a=AAAAAAAAAAAAAAAAAA"
+test_input "{ echo foo; echo bar; echo coucou; }"
+test_input "{ echo foo; }"
+test_input "{ \necho foo; \necho bar;\n echo tutu\n; }"
+test_input "{ if true; then echo toto; elif false; then echo bar; fi; echo chop; }"
+test_input "{ echo laviedmamere; while false; do echo foo; echo fooooo; echo fooooo; done; echo coucou; }"
+test_input "{echo foo; { echo bar; { echo suuuuu; } }"
+
 test_input "env"
 test_input "exit"
 
 ecco
 ecco $blue " MAEEEEEL C'EST POUR TOI ERRORS"
+
+test_stdin_error "test_shell/bad_suite/test_3_1.sh"
+test_stdin_error "test_shell/bad_suite/test_3_2.sh"
+test_stdin_error "test_shell/bad_suite/test_3_3.sh"
+test_stdin_error "test_shell/bad_suite/test_3_4.sh"
+
+test_error "{ echo coucou; echo bar;"
+test_error "}"
+test_error "}}"
+test_error "{"
+test_error "{{"
+test_error "{{{{{{{{{"
+test_error "echo coucou; echo foo; }"
+test_error "if {echo foo; echo bar; echo tuu; } && true; then echo foooooo; fi"
+test_error "{ echo foo; echo bar; echo coucou }"
+
+test_error2 "export \$a=AAAAAAAAAAAAAAAAAA"
+
+#ecco
+#ecco $blue " HARDCORE"
+
+#test_stdin_error "test_shell/bad_suite/test_2_5.sh"
+#test_stdin_error "test_shell/bad_suite/test_2_28.sh"
+#test_stdin2 "test_shell/step2/test25.sh"
+#test_error "echo if; if echo"
 
 ecco
 ecco $blue "RONALDO SCORED [$green $pass $blue] TIMES"
@@ -654,5 +721,5 @@ ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 ecco $blue "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 ecco $nc
-unlias ecco
+unalias ecco
 rm $REF_OUT $TEST_OUT

@@ -14,7 +14,6 @@ and_or = pipeline { '&&' | '||' {'\n'} pipeline } ;
 pipeline = ['!'] command { '|' {'\n'} command } ;
 
 
-
 command =
     simple_command
     | shell_command { redirection }
