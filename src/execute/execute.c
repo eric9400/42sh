@@ -13,6 +13,7 @@
 #include "lexer.h"
 #include "pipe.h"
 #include "redirection.h"
+#include "parse_execute_loop.h"
 
 static char buf[] = "     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣾⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀\n\
@@ -333,21 +334,17 @@ static int func_cmd(struct ast *ast, int return_value)
 
 static int func_sub(struct ast *ast, int return_value)
 {
-	int status;
-
 	pid_t pid = fork();
-
-	// in parent
-	if (pid != 0)
-	{
-		waitpid(pid, &status, 0);
-		return WEXITSTATUS(status);
-	}
-	else
+	
+    if (!pid)
 	{
 		int err = execute(ast->data->ast_subshell->sub, return_value);
 		exit(err);
 	}
+    int status;
+    waitpid(pid, &status, 0);
+    return WEXITSTATUS(status);
+    //return 0;
 }
 
 /*
