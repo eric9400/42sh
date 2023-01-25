@@ -1,6 +1,6 @@
 #!/bin/sh
 
-color=0 #1 if there is not a color default in echo  
+color=1 #1 if there is not a color default in echo  
 p_all=0 #print all test even the ones that passes
 
 REF_OUT=".42suuu.txt"
@@ -484,6 +484,7 @@ test_input "c=3; echo \$c"
 test_input "echo \$@"
 test_input "echo \$*"
 test_input "echo \$?"
+# test_input "echo \$\$"
 test_input "echo \$1"
 test_input "echo \$#"
 test_input "echo \$UID"
