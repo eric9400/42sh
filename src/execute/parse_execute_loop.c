@@ -49,7 +49,7 @@ void hash_map_init_basic(void)
             hash_map_insert(hashM->hashmap, "OLDPWD", old);
         else
             hash_map_insert(hashM->hashmap, "OLDPWD", pwd);
-        hash_map_insert(hashM->hashmap, "IFS", " \t\n");
+        hash_map_insert(hashM->hashmap, "IFS", "");
     }
 }
 
@@ -103,8 +103,9 @@ int parse_execute_loop(FILE *f, struct flags *flags)
                 free_node(tofree->ast);
                 continue;
             }
+			fflush(tofree->file);
             return_value = execute(tofree->ast, return_value);
-            if (return_value)
+			if (return_value)
             {
                 if (tofree->file != stdin)
                     return freeAll(return_value);
