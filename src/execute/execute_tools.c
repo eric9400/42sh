@@ -318,31 +318,13 @@ int check_function(char **str, int return_value)
         hash_map_insert(hashM->hashmap, value, str[i]);
         i++;
     }
-	if (i != 1)
+	sprintf(value, "%d", i);
+	while (hash_map_remove(hashM->hashmap, value))
 	{
+		i += 1;
 		sprintf(value, "%d", i);
-		while (hash_map_remove(hashM->hashmap, value))
-		{
-			i += 1;
-			sprintf(value, "%d", i);
-		}
 	}
 	int res = execute(ast->data->ast_func->func, return_value);
 	hash_map_restore(old_hashmap);
 	return res;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
