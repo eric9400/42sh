@@ -1,6 +1,6 @@
 #!/bin/sh
 
-color=0 #1 if there is not a color default in echo  
+color=1 #1 if there is not a color default in echo  
 p_all=0 #print all test even the ones that passes
 
 REF_OUT=".42suuu.txt"
@@ -386,11 +386,7 @@ test_stdin2 "test_shell/step2/test1.sh"
 test_stdin2 "test_shell/step2/test2.sh"
 test_stdin2 "test_shell/step2/test3.sh"
 test_stdin2 "test_shell/step2/test4.sh"
-<<<<<<< HEAD
-# test_stdin2 "test_shell/step2/test5.sh"
-=======
 #test_stdin2 "test_shell/step2/test5.sh"
->>>>>>> 931a21d2ff7db8b5195bc9d3b889b231891d5d74
 test_stdin2 "test_shell/step2/test6.sh"
 test_stdin2 "test_shell/step2/test7.sh"
 test_stdin2 "test_shell/step2/test8.sh"
