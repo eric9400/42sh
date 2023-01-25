@@ -311,14 +311,38 @@ int check_function(char **str, int return_value)
         return error_redir;
     char **old_hashmap = copy_values();
     int i = 1;
+	char value[100] = { 0 };
     while (str[i] != NULL)
     {
-        char value[100] = { 0 };
         sprintf(value, "%d", i);
         hash_map_insert(hashM->hashmap, value, str[i]);
         i++;
     }
-    int res = execute(ast->data->ast_func->func, return_value);
-    hash_map_restore(old_hashmap);
-    return res;
+	if (i != 1)
+	{
+		sprintf(value, "%d", i);
+		while (hash_map_remove(hashM->hashmap, value))
+		{
+			i += 1;
+			sprintf(value, "%d", i);
+		}
+	}
+	int res = execute(ast->data->ast_func->func, return_value);
+	hash_map_restore(old_hashmap);
+	return res;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
