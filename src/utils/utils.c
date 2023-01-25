@@ -49,6 +49,7 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     }
     int count = 1;
     char buf[1000] = { 0 };
+    buf[0] = '0';
     for (; i < argc; i++)
     {
         sprintf(buf, "%d", count);

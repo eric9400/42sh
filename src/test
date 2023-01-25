@@ -1,8 +1,0 @@
-babaji()
-{
-    for i in $@; do
-        echo $i
-    done
-}
-babaji 1 2 3 4 5
-babaji 6 7 8 9 10

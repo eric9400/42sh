@@ -43,8 +43,12 @@ void hash_map_init_basic(void)
     {
         char pwd[1000];
         getcwd(pwd, sizeof(pwd));
+        char *old = getenv("OLDPWD");
         hash_map_insert(hashM->hashmap, "PWD", pwd);
-        hash_map_insert(hashM->hashmap, "OLDPWD", pwd);
+        if (old != NULL)
+            hash_map_insert(hashM->hashmap, "OLDPWD", old);
+        else
+            hash_map_insert(hashM->hashmap, "OLDPWD", pwd);
         hash_map_insert(hashM->hashmap, "IFS", " \t\n");
     }
 }
