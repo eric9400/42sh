@@ -81,6 +81,8 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
                            struct string *new_str)
 {
     char *temp = NULL;
+
+    // edge case for export
     if (ast->type == AST_CMD
         && !strcmp(ast->data->ast_cmd->arg->data[0], "export"))
     {
@@ -97,12 +99,16 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
         return 0;
     str++;
     char *value = strstr(str, "=");
+
+    // supposed to be always true if parser working
     if (value != NULL)
     {
         value[0] = '\0';
         value++;
         int is_s_quotes = 0;
+
         // a="$1"
+        // remove single quotes and double quotes from value
         if (value[0] == '"' || value[0] == '\'')
         {
             is_s_quotes = value[0] == '\'';
@@ -113,13 +119,17 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
             if (temp)
                 temp[0] = '\0';
         }
+
         // a=$1
         int need_to_free = 0;
+
+        // expand if not in single quotes
         if (!is_s_quotes && value[0] == '$')
         {
             need_to_free = 1;
             value = expandinho_phoenix_junior(value, return_value);
         }
+
 	    // a=b
         hash_map_insert(hashM->hashmap, str, value);
         if (need_to_free)

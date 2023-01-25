@@ -47,6 +47,7 @@ static struct pair_list *is_key_in(struct pair_list **p, const char *key)
 
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
 {
+    // insert in env
     if (getenv(key))
     {
 	    char *str = calloc((strlen(key) + strlen(value) + 2), sizeof(char));
@@ -187,6 +188,17 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
 
 char *hashmap_get_copy(struct hash_map *hashmap, char *hkey)
 {
+    const char *res = hash_map_get(hashmap, hkey);
+    if (res == NULL)
+        return NULL;
+    return strdup(res);
+}
+
+char *hashmap_get_global(struct hash_map *hashmap, char *hkey)
+{
+    char *value_env = getenv(hkey);
+    if (value_env)
+        return strdup(value_env);
     const char *res = hash_map_get(hashmap, hkey);
     if (res == NULL)
         return NULL;

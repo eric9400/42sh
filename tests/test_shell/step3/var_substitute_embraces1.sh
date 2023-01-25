@@ -1,4 +1,3 @@
-echo ${RANDOM}
 echo ${UID}
 echo ${PWD}
 echo ${OLDPWD}

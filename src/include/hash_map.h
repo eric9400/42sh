@@ -44,6 +44,7 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value);
 char *hash_map_get(const struct hash_map *hash_map, const char *key);
 bool hash_map_remove(struct hash_map *hash_map, const char *key);
 char *hashmap_get_copy(struct hash_map *hashmap, char *hkey);
+char *hashmap_get_global(struct hash_map *hashmap, char *hkey);
 
 struct f_hash_map *f_hash_map_init(size_t size);
 bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key, struct ast *value);

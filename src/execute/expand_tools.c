@@ -166,7 +166,8 @@ static void expand_from_hashmap(struct string *new_str, char *buf,
     {
         char *value = NULL;
         if ((value = is_special_var(buf, return_value)) == NULL)
-            value = hashmap_get_copy(hashM->hashmap, buf);
+            // value = hashmap_get_copy(hashM->hashmap, buf);
+            value = hashmap_get_global(hashM->hashmap, buf);
         if (value)
         {
             string_append(new_str, value);
