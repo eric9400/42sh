@@ -680,11 +680,66 @@ test_input "{ if true; then echo toto; elif false; then echo bar; fi; echo chop;
 test_input "{ echo laviedmamere; while false; do echo foo; echo fooooo; echo fooooo; done; echo coucou; }"
 test_input "{echo foo; { echo bar; { echo suuuuu; } }"
 
-test_input "env"
 test_input "exit"
+test_input "echo foo; exit"
+test_input "exit; echo foo; echo tooooooo;"
+test_input "while true; do echo toto; exit; done"
+test_input "exit; exit; exit; exit"
+
+origin=$(pwd)
+test_input "cd test_shell/; pwd; cd .."
+test_input "cd test_shell/; echo foooo; pwd; cd .."
+test_input "cd; pwd; cd $origin"
+test_input "cd .; pwd"
+test_input "cd test_shell/../test_shell/../; pwd; cd $origin"
+test_input "cd test_shell/../test_shell/../../..; pwd; cd $origin"
+
+test_input "export aaa=AAAAAAAAAAAAAAAAA; env | grep \"aaa=\""
+test_input "export aaa=AAAAAAAAAAAAAAAAAA; env | grep \"abbb=\""
+test_input "export dda=AAAA bba=BBBB cca=CCCCCCC; env | grep \"a=\""
+test_input "aaa=EINSTEINLAFRAUDE; export aaa; env | grep \"aaa=\""
+
+test_input "export aaa=AAA; unset aaa; env | grep \"aaa=\""
+test_input "export bba=AAAA cca=BBBB; unset bba cca; env | grep \"aaa=\""
+test_input "export dda=AAA; unset -v dda; env | grep \"a=\""
+test_input "babaji () { echo toto; } ; unset -f babaji; babaji"
+test_input "babaji () { echo toto; } ; unset babaji; babaji"
+test_input "export aaa=AAA; aaa=BBB; unset -n aaa; env | grep \"aaa=\""
+
+test_input ". ./test_shell/test_lexer/src1.sh"
+test_input ". ./test_shell/test_lexer/src2.sh"
+test_input ". ./test_shell/test_lexer/src_empty.sh"
+test_input ". ./test_shell/test_lexer/src_err.sh"
+
+test_input "while true; do echo toto; break; done"
+test_input "for n in 1 2 3; do echo \$n; if true; then break; fi ; done"
+test_input "for n in 1 2 3; do echo \$n; if true; then continue; fi ; done"
+
+test_input "bababa () { echo tutu; }"
+test_input "bababa () { echo tutu; }; bababa"
+test_input "babaji () { echo \$1; }; babaji coucou"
+test_input "babaji; { babaji () { echo coucou; } ; }"
+test_input "babaji () { echo \$1; babaji2 () { echo wsh \$1; babaji3 () { echo homme tron \$1; } ; } ; }; babaji eric; babaji2 mael; babaji3 paul;"
+test_input "if true; then ntm () { echo toktoktoktkt; } ; fi; ntm"
+test_input "babaji () { babaji2 () { babaji3 () { echo foo;} ; } ; }; babaji; babaji2; babaji3"
+
+test_input "\$(echo toto); echo tata"
+test_input "\$(if true; then a=5; echo $a; fi)"
+test_input "echo foo; \$(if true || false && true && false; then echo foo; else echo bar; fi)"
+test_input "\$(echo foo; echo bar; \$(echo toto;)); ls"
+test_input "\$(\$(\$(\$(\$(\$(\$(echo foo;))))))); echo bar"
+test_input "\$(echo \"je suis pas une parenthese:)\" non plus:\) )"
+test_input "while true; do echo toto; \$(echo dada); break; done"
+
+test_input "(echo toto)"
+test_input "(echo toto; (echo tata))"
+test_input "echo toto; (echo tata; (echo tutu; (echo 4)))"
+test_input "if ( echo foo; echo bar) && true; then echo tata; fi"
+test_input "(echo toto)
+echo foo"
 
 ecco
-ecco $blue " MAEEEEEL C'EST POUR TOI ERRORS"
+ecco $blue " SUS ERRORS"
 
 test_stdin_error "test_shell/bad_suite/test_3_1.sh"
 test_stdin_error "test_shell/bad_suite/test_3_2.sh"
@@ -702,6 +757,25 @@ test_error "if {echo foo; echo bar; echo tuu; } && true; then echo foooooo; fi"
 test_error "{ echo foo; echo bar; echo coucou }"
 
 test_error2 "export \$a=AAAAAAAAAAAAAAAAAA"
+
+test_error "bababa () { echo tutu }"
+test_error "bababa ( { echo tutu }"
+test_error "bababa ) { echo tutu }"
+test_error "bababa { echo tutu }"
+test_error "bababa () echo foo"
+
+test_error "\$(echo toto"
+test_error "\$)"
+test_error "\$()"
+test_error "\$(((((("
+
+test_error "("
+test_error ")"
+test_error "((((echo toto;)))"
+test_error "((echo tata))))"
+test_error "(echo toto)"
+test_error "echo (echo (echo (echo 4)))"
+test_error "(echo toto)\n echo foo"
 
 #ecco
 #ecco $blue " HARDCORE"
