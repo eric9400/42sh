@@ -1,3 +1,5 @@
-if coucou $come alor<> && \ujsp "s"kqq"dsd"'sqsq' test;
-dqdqfl; ksyyyyy "kj "'ddddddddd' %d #ðdddddddd
-!pris en compte || <? 54>& =
+if true; then false
+elif coucou; then
+'JPPP';
+els\e "jsp"
+fi

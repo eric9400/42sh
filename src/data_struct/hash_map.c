@@ -1,8 +1,12 @@
+#define _XOPEN_SOURCE 600
+
 #include "hash_map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "builtin.h"
 
 static size_t hash(const char *key)
 {
@@ -28,25 +32,34 @@ struct hash_map *hash_map_init(size_t size)
     return hm;
 }
 
-int is_key_in(struct pair_list *p, const char *key)
+static struct pair_list *is_key_in(struct pair_list **p, const char *key)
 {
-    int i = 0;
-    while (p)
+    while (*p)
     {
-        if (!strcmp(p->key, key))
-            return i;
-        p = p->next;
-        i++;
+        if (!strcmp((*p)->key, key))
+            return *p;
+        *p = (*p)->next;
     }
-    return -1;
+    return NULL;
 }
 
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
 {
+    if (getenv(key))
+    {
+	    char *str = calloc((strlen(key) + strlen(value) + 2), sizeof(char));
+	    str = strcat(str, key);
+	    str = strcat(str, "=");
+	    str = strcat(str, value);
+	    str = strcat(str, "\0");
+	    export_insert(str);
+	    free(str);
+	    // maybe free TODO
+    }
     if (!hash_map || hash_map->size == 0)
         return false;
     size_t i = hash(key) % hash_map->size;
-    if (hash_map->data[i] == 0)
+    if (hash_map->data[i] == NULL)
     {
         struct pair_list *q = malloc(sizeof(struct pair_list));
         if (!q)
@@ -58,11 +71,17 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     }
     else
     {
-        int sisi = is_key_in(hash_map->data[i], key);
-        if (sisi != -1)
-            hash_map->data[sisi]->value = value;
+        struct pair_list *cpy = hash_map->data[i];
+        struct pair_list *temp = is_key_in(&hash_map->data[i], key);
+        if (temp != NULL)
+        {
+            if (temp->value != NULL)
+                free(temp->value);
+            temp->value = strdup(value);
+        }
         else
         {
+            hash_map->data[i] = cpy;
             struct pair_list *p = malloc(sizeof(struct pair_list));
             if (!p)
                 return false;
@@ -100,7 +119,7 @@ void hash_map_free(struct hash_map *hash_map)
     free(hash_map);
 }
 
-const char *hash_map_get(const struct hash_map *hash_map, const char *key)
+char *hash_map_get(const struct hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
         return NULL;
@@ -131,8 +150,10 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
     {
         if (!strcmp(q->key, key))
         {
+            free(hash_map->data[i]->key);
+            free(hash_map->data[i]->value);
             free(hash_map->data[i]);
-            hash_map->data[i] = 0;
+            hash_map->data[i] = NULL;
             return true;
         }
         return false;
@@ -140,6 +161,8 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
     if (!strcmp(q->key, key))
     {
         q = q->next;
+        free(hash_map->data[i]->key);
+        free(hash_map->data[i]->value);
         free(hash_map->data[i]);
         hash_map->data[i] = q;
         return true;

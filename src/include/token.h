@@ -3,20 +3,18 @@
 
 enum tok_type
 {
-    SEMICOLON,
-    NEWLINE,
-    IONUMBER,
-    /*S_QUOTE,
-    D_QUOTE,*/
+    SEMICOLON = 0,
+    NEWLINE = 1,
+    IONUMBER = 2,
 
-    WORD,
-    ASSIGNMENT_WORD,
-    IO_NUMBER,
+    WORD = 3,
+    ASSIGNMENT_WORD = 4,
+    IO_NUMBER = 5,
 
-    END_OF_FILE,
+    END_OF_FILE = 6,
 
     // all type of operators
-    OPERATOR
+    OPERATOR = 7
 };
 
 struct token

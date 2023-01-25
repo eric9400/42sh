@@ -10,6 +10,7 @@ struct lexer
 {
     FILE *filename;
     struct token *tok;
+    struct token *tok2;
     struct lex_flags *flags;
     int error;
 };
@@ -22,4 +23,4 @@ void next_token(struct lexer *lex);
 void free_token(struct lexer *lex);
 void peek_token(struct lexer *lex);
 
-#endif /*LEXER_H*/
+#endif /* LEXER_H */

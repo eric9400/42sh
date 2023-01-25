@@ -19,27 +19,32 @@ enum ast_type
 
     AST_REDIR,
     AST_PIPE,
+
+    AST_FUNC,
+    AST_SUBSHELL,
+
+    NONE
 };
 
 enum redir_type
 {
-    S_RIGHT,    // >
-    S_LEFT,     // <
+    S_RIGHT, // >
+    S_LEFT, // <
 
-    D_RIGHT,    // >>
-    
-    RIGHT_AND,  // >&
-    LEFT_AND,   // <&
-    
-    RIGHT_PIP,  // >|
-    LEFT_RIGHT  // <>
+    D_RIGHT, // >>
+
+    RIGHT_AND, // >&
+    LEFT_AND, // <&
+
+    RIGHT_PIP, // >|
+    LEFT_RIGHT // <>
 };
 
 struct ast_list
 {
     size_t size;
     size_t capacity;
-    struct ast **cmd_if;//changer plus tard
+    struct ast **cmd_if; // changer plus tard
 };
 
 struct ast_cmd
@@ -108,6 +113,18 @@ struct ast_pipe
     struct ast *right;
 };
 
+struct ast_func
+{
+    struct ast *func;
+    struct ast_list *redir;
+    char *name;
+};
+
+struct ast_subshell
+{
+    struct ast *sub;
+};
+
 union ast_union
 {
     struct ast_cmd *ast_cmd;
@@ -124,6 +141,9 @@ union ast_union
 
     struct ast_redir *ast_redir;
     struct ast_pipe *ast_pipe;
+
+    struct ast_func *ast_func;
+    struct ast_subshell *ast_subshell;
 };
 
 struct ast

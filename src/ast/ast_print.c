@@ -15,6 +15,8 @@ static void print_or(struct ast *ast, int tab);
 static void print_not(struct ast *ast, int tab);
 static void print_redirect(struct ast *ast);
 static void print_pipe(struct ast *ast, int tab);
+static void print_function(struct ast *ast, int tab);
+static void print_subshell(struct ast *ast, int tab);
 
 static void print_tab(int tab)
 {
@@ -32,7 +34,7 @@ void ugly_print(struct ast *ast, int tab)
         print_while(ast, tab);
     else if (ast->type == AST_FOR)
         print_for(ast, tab);
-    else if(ast->type == AST_UNTIL)
+    else if (ast->type == AST_UNTIL)
         print_until(ast, tab);
     else if (ast->type == AST_LIST)
         print_list(ast, tab);
@@ -48,6 +50,10 @@ void ugly_print(struct ast *ast, int tab)
         print_pipe(ast, tab);
     else if (ast->type == AST_NOT)
         print_not(ast, tab);
+    else if (ast->type == AST_FUNC)
+        print_function(ast, tab);
+    else if (ast->type == AST_SUBSHELL)
+        print_subshell(ast, tab);
 }
 
 static void print_if(struct ast *ast, int tab)
@@ -58,13 +64,11 @@ static void print_if(struct ast *ast, int tab)
     print_tab(tab);
     printf("THEN:\n");
     ugly_print(ast->data->ast_if->then, tab + 1);
-    printf("\n");
     if (ast->data->ast_if->else_body)
     {
         print_tab(tab);
         printf("ELSE:\n");
         ugly_print(ast->data->ast_if->else_body, tab + 1);
-        printf("\n");
     }
 }
 
@@ -111,9 +115,7 @@ static void print_for(struct ast *ast, int tab)
         printf(" %s", ast->data->ast_for->arg->data[i]);
     printf(":\n");
     ugly_print(ast->data->ast_for->for_list, tab + 1);
-    printf("\n");
     print_list2(ast->data->ast_for->redir, tab + 1);
-    printf("\n");
 }
 
 static void print_while(struct ast *ast, int tab)
@@ -124,9 +126,7 @@ static void print_while(struct ast *ast, int tab)
     print_tab(tab);
     printf("DO:\n");
     ugly_print(ast->data->ast_while->while_body, tab + 1);
-    printf("\n");
     print_list2(ast->data->ast_while->redir, tab + 1);
-    printf("\n");
 }
 
 static void print_until(struct ast *ast, int tab)
@@ -137,14 +137,12 @@ static void print_until(struct ast *ast, int tab)
     print_tab(tab);
     printf("DO:\n");
     ugly_print(ast->data->ast_until->until_body, tab + 1);
-    printf("\n");
     print_list2(ast->data->ast_until->redir, tab + 1);
-    printf("\n");
 }
 
 static void print_and(struct ast *ast, int tab)
 {
-    //ugly_print(ast->data->ast_and->left, tab);
+    // ugly_print(ast->data->ast_and->left, tab);
     print_tab(tab + 1);
     printf(" &&\n");
     ugly_print(ast->data->ast_and->left, tab + 1);
@@ -153,7 +151,7 @@ static void print_and(struct ast *ast, int tab)
 
 static void print_or(struct ast *ast, int tab)
 {
-    //ugly_print(ast->data->ast_or->left, tab);
+    // ugly_print(ast->data->ast_or->left, tab);
     print_tab(tab + 1);
     printf(" ||\n");
     ugly_print(ast->data->ast_or->left, tab + 1);
@@ -183,7 +181,7 @@ static void print_redirect(struct ast *ast)
     else if (ast->data->ast_redir->type == LEFT_AND)
         printf("<& "); //<&
     else if (ast->data->ast_redir->type == RIGHT_PIP)
-        printf(">| ");  //>|
+        printf(">| "); //>|
     else if (ast->data->ast_redir->type == LEFT_RIGHT)
         printf("<> "); //<>
     if (ast->data->ast_redir->exit_file)
@@ -192,11 +190,26 @@ static void print_redirect(struct ast *ast)
 
 static void print_pipe(struct ast *ast, int tab)
 {
-    //ugly_print(ast->data->ast_pipe->left, tab + 1);
+    // ugly_print(ast->data->ast_pipe->left, tab + 1);
     print_tab(tab + 1);
     printf(" |\n");
     ugly_print(ast->data->ast_pipe->left, tab + 1);
     ugly_print(ast->data->ast_pipe->right, tab + 1);
+}
+
+static void print_function(struct ast *ast, int tab)
+{
+    print_tab(tab);
+    printf(" FUNC %s :\n", ast->data->ast_func->name);
+    ugly_print(ast->data->ast_func->func, tab + 1);
+    print_list2(ast->data->ast_func->redir, tab + 1);
+}
+
+static void print_subshell(struct ast *ast, int tab)
+{
+    print_tab(tab);
+    printf(" SUBSHELL :\n");
+    ugly_print(ast->data->ast_subshell->sub, tab + 1);
 }
 
 // ADD NEW AST PRINT HERE

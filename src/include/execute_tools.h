@@ -1,17 +1,11 @@
 #ifndef EXECUTE_TOOLS_H
 #define EXECUTE_TOOLS_H
 
+#include <stddef.h>
+
 #include "ast.h"
-#include "vector.h"
 
-void split_and_append(struct vector **v, char *s);
-void split_vector(int *marker, struct ast *ast);
-
-void split_quote_at(struct vector **v);
-void split_quote_star(struct vector **v);
-void split_no_quote(struct vector **v);
-
-int is_char_variable(char c);
-void expandinho(char **str, int return_value, int *marker, size_t ind_marker);
+int expandinho_phoenix(struct ast *ast, int return_value);
+char *expandinho_phoenix_junior(char *s, int return_value);
 
 #endif /* EXECUTE_TOOLS_H */

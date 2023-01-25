@@ -1,7 +1,7 @@
+#include "parser_cmd_sp.h"
+
 #include <stdlib.h>
 #include <string.h>
-
-#include "parser.h"
 
 struct ast *simple_command(struct lexer *lex);
 static int element(struct lexer *lex, struct ast_cmd *cmd);
@@ -14,8 +14,8 @@ int is_shell_command(struct lexer *lex)
     char *data = lex->tok->data;
     return strcmp("if", data) == 0 || strcmp("else", data) == 0
         || strcmp("elif", data) == 0 || strcmp("then", data) == 0
-        || strcmp("fi", data) == 0 || strcmp("while", data) == 0 
-        || strcmp("until", data) == 0 || strcmp("for", data) == 0 
+        || strcmp("fi", data) == 0 || strcmp("while", data) == 0
+        || strcmp("until", data) == 0 || strcmp("for", data) == 0
         || strcmp("do", data) == 0 || strcmp("done", data) == 0;
 }
 
@@ -28,24 +28,29 @@ struct ast *simple_command(struct lexer *lex)
     if (pref)
     {
         vector_append(cmd->arg, NULL);
-        return convert_node_ast(AST_CMD, cmd);        
+        return convert_node_ast(AST_CMD, cmd);
     }
     peek_token(lex);
     if (lex->tok->type == END_OF_FILE)
-        //|| lex->tok->type == SEMICOLON)
     {
-        //if (lex->tok->type == END_OF_FILE)
         vector_append(cmd->arg, strdup(""));
         vector_append(cmd->arg, NULL);
         return convert_node_ast(AST_CMD, cmd);
     }
 
-    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD) || is_shell_command(lex))
+    if ((lex->tok->type != WORD && lex->tok->type != ASSIGNMENT_WORD)
+        || is_shell_command(lex))
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
     }
-    
+
+    peek_token(lex);
+    if (lex->tok2 && lex->tok2->type == OPERATOR && strcmp(lex->tok2->data, "(") == 0)
+    {
+        free_node(convert_node_ast(AST_CMD, cmd));
+        return NULL;
+    }
     char *word = strdup(lex->tok->data);
     vector_append(cmd->arg, word);
     free_token(lex);

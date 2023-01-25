@@ -4,12 +4,28 @@
 #include <string.h>
 
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr);
-static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr, char *prev);
+static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr,
+                           char *prev);
 
 void peek_token(struct lexer *lex)
 {
-    if (!lex->tok)
+    if (!lex->tok && lex->tok2)
+    {
+        lex->tok = lex->tok2;
+        lex->tok2 = NULL;
+    }
+    else if (!lex->tok)
         next_token(lex);
+    else if (lex->tok && lex->tok->type != END_OF_FILE
+             && lex->tok->type != NEWLINE && !lex->tok2)
+    //case of full sfirst register token we add to the second token register a token
+    {
+        struct token *tokk = lex->tok;
+        lex->tok = NULL;
+        next_token(lex);
+        lex->tok2 = lex->tok;
+        lex->tok = tokk;
+    }
 }
 
 void free_token(struct lexer *lex)
@@ -17,6 +33,11 @@ void free_token(struct lexer *lex)
     free(lex->tok->data);
     free(lex->tok);
     lex->tok = NULL;
+    if (lex->tok2)
+    {
+        lex->tok = lex->tok2;
+        lex->tok2 = NULL;
+    }
 }
 
 struct lexer *init_lexer(FILE *file)
@@ -27,12 +48,15 @@ struct lexer *init_lexer(FILE *file)
     lex->flags = calloc(1, sizeof(struct lex_flags));
     lex->filename = file;
     lex->tok = NULL;
+    lex->tok2 = NULL;
     lex->error = 0;
     return lex;
 }
 
 void free_lexer(struct lexer *lex)
 {
+    if (lex->tok != NULL)
+        free_token(lex);
     if (lex->tok != NULL)
         free_token(lex);
     free(lex->flags);
@@ -72,7 +96,7 @@ static void quote(struct lexer *lex, struct token *tok, char curr)
     {
         tok->data[f->i] = curr;
         curr = fgetc(lex->filename);
-        if (curr == EOF)
+        if (curr == EOF || curr == '\'')
         {
             ungetc(curr, lex->filename);
             return;
@@ -121,21 +145,39 @@ static void comments(struct lexer *lex, struct token *tok)
 static void rule_5(struct lexer *lex, struct token *tok, char curr)
 {
     struct lex_flags *f = lex->flags;
-    if (f->in_acollade)
+    if (f->in_parenthese)
     {
         tok->data[f->i] = curr;
-        if (curr == '}')
-            f->in_acollade = 1;
+        if (curr == ')' && !f->in_dquote && !f->in_squote)
+            f->in_parenthese--;
+        else if (curr == '(' && !f->in_dquote && !f->in_squote)
+            f->in_parenthese++;
     }
-    else
+    else if (f->in_acollade)
     {
         tok->data[f->i] = curr;
+        if (curr == '}' && !f->in_dquote && !f->in_squote)
+            f->in_acollade--;
+        else if (curr == '{' && !f->in_dquote && !f->in_squote)
+            f->in_acollade++;
+    }
+    else // curr == '$' or '#'
+    {
+        tok->data[f->i] = curr;
+        if (curr == '#')
+            return;
         curr = fgetc(lex->filename);
-        if (curr == '{')
+        if (curr == '(')
         {
             f->i++;
             tok->data[f->i] = curr;
-            f->in_acollade = 1;
+            f->in_parenthese++;
+        }
+        else if (curr == '{')
+        {
+            f->i++;
+            tok->data[f->i] = curr;
+            f->in_acollade++;
         }
         else
             ungetc(curr, lex->filename);
@@ -190,7 +232,7 @@ void next_token(struct lexer *lex)
  */
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
 {
-    struct lex_flags *f = lex->flags; 
+    struct lex_flags *f = lex->flags;
     while (1)
     {
         // previous character
@@ -200,7 +242,11 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
         if (curr == EOF)
         {
             if (is_invalid(lex->flags))
+            {
                 lex->error = 2;
+                fprintf(stderr, "%s\n",
+                        "ERROR LEXER : LACK OF ENDING \", \' or }");
+            }
             ungetc(curr, lex->filename);
             break;
         }
@@ -216,49 +262,53 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
     return 0;
 }
 
-static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *p)
+static int next_token_dog(struct lexer *lex, char *c)
 {
-    struct lex_flags *f = lex->flags; 
-    
-    if (!f->in_squote && !f->in_dquote && f->was_operator)
+    ungetc(*c, lex->filename);
+    return 1;
+}
+
+static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
+                           char *p)
+{
+    struct lex_flags *f = lex->flags;
+
+    if (!f->in_squote && !f->in_dquote && !f->in_acollade && !f->in_parenthese
+        && f->was_operator)
     {
-        if (is_operator(*p, *c))
-        {
-            tok->data[f->i] = *c;
-            f->i++;
-        }
-        else
-            ungetc(*c, lex->filename);
+        if (!is_operator(*p, *c))
+            return next_token_dog(lex, c);
+        tok->data[f->i] = *c;
+        f->i++;
         return 1;
     }
 
-    else if (f->in_squote || f->in_dquote || *c == '\''
-            || *c == '\"' || *c == '\\')
+    else if (f->in_squote || f->in_dquote || *c == '\'' || *c == '\"'
+             || *c == '\\')
         quote(lex, tok, *c);
 
-    else if (f->in_acollade || *c == '$') //|| curr == '`')
+    else if (f->in_acollade || f->in_parenthese || *c == '$'
+             || (*p == '$' && *c == '#'))
         rule_5(lex, tok, *c);
 
-    else if (!f->in_squote && !f->in_dquote && start_operator(*c))
+    else if (!f->in_squote && !f->in_dquote && !f->in_acollade
+             && !f->in_parenthese && start_operator(*c))
     {
-        if (is_number(tok->data))
+        if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
-        ungetc(*c, lex->filename);
-        return 1;
+        return next_token_dog(lex, c);
     }
 
-    else if (*c == ';' || *c == '\n')
-    {
-        ungetc(*c, lex->filename);
-        return 1;
-    }
-    else if (my_isspace(*c))
+    else if (!f->in_parenthese && (*c == ';' || *c == '\n'))
+        return next_token_dog(lex, c);
+
+    else if (!f->in_parenthese && my_isspace(*c))
         return 1; // RETURN TOKEN WITHOUT BLANK
 
-    else if (f->is_word)
+    else if (!f->in_parenthese && f->is_word)
         tok->data[f->i] = *c;
 
-    else if (*c == '#')
+    else if (!f->in_parenthese && *c == '#')
     {
         comments(lex, tok);
         return 2;
@@ -272,35 +322,3 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c, char *
     f->i++;
     return 0;
 }
-
-/*
-int main(int argc, char *argv[])
-{
-    if (argc != 2)
-        printf("sale merde\n");
-    FILE *ipf = fopen(argv[1], "r");
-    if (!ipf)
-        return -1;
-
-    struct lexer *lex = init_lexer(ipf);
-    next_token(lex);
-    while(1)
-    {
-        if (lex->tok->type == END_OF_FILE)
-        {
-            printf("Token : EOF\t\tType : %d\n", lex->tok->type);
-            break;
-        }
-        if (lex->tok->data[0] == '\n')
-            printf("Token : \\n\t\tType : %d\n", lex->tok->type);
-        else
-            printf("Token : %s\t\tType : %d\n", lex->tok->data,
-                   lex->tok->type);
-        free(lex->tok->data);
-        free(lex->tok);
-        lex->tok = NULL;
-        next_token(lex);
-    }
-    free_lexer(lex);
-    fclose(ipf);
-}*/

@@ -1,4 +1,4 @@
-#ifndef REDIRECTION_H 
+#ifndef REDIRECTION_H
 #define REDIRECTION_H
 
 #include "ast.h"

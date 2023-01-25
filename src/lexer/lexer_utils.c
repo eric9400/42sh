@@ -6,7 +6,8 @@
 
 int is_invalid(struct lex_flags *flags)
 {
-    return flags->in_acollade || flags->in_squote || flags->in_dquote;
+    return flags->in_acollade || flags->in_parenthese || flags->in_squote
+        || flags->in_dquote;
 }
 
 struct lex_flags *init_lex_flags(int len)
@@ -14,14 +15,17 @@ struct lex_flags *init_lex_flags(int len)
     struct lex_flags *flags = calloc(1, sizeof(struct lex_flags));
     flags->i = 0;
     flags->len = len;
-    flags->is_word = 0;
+
     flags->in_squote = 0;
     flags->in_dquote = 0;
-    flags->was_operator = 0;
-    flags->in_variable = 0;
     flags->in_acollade = 0;
+    flags->in_parenthese = 0;
+
+    flags->is_word = 0;
+    flags->was_operator = 0;
     flags->is_ionumber = 0;
     flags->found_backslash = 0;
+    flags->in_parenthese = 0;
     return flags;
 }
 
@@ -33,10 +37,10 @@ void reinit_lex_flags(struct lex_flags *flags, int len)
     flags->in_squote = 0;
     flags->in_dquote = 0;
     flags->was_operator = 0;
-    flags->in_variable = 0;
     flags->in_acollade = 0;
     flags->is_ionumber = 0;
     flags->found_backslash = 0;
+    flags->in_parenthese = 0;
 }
 
 static int is_name(char *str, size_t size)
@@ -47,8 +51,7 @@ static int is_name(char *str, size_t size)
     for (size_t i = 1; i < size; i++)
     {
         if (str[0] != '_' && (str[0] < 'a' || str[0] > 'z')
-            && (str[0] < 'A' || str[0] > 'Z')
-            && (str[0] < '0' || str[0] > '9'))
+            && (str[0] < 'A' || str[0] > 'Z') && (str[0] < '0' || str[0] > '9'))
             return 0;
     }
     return 1;
@@ -111,7 +114,8 @@ int is_operator(char p, char c)
 
 int start_operator(char c)
 {
-    return c == '!' || c == '|' || c == '&' || c == '>' || c == '<';
+    return c == '!' || c == '|' || c == '&' || c == '>' || c == '<' || c == '{'
+        || c == '}' || c == '(' || c == ')';
 }
 
 int is_number(char *str)

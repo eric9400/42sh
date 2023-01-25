@@ -1,110 +1,114 @@
+#include "parse_execute_loop.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "ast.h"
+#include "builtin.h"
 #include "execute.h"
+#include "hash_map.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
-#include "hash_map.h"
 
-static struct flags *global_flags = NULL;
+struct toFree *tofree = NULL;
 
-static int freeAll(FILE *file, struct lexer *lex, struct ast *ast, int error)
+int freeAll(int error)
 {
-    free_lexer(lex);
-    free_node(ast);
-    fclose(file);
-    free(global_flags);
-    hash_map_free(hashmap);
+    free_lexer(tofree->lex);
+    free_node(tofree->ast);
+    fclose(tofree->file);
+    if (!is_in_dot)
+    {
+        hash_map_free(hashmap);
+        free(tofree->global_flags);
+        int i = 0;
+        while (i < 10)
+        {
+            if (tofree->env_variables[i] != NULL)
+                free(tofree->env_variables[i]);
+            i++;
+        }
+        free(tofree->env_variables);
+        free(tofree);
+    }
     return error;
 }
 
 void hash_map_init_basic(void)
 {
-    char pwd[1000];
-    getcwd(pwd, sizeof(pwd));
-    hash_map_insert(hashmap, "PWD", pwd);
-    hash_map_insert(hashmap, "OLDPWD", pwd);
-    hash_map_insert(hashmap, "IFS", " \t\n");
+    if (!is_in_dot)
+    {
+        char pwd[1000];
+        getcwd(pwd, sizeof(pwd));
+        hash_map_insert(hashmap, "PWD", pwd);
+        hash_map_insert(hashmap, "OLDPWD", pwd);
+        hash_map_insert(hashmap, "IFS", " \t\n");
+    }
 }
 
-int parse_execute_loop(FILE *file, struct flags *flags)
+// 36 lines
+int parse_execute_loop(FILE *f, struct flags *flags)
 {
-    global_flags = flags;
-    struct lexer *lex = init_lexer(file);
-    struct ast *ast = NULL;
+    if (!is_in_dot)
+        tofree = calloc(1, sizeof(struct toFree));
+    tofree->global_flags = flags;
+    tofree->lex = init_lexer(f);
+    tofree->ast = NULL;
+    tofree->file = f;
+    tofree->env_variables = calloc(20, sizeof(char *));
     int return_value = 0;
     hash_map_init_basic();
-    /*
-    if (file == stdin)
-        printf("42sh$ ");
-    */
     // RAJOUTER UN ETAT D'AST POUR QUAND
     while (1)
     {
-        ast = input(lex);
-        if (lex->error == 0 && !ast)
+        tofree->ast = input(tofree->lex);
+        // case when error during parsing OR eof
+        if (tofree->lex->error || (tofree->lex->error == 0 && !tofree->ast))
             break;
-        if (lex->error)
+        if (tofree->lex->error)
         {
-            /*
-            if (file == stdin)
-                fprintf(stderr, "Parsing error TO COMPLETE\n");
-            else
-                return freeAll(file, lex, ast, lex->error);
-            */
-            if (file != stdin)
-                return freeAll(file, lex, ast, lex->error);
+            if (tofree->file != stdin)
+                return freeAll(tofree->lex->error);
         }
-        else if (!ast && file != stdin)
+        else if (!tofree->ast && tofree->file != stdin)
             break;
         else
         {
             // pretty print
             if (flags->p)
             {
-                ugly_print(ast, 0);
+                ugly_print(tofree->ast, 0);
                 printf("\n");
             }
 
             // ugly print && exit
             if (flags->u)
             {
-                ugly_print(ast, 0);
+                ugly_print(tofree->ast, 0);
                 printf("\n");
                 break;
             }
             // if (ast != SPECIFIC_AST_FOR_END_OF_LINE (FOR EXAMPLE))
-            if (ast->type == AST_CMD
-                && ast->data->ast_cmd->arg->data[0][0] == '\0')
+            if (tofree->ast->type == AST_CMD
+                && tofree->ast->data->ast_cmd->arg->data[0][0] == '\0')
             {
-                free_node(ast);
+                free_node(tofree->ast);
                 continue;
             }
-            return_value = execute(ast, return_value);
+            return_value = execute(tofree->ast, return_value);
             if (return_value)
             {
-                /*
-                if (file == stdin)
-                    fprintf(stderr, "Execute error TO COMPLETE\n");
-                else
-                    return freeAll(file, lex, ast, lex->error);
-                */
-                if (file != stdin)
-                    return freeAll(file, lex, ast, return_value);
+                if (tofree->file != stdin)
+                    return freeAll(return_value);
             }
         }
-        free_node(ast);
-        /*
-        if (file == stdin)
-            printf("42sh$ ");
-        */
+        free_node(tofree->ast);
         fflush(stdout);
     }
-    if (lex->error)
-        return freeAll(file, lex, ast, lex->error);
-    return freeAll(file, lex, ast, return_value);
+    if (tofree->lex->error)
+        return freeAll(tofree->lex->error);
+    return freeAll(return_value);
 }

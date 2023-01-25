@@ -1,1 +1,0 @@
-echo "salut a tous $@!"

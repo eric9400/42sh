@@ -14,8 +14,8 @@ struct lex_flags
     int in_squote;
     int in_dquote;
     int was_operator;
-    int in_variable;
     int in_acollade;
+    int in_parenthese;
     int is_ionumber;
     int found_backslash;
 };
@@ -31,4 +31,4 @@ int is_number(char *str);
 int my_isspace(char c);
 int is_assign_word(char *str);
 
-#endif /*LEXER_UTILS_H*/
+#endif /* LEXER_UTILS_H */
