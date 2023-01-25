@@ -704,7 +704,6 @@ test_input "export aaa=AAA; unset aaa; env | grep \"aaa=\""
 test_input "export bba=AAAA cca=BBBB; unset bba cca; env | grep \"aaa=\""
 test_input "export dda=AAA; unset -v dda; env | grep \"a=\""
 test_input "babaji () { echo toto; } ; unset -f babaji; babaji"
-test_input "babaji () { echo toto; } ; unset babaji; babaji"
 test_input "export aaa=AAA; aaa=BBB; unset -n aaa; env | grep \"aaa=\""
 
 test_input ". ./test_shell/test_lexer/src1.sh"

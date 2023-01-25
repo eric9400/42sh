@@ -115,20 +115,29 @@ static void free_subshell(struct ast *ast)
     free(ast->data->ast_subshell);
 }
 
-void free_func(struct ast *ast)
+void free_func(struct ast *ast, int force)
 {
     free_node(ast->data->ast_func->func); 
     free_list2(ast->data->ast_func->redir);
     free(ast->data->ast_func->name);
     free(ast->data->ast_func);
     free(ast->data);
-    free(ast);
+    ast->data = NULL;
+    if (force)
+        free_node(ast);
+    //free(ast)
 }
 
 void free_node(struct ast *ast)
 {
-    if (!ast || ast->type == AST_FUNC)
+    if (!ast)
         return;
+    if (ast->type == AST_FUNC)
+    {
+        if (ast->data == NULL)
+            free(ast);
+        return;
+    }
     if (ast->type == AST_IF)
         free_if(ast);
     else if (ast->type == AST_WHILE)
