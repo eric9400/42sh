@@ -303,13 +303,34 @@ static int func_cmd(struct ast *ast, int return_value)
         }
         if (errno == ENOEXEC)
             exit(126);
-        exit(2);
+        
+		exit(2);
     }
     destroy_stock_fd(stock_fd);
     int status;
     waitpid(pid, &status, 0);
     swap_vector(ast, &vect_copy);
     return WEXITSTATUS(status);
+}
+
+
+static int func_sub(struct ast *ast, int return_value)
+{
+	int status;
+
+	pid_t pid = fork();
+
+	// in parent
+	if (pid != 0)
+	{
+		waitpid(pid, &status, 0);
+		return WEXITSTATUS(status);
+	}
+	else
+	{
+		int err = execute(ast->data->ast_subshell->sub, return_value);
+		exit(err);
+	}
 }
 
 /*
@@ -343,6 +364,8 @@ int execute(struct ast *ast, int return_value)
         return func_not(ast, return_value);
     case AST_PIPE:
         return func_pipe(ast, return_value);
+	case AST_SUBSHELL:
+		return func_sub(ast, return_value);
     default:
         return 19;
         // ADD NEW AST EXECUTE HERE
