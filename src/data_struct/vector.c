@@ -103,7 +103,10 @@ struct vector *vector_copy(struct vector *v, int is_for)
     res->size = v->size;
     res->capacity = v->capacity;
     res->data = malloc(sizeof(char *) * v->capacity);
-    for (size_t i = 0; i < v->size - 1; i++)
+    int bound = v->size;
+    if (!is_for)
+        bound = v->size - 1;
+    for (int i = 0; i < bound; i++)
         res->data[i] = strdup(v->data[i]);
     if (!is_for)
         res->data[v->size - 1] = NULL;
