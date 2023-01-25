@@ -97,14 +97,20 @@ struct vector *vector_reset(struct vector *v, size_t n)
     return v;
 }
 
-struct vector *vector_copy(struct vector *v)
+struct vector *vector_copy(struct vector *v, int is_for)
 {
     struct vector *res = malloc(sizeof(struct vector));
     res->size = v->size;
     res->capacity = v->capacity;
     res->data = malloc(sizeof(char *) * v->capacity);
-    for (size_t i = 0; i < v->size - 1; i++)
+    int bound = v->size;
+    if (!is_for)
+        bound = v->size - 1;
+    for (int i = 0; i < bound; i++)
         res->data[i] = strdup(v->data[i]);
-    res->data[v->size - 1] = NULL;
+    if (!is_for)
+        res->data[v->size - 1] = NULL;
+    else
+        res->data[v->size] = NULL;
     return res;
 }

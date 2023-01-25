@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "ast.h"
 #include "builtin.h"
 #include "execute.h"
@@ -22,13 +21,14 @@ int freeAll(int error)
     fclose(tofree->file);
     if (!is_in_dot)
     {
-        hash_map_free(hashmap);
+        hash_map_free(hashM->hashmap);
+        f_hash_map_free(hashM->fhashmap);
+        free(hashM);
         free(tofree->global_flags);
         int i = 0;
-        while (i < 10)
+        while (tofree->env_variables[i] != NULL)
         {
-            if (tofree->env_variables[i] != NULL)
-                free(tofree->env_variables[i]);
+            free(tofree->env_variables[i]);
             i++;
         }
         free(tofree->env_variables);
@@ -43,9 +43,13 @@ void hash_map_init_basic(void)
     {
         char pwd[1000];
         getcwd(pwd, sizeof(pwd));
-        hash_map_insert(hashmap, "PWD", pwd);
-        hash_map_insert(hashmap, "OLDPWD", pwd);
-        hash_map_insert(hashmap, "IFS", " \t\n");
+        char *old = getenv("OLDPWD");
+        hash_map_insert(hashM->hashmap, "PWD", pwd);
+        if (old != NULL)
+            hash_map_insert(hashM->hashmap, "OLDPWD", old);
+        else
+            hash_map_insert(hashM->hashmap, "OLDPWD", pwd);
+        hash_map_insert(hashM->hashmap, "IFS", " \t\n");
     }
 }
 
@@ -58,7 +62,8 @@ int parse_execute_loop(FILE *f, struct flags *flags)
     tofree->lex = init_lexer(f);
     tofree->ast = NULL;
     tofree->file = f;
-    tofree->env_variables = calloc(20, sizeof(char *));
+    if (!is_in_dot)
+        tofree->env_variables = calloc(20, sizeof(char *));
     int return_value = 0;
     hash_map_init_basic();
     // RAJOUTER UN ETAT D'AST POUR QUAND

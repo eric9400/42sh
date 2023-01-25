@@ -1,0 +1,12 @@
+babaji ()
+{
+    echo toto
+    (for i in "$@"; do echo $i; done)
+    echo tata
+}
+for k in "$@"; do
+    echo $k
+done
+babaji b
+echo GDDN
+echo tonton

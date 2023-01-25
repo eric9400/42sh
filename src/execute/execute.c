@@ -13,6 +13,7 @@
 #include "lexer.h"
 #include "pipe.h"
 #include "redirection.h"
+#include "parse_execute_loop.h"
 
 static char buf[] = "     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣾⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀\n\
@@ -41,6 +42,7 @@ static int func_for(struct ast *ast, int return_value);
 static int func_and(struct ast *ast, int return_value);
 static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
+static void swap_vector(struct ast *ast, struct vector **vect_copy);
 
 struct c_or_b wat = { 0, 0, 0, -1 };
 
@@ -117,14 +119,13 @@ static int func_until(struct ast *ast, int return_value)
 static int func_for(struct ast *ast, int return_value)
 {
     int res = 0;
-    //if (expandinho_phoenix(ast, return_value) == 1)
-    //    return 1;
+    struct vector *vect_copy = vector_copy(ast->data->ast_for->arg, 1);
     expandinho_phoenix(ast, return_value);
     wat.is_in_loop = 1;
     wat.loop_deep++;
     for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)
     {
-        hash_map_insert(hashmap, ast->data->ast_for->var,
+        hash_map_insert(hashM->hashmap, ast->data->ast_for->var,
                         ast->data->ast_for->arg->data[i]);
         res = execute(ast->data->ast_for->for_list, return_value);
         if (wat.is_in_loop && wat.is_break != -1)
@@ -146,6 +147,8 @@ static int func_for(struct ast *ast, int return_value)
                 break;
         }
     }
+    hash_map_remove(hashM->hashmap, ast->data->ast_for->var);
+    swap_vector(ast, &vect_copy);
     if (wat.is_in_loop)
     {
         wat.cbdeep--;
@@ -206,8 +209,7 @@ static int func_list(struct ast *ast, int return_value)
     return execute(ast->data->ast_list->cmd_if[size], return_value);
 }
 
-static struct stock_fd *func_redir(struct ast_list *redir, int return_value,
-                                   int *error)
+struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error)
 {
     struct stock_fd *stock_fd = NULL;
     int res = 0;
@@ -260,10 +262,19 @@ static struct stock_fd *func_redir(struct ast_list *redir, int return_value,
 
 static void swap_vector(struct ast *ast, struct vector **vect_copy)
 {
-    vector_destroy(ast->data->ast_cmd->arg);
-    ast->data->ast_cmd->arg = *vect_copy;
+    if (ast->type == AST_CMD)
+    {
+        vector_destroy(ast->data->ast_cmd->arg);
+        ast->data->ast_cmd->arg = *vect_copy;
+    }
+    else if (ast->type == AST_FOR)
+    {
+        vector_destroy(ast->data->ast_for->arg);
+        ast->data->ast_for->arg = *vect_copy;
+    }
 }
 
+//36 lines
 static int func_cmd(struct ast *ast, int return_value)
 {
     if (wat.is_in_loop && wat.is_break != -1)
@@ -273,7 +284,7 @@ static int func_cmd(struct ast *ast, int return_value)
         func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
     if (stock_fd == NULL && error_redir != 0)
         return error_redir;
-    struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg);
+    struct vector *vect_copy = vector_copy(ast->data->ast_cmd->arg, 0);
     if (expandinho_phoenix(ast, return_value) == 1)
     {
         destroy_stock_fd(stock_fd);
@@ -286,6 +297,13 @@ static int func_cmd(struct ast *ast, int return_value)
     {
         destroy_stock_fd(stock_fd);
         swap_vector(ast, &vect_copy);
+        return code;
+    }
+    code = check_function(ast->data->ast_cmd->arg->data, return_value);
+    if (code != -1)
+    {
+        destroy_stock_fd(stock_fd);
+        vector_destroy(vect_copy);
         return code;
     }
     int pid = fork();
@@ -316,21 +334,17 @@ static int func_cmd(struct ast *ast, int return_value)
 
 static int func_sub(struct ast *ast, int return_value)
 {
-	int status;
-
 	pid_t pid = fork();
-
-	// in parent
-	if (pid != 0)
-	{
-		waitpid(pid, &status, 0);
-		return WEXITSTATUS(status);
-	}
-	else
+	
+    if (!pid)
 	{
 		int err = execute(ast->data->ast_subshell->sub, return_value);
 		exit(err);
 	}
+    int status;
+    waitpid(pid, &status, 0);
+    return WEXITSTATUS(status);
+    //return 0;
 }
 
 /*
@@ -364,6 +378,9 @@ int execute(struct ast *ast, int return_value)
         return func_not(ast, return_value);
     case AST_PIPE:
         return func_pipe(ast, return_value);
+    case AST_FUNC:
+        f_hash_map_insert(hashM->fhashmap, ast->data->ast_func->name, ast);
+        return 0;
 	case AST_SUBSHELL:
 		return func_sub(ast, return_value);
     default:

@@ -17,6 +17,6 @@ struct vector *vector_resize(struct vector *v, size_t n);
 struct vector *vector_append(struct vector *v, char *s);
 void vector_print(const struct vector *v);
 struct vector *vector_reset(struct vector *v, size_t n);
-struct vector *vector_copy(struct vector *v);
+struct vector *vector_copy(struct vector *v, int is_for);
 
 #endif /* VECTOR_H */

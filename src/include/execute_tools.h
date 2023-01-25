@@ -7,5 +7,6 @@
 
 int expandinho_phoenix(struct ast *ast, int return_value);
 char *expandinho_phoenix_junior(char *s, int return_value);
+int check_function(char **str, int return_value);
 
 #endif /* EXECUTE_TOOLS_H */

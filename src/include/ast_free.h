@@ -5,5 +5,6 @@
 #include "vector.h"
 
 void free_node(struct ast *ast);
+void free_func(struct ast *ast);
 
 #endif /* AST_FREE_H */

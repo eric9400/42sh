@@ -12,6 +12,9 @@
 #include "hash_map.h"
 #include "my_string.h"
 #include "vector.h"
+#include "redirection.h"
+#include "execute.h"
+#include "builtin.h"
 
 static int in_s_quotes = 0;
 static int in_d_quotes = 0;
@@ -118,7 +121,7 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
             value = expandinho_phoenix_junior(value, return_value);
         }
 	    // a=b
-        hash_map_insert(hashmap, str, value);
+        hash_map_insert(hashM->hashmap, str, value);
         if (need_to_free)
             free(value);
         destroy_string(s);
@@ -274,4 +277,48 @@ char *expandinho_phoenix_junior(char *s, int return_value)
     char *return_str = expandinho_junior_2(new_str);
     phoenix_destroyer(str, new_str, NULL);
     return return_str;
+}
+
+void print_hash_map(void)
+{
+    int size = hashM->hashmap->size;
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ->", i);
+        if (hashM->hashmap->data != NULL)
+        {
+            struct pair_list *curr = hashM->hashmap->data[i];
+            while (curr)
+            {
+                printf("( %s, %s) ", curr->key, curr->value);
+                curr = curr->next;
+            }
+        }
+        printf("\n");
+    }
+}
+
+int check_function(char **str, int return_value)
+{
+    struct ast *ast = f_hash_map_get(hashM->fhashmap, str[0]);
+    if (ast == NULL) //if this is not a function in the hash_map
+        return -1;
+   
+    int error_redir = 0;
+    struct stock_fd *stock_fd =
+        func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
+    if (stock_fd == NULL && error_redir != 0)
+        return error_redir;
+    char **old_hashmap = copy_values();
+    int i = 1;
+    while (str[i] != NULL)
+    {
+        char value[100] = { 0 };
+        sprintf(value, "%d", i);
+        hash_map_insert(hashM->hashmap, value, str[i]);
+        i++;
+    }
+    int res = execute(ast->data->ast_func->func, return_value);
+    hash_map_restore(old_hashmap);
+    return res;
 }
