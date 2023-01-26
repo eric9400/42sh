@@ -130,6 +130,12 @@ void export_insert(char *s)
     putenv(result);
 }
 
+static void ernest_le_peureux(char *str, int *value)
+{
+    *value = 1;
+    free(str);
+}
+
 // 40 lines
 static int export(char **s)
 {
@@ -181,10 +187,7 @@ static int export(char **s)
                 free(var);
             }
             else
-            {
-                returnvalue = 1;
-                free(var);
-            }
+                ernest_le_peureux(var, &returnvalue);
         }
         k++;
     }

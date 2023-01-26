@@ -51,7 +51,7 @@ void hash_map_init_basic(void)
             hash_map_insert(hashM->hashmap, "OLDPWD", old);
         else
             hash_map_insert(hashM->hashmap, "OLDPWD", pwd);
-        hash_map_insert(hashM->hashmap, "IFS", "");
+        hash_map_insert(hashM->hashmap, "IFS", " \t\n");
     }
 }
 
