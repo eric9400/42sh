@@ -1,0 +1,6 @@
+babaji ()
+{
+    echo $1
+}
+
+babaji 'SUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU'

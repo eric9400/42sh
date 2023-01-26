@@ -1,0 +1,4 @@
+babaji ()
+{
+    echo "toto"
+}
