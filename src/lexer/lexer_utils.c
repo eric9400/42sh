@@ -115,12 +115,6 @@ int is_operator(char p, char c)
         || (p == '<' && c == '>');
 }
 
-int start_operator(char c)
-{
-    return c == '!' || c == '|' || c == '&' || c == '>' || c == '<' || c == '{'
-        || c == '}' || c == '(' || c == ')';
-}
-
 int is_number(char *str)
 {
     int is_num = 1;

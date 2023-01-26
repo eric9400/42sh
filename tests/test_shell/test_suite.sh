@@ -804,11 +804,13 @@ ecco
 ecco $blue " INPUTE"
 
 test_input "{ echo foo; echo bar; echo coucou; }"
+test_input "{ echo toto;}"
 test_input "{ echo foo; }"
 test_input "{ \necho foo; \necho bar;\n echo tutu\n; }"
 test_input "{ if true; then echo toto; elif false; then echo bar; fi; echo chop; }"
 test_input "{ echo laviedmamere; while false; do echo foo; echo fooooo; echo fooooo; done; echo coucou; }"
-test_input "{echo foo; { echo bar; { echo suuuuu; } }"
+test_input "{ { echo suuuuu; } }"
+test_input "echo foo; { echo bar; { echo suuuuu; } }"
 
 test_input "exit"
 test_input "echo foo; exit"
@@ -859,8 +861,8 @@ test_input "\$(echo foo; echo bar; \$(echo toto;)); ls"
 test_input "\$(\$(\$(\$(\$(\$(\$(echo foo;))))))); echo bar"
 test_input "\$(echo \"je suis pas une parenthese:)\" non plus:\) )"
 test_input "while true; do echo toto; \$(echo dada); break; done"
-test_input "a=5; echo $a; $(a=1000); echo $a"
-test_input "a=5; echo $a; $(a=1000; echo toto); echo $a"
+test_input 'a=5; echo $a; $(a=1000); echo $a'
+test_input 'a=5; echo $a; $(a=1000; echo toto); echo $a'
 
 test_input "(echo toto)"
 test_input "(echo toto; (echo tata))"
@@ -886,6 +888,8 @@ test_error "{{{{{{{{{"
 test_error "echo coucou; echo foo; }"
 test_error "if {echo foo; echo bar; echo tuu; } && true; then echo foooooo; fi"
 test_error "{ echo foo; echo bar; echo coucou }"
+test_error "{echo toto;}"
+test_error "{ echo toto}"
 
 test_error2 "export \$a=AAAAAAAAAAAAAAAAAA"
 
@@ -907,6 +911,7 @@ test_error "((echo tata))))"
 test_error "(echo toto)"
 test_error "echo (echo (echo (echo 4)))"
 test_error "(echo toto)\n echo foo"
+test_input "{echo foo; { echo bar; { echo suuuuu; } }"
 
 #ecco
 #ecco $blue " HARDCORE"
