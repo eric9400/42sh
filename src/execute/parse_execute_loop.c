@@ -4,10 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "ast.h"
 #include "builtin.h"
 #include "execute.h"
 #include "hash_map.h"
+#include "hash_map_global.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"

@@ -1,6 +1,4 @@
-#define _XOPEN_SOURCE 600
-
-#include "hash_map.h"
+#include "f_hash_map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,22 +6,21 @@
 
 #include "ast.h"
 #include "ast_free.h"
-#include "builtin.h"
 #include "hash.h"
 
-struct hash_map *hash_map_init(size_t size)
+struct f_hash_map *f_hash_map_init(size_t size)
 {
-    struct hash_map *hm = malloc(sizeof(struct hash_map));
+    struct f_hash_map *hm = malloc(sizeof(struct f_hash_map));
     if (!hm)
         return NULL;
     hm->size = size;
-    hm->data = calloc(size, sizeof(struct pair_list *));
+    hm->data = calloc(size, sizeof(struct pair_ast *));
     if (!hm->data)
         return NULL;
     return hm;
 }
 
-static struct pair_list *is_key_in(struct pair_list **p, const char *key)
+static struct pair_ast *is_key_in_ast(struct pair_ast **p, const char *key)
 {
     while (*p)
     {
@@ -34,51 +31,40 @@ static struct pair_list *is_key_in(struct pair_list **p, const char *key)
     return NULL;
 }
 
-// 36 lines
-bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
+// 28 lines
+bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key, struct ast *value)
 {
-    // insert in env
-    if (getenv(key))
-    {
-	    char *str = calloc((strlen(key) + strlen(value) + 2), sizeof(char));
-	    str = strcat(str, key);
-	    str = strcat(str, "=");
-	    str = strcat(str, value);
-	    str = strcat(str, "\0");
-	    export_insert(str);
-	    free(str);
-    }
     if (!hash_map || hash_map->size == 0)
         return false;
     size_t i = hash(key) % hash_map->size;
     if (hash_map->data[i] == NULL)
     {
-        struct pair_list *q = malloc(sizeof(struct pair_list));
+        struct pair_ast *q = malloc(sizeof(struct pair_ast));
         if (!q)
             return false;
         q->key = strdup(key);
-        q->value = strdup(value);
+        q->value = value;
         q->next = NULL;
         hash_map->data[i] = q;
     }
     else
     {
-        struct pair_list *cpy = hash_map->data[i];
-        struct pair_list *temp = is_key_in(&hash_map->data[i], key);
+        struct pair_ast *cpy = hash_map->data[i];
+        struct pair_ast *temp = is_key_in_ast(&hash_map->data[i], key);
         if (temp != NULL)
         {
             if (temp->value != NULL)
-                free(temp->value);
-            temp->value = strdup(value);
+                free_func(temp->value, 0);
+            temp->value = value;
         }
         else
         {
             hash_map->data[i] = cpy;
-            struct pair_list *p = malloc(sizeof(struct pair_list));
+            struct pair_ast *p = malloc(sizeof(struct pair_ast));
             if (!p)
                 return false;
             p->key = strdup(key);
-            p->value = strdup(value);
+            p->value = value;
             p->next = hash_map->data[i];
             hash_map->data[i] = p;
         }
@@ -86,25 +72,25 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     return true;
 }
 
-static void free_pair(struct pair_list *pair)
+static void free_pair_ast(struct pair_ast *pair, int force)
 {
     free(pair->key);
-    free(pair->value);
+    free_func(pair->value, force);
     free(pair);
 }
 
 // 10 lines
-void hash_map_free(struct hash_map *hash_map)
+void f_hash_map_free(struct f_hash_map *hash_map)
 {
     if (!hash_map)
         return;
     for (size_t i = 0; i < hash_map->size; i++)
     {
-        struct pair_list *l = hash_map->data[i];
+        struct pair_ast *l = hash_map->data[i];
         while (hash_map->data[i])
         {
             l = l->next;
-            free_pair(hash_map->data[i]);
+            free_pair_ast(hash_map->data[i], 1);
             hash_map->data[i] = l;
         }
     }
@@ -113,11 +99,11 @@ void hash_map_free(struct hash_map *hash_map)
 }
 
 // 12 lines
-char *hash_map_get(const struct hash_map *hash_map, const char *key)
+struct ast *f_hash_map_get(const struct f_hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
         return NULL;
-    struct pair_list *q;
+    struct pair_ast *q;
     size_t i = hash(key) % hash_map->size;
     if (hash_map->data[i] == 0)
         return NULL;
@@ -132,21 +118,21 @@ char *hash_map_get(const struct hash_map *hash_map, const char *key)
 }
 
 // 32 lines
-bool hash_map_remove(struct hash_map *hash_map, const char *key)
+bool f_hash_map_remove(struct f_hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
         return false;
     size_t i = hash(key) % hash_map->size;
     if (hash_map->data[i] == 0)
         return false;
-    struct pair_list *q;
+    struct pair_ast *q;
     q = hash_map->data[i];
     if (!q->next)
     {
         if (!strcmp(q->key, key))
         {
             free(hash_map->data[i]->key);
-            free(hash_map->data[i]->value);
+            free_func(hash_map->data[i]->value, 0);
             free(hash_map->data[i]);
             hash_map->data[i] = NULL;
             return true;
@@ -157,42 +143,23 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key)
     {
         q = q->next;
         free(hash_map->data[i]->key);
-        free(hash_map->data[i]->value);
+        free_func(hash_map->data[i]->value, 0);
         free(hash_map->data[i]);
         hash_map->data[i] = q;
         return true;
     }
-    struct pair_list *old = q;
+    struct pair_ast *old = q;
     q = q->next;
     while (q)
     {
         if (!strcmp(q->key, key))
         {
             old->next = q->next;
-            free(q);
+            free_pair_ast(q, 0);
             return true;
         }
         old = q;
         q = q->next;
     }
     return false;
-}
-
-char *hashmap_get_copy(struct hash_map *hashmap, char *hkey)
-{
-    const char *res = hash_map_get(hashmap, hkey);
-    if (res == NULL)
-        return NULL;
-    return strdup(res);
-}
-
-char *hashmap_get_global(struct hash_map *hashmap, char *hkey)
-{
-    char *value_env = getenv(hkey);
-    if (value_env)
-        return strdup(value_env);
-    const char *res = hash_map_get(hashmap, hkey);
-    if (res == NULL)
-        return NULL;
-    return strdup(res);
 }

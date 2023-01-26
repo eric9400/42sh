@@ -10,6 +10,7 @@
 #include "ast.h"
 #include "expand_tools.h"
 #include "hash_map.h"
+#include "hash_map_global.h"
 #include "my_string.h"
 #include "vector.h"
 #include "redirection.h"

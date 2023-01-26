@@ -10,6 +10,7 @@
 
 #include "execute.h"
 #include "hash_map.h"
+#include "hash_map_global.h"
 #include "parse_execute_loop.h"
 #include "vector.h"
 

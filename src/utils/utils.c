@@ -7,7 +7,9 @@
 #include <unistd.h>
 
 #include "ast.h"
+#include "f_hash_map.h"
 #include "hash_map.h"
+#include "hash_map_global.h"
 
 struct hash_maps *hashM = NULL;
 

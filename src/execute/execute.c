@@ -10,6 +10,7 @@
 #include "execute_tools.h"
 #include "expand_tools.h"
 #include "hash_map.h"
+#include "hash_map_global.h"
 #include "lexer.h"
 #include "pipe.h"
 #include "redirection.h"

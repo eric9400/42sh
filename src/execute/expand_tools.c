@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "hash_map.h"
+#include "hash_map_global.h"
 #include "my_string.h"
 #include "parse_execute_loop.h"
 #include "utils.h"
