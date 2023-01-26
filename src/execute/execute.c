@@ -315,7 +315,7 @@ static int func_cmd(struct ast *ast, int return_value)
         execvp(ast->data->ast_cmd->arg->data[0], ast->data->ast_cmd->arg->data);
         if (errno == ENOENT)
         {
-            fprintf(stderr, "%s\n%s: command not found\n", buf,
+            fprintf(stderr, "%s\n'%s': command not found\n", buf,
                     ast->data->ast_cmd->arg->data[0]);
             exit(127);
         }
