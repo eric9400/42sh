@@ -22,3 +22,5 @@ else_clause =
     ;
 
 compound_list = {'\n'} and_or { ';' | '\n' {'\n'} and_or } [';'] {'\n'} ;
+
+compound_list_spe = {'\n'} and_or ';' | '\n' {{'\n'} and_or ';' | '\n'} {'\n'} ;

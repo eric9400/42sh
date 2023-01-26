@@ -26,7 +26,6 @@ void reinit_lex_flags(struct lex_flags *flags, int len);
 void findtype(struct token *tok, struct lex_flags *flags);
 int test_data_full(char **data, int i, int len);
 int is_operator(char p, char c);
-int start_operator(char c);
 int is_number(char *str);
 int my_isspace(char c);
 int is_assign_word(char *str);
