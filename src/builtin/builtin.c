@@ -273,7 +273,33 @@ static int unset(char **s)
     return return_value;
 }
 
-// 38 lines
+static int quit(void)
+{
+    fprintf(stderr, "cd: error quit\n");
+    return 1;
+}
+
+static int symilinki(char *s)
+{
+    int res = 0;
+    char *sym = NULL;
+    if (strcmp(s, ".") && strcmp(s, ".."))
+    {
+        sym = realpath(s, sym);
+        if (sym)
+        {
+            res = chdir(sym);
+            free(sym);
+        }
+        else
+            res = chdir(s);
+    }
+    else
+        res = chdir(s);
+    return res;
+}
+
+// 35 lines
 static int cd(char **s)
 {
     int res = 0;
@@ -285,10 +311,7 @@ static int cd(char **s)
     {
         char *home = getenv("HOME");
         if (home == NULL) // STEP 1
-        {
-            fprintf(stderr, "cd: HOME undefined\n");
-            return 1;
-        }
+            return quit();
         res = chdir(home); // STEP 2
         if (!res)
         {
@@ -297,14 +320,10 @@ static int cd(char **s)
             hash_map_insert(hashM->hashmap, "PWD", cwd2);
             return 0;
         }
-        fprintf(stderr, "cd: error with HOME\n");
-        return 1;
+        return quit();
     }
     if (s[2] != NULL)
-    {
-        fprintf(stderr, "cd: too much arguments\n");
-        return 1;
-    }
+        return quit();
     if (!strcmp(s[1], "-"))
     {
         const char *oldpwd = hash_map_get(hashM->hashmap, "OLDPWD");
@@ -317,10 +336,9 @@ static int cd(char **s)
             printf("%s\n", cwd2);
             return 0;
         }
-        fprintf(stderr, "cd: something went wrong !\n");
-        return 1;
+        return quit();
     }
-    res = chdir(s[1]);
+    res = symilinki(s[1]);
     if (!res)
     {
         hash_map_insert(hashM->hashmap, "OLDPWD", cwd);
@@ -328,8 +346,7 @@ static int cd(char **s)
         hash_map_insert(hashM->hashmap, "PWD", cwd2);
         return 0;
     }
-    fprintf(stderr, "cd: wrong directory (might be something else)\n");
-    return 1;
+    return quit();
 }
 
 static int exit_dot(void)
