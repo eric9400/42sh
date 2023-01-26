@@ -6,15 +6,17 @@
 
 #include "ast.h"
 
-struct pair_ast {
-  char *key;
-  struct ast *value;
-  struct pair_ast *next;
+struct pair_ast
+{
+    char *key;
+    struct ast *value;
+    struct pair_ast *next;
 };
 
-struct f_hash_map {
-  struct pair_ast **data;
-  size_t size;
+struct f_hash_map
+{
+    struct pair_ast **data;
+    size_t size;
 };
 
 struct f_hash_map *f_hash_map_init(size_t size);

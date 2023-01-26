@@ -1,0 +1,7 @@
+babaji;
+{
+    babaji()
+    {
+        echo coucou
+    }
+}

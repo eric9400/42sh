@@ -1,0 +1,4 @@
+origin=$(pwd)
+
+cd .
+pwd

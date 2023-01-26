@@ -1,0 +1,2 @@
+babaji()
+echo foo

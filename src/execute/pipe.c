@@ -8,6 +8,7 @@
 #include "execute.h"
 #include "lexer.h"
 
+// 18 lines
 static pid_t exec_pipe(struct ast *ast, int fds[2], enum pipe side,
                        int return_value)
 {
@@ -42,6 +43,7 @@ static pid_t exec_pipe(struct ast *ast, int fds[2], enum pipe side,
     exit(res);
 }
 
+// 16 lines
 int func_pipe(struct ast *ast, int return_value)
 {
     int pipe_fds[2]; // file descriptor used to redirect stdin & stdout

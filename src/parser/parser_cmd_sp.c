@@ -19,6 +19,7 @@ int is_shell_command(struct lexer *lex)
         || strcmp("do", data) == 0 || strcmp("done", data) == 0;
 }
 
+// 25 lines
 struct ast *simple_command(struct lexer *lex)
 {
     struct ast_cmd *cmd = init_ast(AST_CMD);

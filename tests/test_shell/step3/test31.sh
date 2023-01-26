@@ -1,0 +1,6 @@
+babaji()
+{
+    echo tutu;
+}
+
+babaji

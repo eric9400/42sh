@@ -16,6 +16,7 @@
 
 struct toFree *tofree = NULL;
 
+// 15 lines
 int freeAll(int error)
 {
     free_lexer(tofree->lex);
@@ -55,8 +56,7 @@ void hash_map_init_basic(void)
     }
 }
 
-// 36 lines
-int parse_execute_loop(FILE *f, struct flags *flags)
+static void init_toFree(FILE *f, struct flags *flags)
 {
     if (!is_in_dot)
         tofree = calloc(1, sizeof(struct toFree));
@@ -66,6 +66,12 @@ int parse_execute_loop(FILE *f, struct flags *flags)
     tofree->file = f;
     if (!is_in_dot)
         tofree->env_variables = calloc(20, sizeof(char *));
+}
+
+// 34 lines
+int parse_execute_loop(FILE *f, struct flags *flags)
+{
+    init_toFree(f, flags);
     int return_value = 0;
     hash_map_init_basic();
     // RAJOUTER UN ETAT D'AST POUR QUAND

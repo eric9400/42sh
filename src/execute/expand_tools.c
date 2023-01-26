@@ -42,6 +42,7 @@ void string_append(struct string *new_str, char *buf)
     new_str->index += strlen(buf);
 }
 
+// 23 lines
 static inline char *is_special_var(char *str, int return_value)
 {
     char buf[1000];
@@ -124,6 +125,7 @@ static void append_args(struct string *new_str)
 }
 
 // "$*"
+// 21 lines
 static void append_concatenate_args(struct string *new_str)
 {
     struct string *res = init_string3(5);
@@ -200,11 +202,10 @@ static void expand_special_char_v2(struct string *str, struct string *new_str,
     free(key);
 }
 
-// 30 lines
+// 31 lines
 static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 {
     int status;
-
     pid_t pid = fork();
 
     // parent
@@ -212,7 +213,6 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
     {
         // close write side
         close(pipe_fds[1]);
-
         char *buffer = NULL;
         int nb_bytes = 0;
         size_t capacity = 20;
@@ -243,22 +243,29 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
         FILE *filename = fmemopen(str, strlen(str), "r");
         struct flags *f = calloc(1, sizeof(struct flags));
         f->c = 1;
-
         dup2(pipe_fds[1], STDOUT_FILENO);
 
         int err = parse_execute_loop(filename, f);
-
         close(pipe_fds[1]);
         exit(err);
     }
 }
 
-static int command_substitution(struct string *str, struct string *new_str)
+static int backslashable(char c)
+{
+	return c == '`' || c == '$' || c == '\\';
+}
+
+int command_substitution(struct string *str, struct string *new_str, char delim)
 {
     str->index += 1;
     int start = str->index;
-    while (str->str[str->index] != ')' && str->str[str->index] != '\0')
-        str->index += 1;
+    while (str->str[str->index] != delim && str->str[str->index] != '\0')
+	{
+		if (str->str[str->index] == '\\' && backslashable(str->str[str->index + 1]))
+			str->index += 1;
+		str->index += 1;
+	}
     if (str->str[str->index] == '\0')
         return 1;
 
@@ -276,12 +283,13 @@ static int command_substitution(struct string *str, struct string *new_str)
     return err;
 }
 
-// 37 lines
+// 39 lines
 int dollar_expansion(struct string *str, struct string *new_str,
                      int return_value, int in_d_quotes)
 {
     str->index += 1;
     char buf[5] = { 0 };
+
     // ${a}
     // need to handle error cases "echo ${+}" for example
     if (str->str[str->index] == '{')
@@ -307,11 +315,11 @@ int dollar_expansion(struct string *str, struct string *new_str,
         // if no matching '}' => error
         return 1;
     }
+
     // command substitution case $()
-    else if (str->str[str->index] == '(')
-    {
-        return command_substitution(str, new_str);
-    }
+    else if (str->str[str->index] == '(')// || str->str[str->index] == '`')
+        return command_substitution(str, new_str, ')');
+
     // $a $RANDOM $UID $HOME
     else if (is_valid_char(str->str[str->index]))
     {
@@ -321,6 +329,7 @@ int dollar_expansion(struct string *str, struct string *new_str,
             buf[0] = str->str[str->index];
             expand_from_hashmap(new_str, buf, return_value, in_d_quotes);
         }
+
         // case $abc
         else
         {
@@ -333,16 +342,11 @@ int dollar_expansion(struct string *str, struct string *new_str,
             str->index -= 1;
         }
     }
+
     // case $@ $* $? $$ $#
     else if (is_special_char(str->str[str->index]))
-    {
         expand_special_char(str, new_str, return_value, in_d_quotes);
-        /*
-        char *key = strndup(str->str + str->index, 1);
-        expand_from_hashmap(new_str, key, return_value, in_d_quotes);
-        free(key);
-        */
-    }
+
     // non substituable var
     else
     {
