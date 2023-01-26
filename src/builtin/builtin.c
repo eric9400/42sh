@@ -279,7 +279,7 @@ static int cd(char **s)
     int res = 0;
     char cwd[PATH_MAX];
     char cwd2[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)))
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
         return 1;
     if (s[1] == NULL)
     {
@@ -317,6 +317,8 @@ static int cd(char **s)
             printf("%s\n", cwd2);
             return 0;
         }
+        fprintf(stderr, "cd: something went wrong !\n");
+        return 1;
     }
     res = chdir(s[1]);
     if (!res)
@@ -505,7 +507,7 @@ static int corb(char **s, struct c_or_b *no_to_racismo, int i)
     {
         no_to_racismo->is_break = i;
         no_to_racismo->cbdeep = 1;
-        return 1;
+        return 0;
     }
     else
     {
