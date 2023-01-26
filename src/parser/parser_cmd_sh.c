@@ -82,6 +82,7 @@ struct ast *shell_command(struct lexer *lex)
     return NULL;
 }
 
+// 28 lines
 // is_if : 1 = if, 0 = elif
 static struct ast *rule_if(struct lexer *lex, int is_if)
 {
@@ -151,6 +152,7 @@ static struct ast *else_clause(struct lexer *lex)
         return NULL;
 }
 
+// 26 lines
 static struct ast *rule_while(struct lexer *lex)
 {
     peek_token(lex);
@@ -195,6 +197,7 @@ static struct ast *rule_while(struct lexer *lex)
     return convert_node_ast(AST_WHILE, while_node);
 }
 
+// 26 lines
 static struct ast *rule_until(struct lexer *lex)
 {
     peek_token(lex);
@@ -259,6 +262,7 @@ static int is_name(char *str, size_t size)
     return 1;
 }
 
+// 32 lines
 struct ast *rule_for(struct lexer *lex)
 {
     peek_token(lex);
@@ -315,6 +319,7 @@ struct ast *rule_for(struct lexer *lex)
     return convert_node_ast(AST_FOR, for_node);
 }
 
+// 14 lines
 static int rule_for_in(struct lexer *lex, struct ast_for *for_node)
 {
     new_lines(lex);
@@ -345,6 +350,7 @@ static int rule_for_in(struct lexer *lex, struct ast_for *for_node)
     return 0;
 }
 
+// 17 lines
 static struct ast *compound_list(struct lexer *lex)
 {
     new_lines(lex); // will have stock the first token non new_line in lex
@@ -375,6 +381,7 @@ static struct ast *compound_list(struct lexer *lex)
     return node;
 }
 
+// 15 lines
 static void compound_list2(struct lexer *lex, struct ast_list *list)
 {
     peek_token(lex);

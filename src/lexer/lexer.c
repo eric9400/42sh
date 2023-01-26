@@ -7,6 +7,7 @@ static int next_token_junior(struct lexer *lex, struct token *tok, char curr);
 static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr,
                            char *prev);
 
+// 12 lines
 void peek_token(struct lexer *lex)
 {
     if (!lex->tok && lex->tok2)
@@ -90,6 +91,7 @@ static void end_of_block_line_file(struct lexer *lex, char tmp)
     lex->tok = tok;
 }
 
+// 23 lines
 static void quote(struct lexer *lex, struct token *tok, char curr)
 {
     struct lex_flags *f = lex->flags;
@@ -144,6 +146,7 @@ static void comments(struct lexer *lex, struct token *tok)
     ungetc(curr, lex->filename);
 }
 
+// 28 lines
 static void rule_5(struct lexer *lex, struct token *tok, char curr)
 {
     struct lex_flags *f = lex->flags;
@@ -187,6 +190,7 @@ static void rule_5(struct lexer *lex, struct token *tok, char curr)
 }
 
 // WHEN EXE IS KILL CLOSE THE FILE
+// 22 lines
 void next_token(struct lexer *lex)
 {
     if (lex->tok)
@@ -229,8 +233,9 @@ void next_token(struct lexer *lex)
 }
 
 /*
- *return 1 if there was a comment so that the rest of next_token is not executed
- *else return 0
+ * 18 lines
+ * return 1 if there was a comment so that the rest of next_token is not executed
+ * else return 0
  */
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
 {
@@ -270,6 +275,7 @@ static int next_token_dog(struct lexer *lex, char *c)
     return 1;
 }
 
+// 33 lines
 static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
                            char *p)
 {

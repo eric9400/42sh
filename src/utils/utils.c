@@ -14,6 +14,7 @@
 struct hash_maps *hashM = NULL;
 
 /*
+ * 32 lines
  * \brief Parsing of inputs
  * \param argc argv from main, filename *.sh, d_opt to know which flags set
  * \return 0 if no error, 2 otherwise

@@ -78,6 +78,7 @@ static int in_quotes(char c)
     return in_d_quotes || in_s_quotes;
 }
 
+// 36 lines
 static int add_assign_word(struct ast *ast, char *str, struct string *s,
                            struct string *new_str)
 {
@@ -309,6 +310,7 @@ void print_hash_map(void)
     }
 }
 
+// 22 lines
 int check_function(char **str, int return_value)
 {
     struct ast *ast = f_hash_map_get(hashM->fhashmap, str[0]);

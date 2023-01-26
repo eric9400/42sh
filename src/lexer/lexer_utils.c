@@ -10,6 +10,7 @@ int is_invalid(struct lex_flags *flags)
         || flags->in_dquote;
 }
 
+// 13 lines
 struct lex_flags *init_lex_flags(int len)
 {
     struct lex_flags *flags = calloc(1, sizeof(struct lex_flags));
@@ -29,6 +30,7 @@ struct lex_flags *init_lex_flags(int len)
     return flags;
 }
 
+// 10 lines
 void reinit_lex_flags(struct lex_flags *flags, int len)
 {
     flags->i = 0;
@@ -67,6 +69,7 @@ int is_assign_word(char *str)
     return 0;
 }
 
+// 17 lines
 void findtype(struct token *tok, struct lex_flags *flags)
 {
     if (!tok->data)

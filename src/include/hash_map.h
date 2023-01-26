@@ -4,15 +4,17 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct pair_list {
-  char *key;
-  char *value;
-  struct pair_list *next;
+struct pair_list
+{
+    char *key;
+    char *value;
+    struct pair_list *next;
 };
 
-struct hash_map {
-  struct pair_list **data;
-  size_t size;
+struct hash_map
+{
+    struct pair_list **data;
+    size_t size;
 };
 
 size_t hash(const char *key);

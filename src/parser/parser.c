@@ -25,8 +25,8 @@ void new_lines(struct lexer *lex)
 }
 
 /*
- *Error handler puts an error in the "lex struct" and print the "error_message"
- *only if the flag "print" is 1
+ * Error handler puts an error in the "lex struct" and print the "error_message"
+ * only if the flag "print" is 1
  */
 struct ast *error_handler(struct lexer *lex, int print, char *error_message)
 {
@@ -38,6 +38,7 @@ struct ast *error_handler(struct lexer *lex, int print, char *error_message)
     return NULL;
 }
 
+// 19 lines
 struct ast *input(struct lexer *lex)
 {
     peek_token(lex);
@@ -71,6 +72,7 @@ struct ast *input(struct lexer *lex)
     return exec_tree;
 }
 
+// 13 lines
 static struct ast *list(struct lexer *lex)
 {
     struct ast_list *exec_tree = init_ast(AST_LIST);
@@ -121,6 +123,7 @@ static void list2(struct lexer *lex, struct ast_list *exec_tree)
     list2(lex, exec_tree);
 }
 
+// 21 lines
 struct ast *and_or(struct lexer *lex)
 {
     struct ast *pipe = pipeline(lex);
@@ -159,6 +162,7 @@ struct ast *and_or(struct lexer *lex)
     return child;
 }
 
+// 18 lines
 static int rule_and(struct lexer *lex, struct ast **child, struct ast **pipe)
 {
     free_token(lex);
@@ -187,6 +191,7 @@ static int rule_and(struct lexer *lex, struct ast **child, struct ast **pipe)
     return 0;
 }
 
+// 18 lines
 static int rule_or(struct lexer *lex, struct ast **child, struct ast **pipe)
 {
     free_token(lex);
@@ -223,6 +228,7 @@ static void error_pipeline(struct ast *parent, struct ast_not * not )
         free_node(convert_node_ast(AST_NOT, not ));
 }
 
+// 38 lines
 static struct ast *pipeline(struct lexer *lex)
 {
     peek_token(lex);

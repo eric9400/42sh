@@ -6,6 +6,7 @@
 static void command2(struct ast_list *redir_list, struct lexer *lex);
 static struct ast *funcdec(struct lexer *lex);
 
+// 23 lines
 struct ast *command(struct lexer *lex)
 {
     struct ast *cmd = simple_command(lex);
@@ -52,6 +53,7 @@ static void command2(struct ast_list *redir_list, struct lexer *lex)
     command2(redir_list, lex);
 }
 
+// 21 lines
 static struct ast_redir *find_type_redir(struct lexer *lex,
                                          struct ast_redir *redir)
 {
@@ -90,6 +92,7 @@ static void default_ionb(struct lexer *lex, struct ast_redir *redir)
         redir->io_number = 0;
 }
 
+// 24 lines
 struct ast *redirection(struct lexer *lex)
 {
     peek_token(lex);
@@ -132,6 +135,7 @@ struct ast *redirection(struct lexer *lex)
     return convert_node_ast(AST_REDIR, redir);
 }
 
+// 23 lines
 static struct ast *funcdec(struct lexer *lex)
 {
     peek_token(lex);
