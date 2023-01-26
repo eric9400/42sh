@@ -44,8 +44,9 @@ static int func_or(struct ast *ast, int return_value);
 static int func_not(struct ast *ast, int return_value);
 static void swap_vector(struct ast *ast, struct vector **vect_copy);
 
-struct c_or_b wat = { 0, 0, 0, -1 };
+static struct c_or_b wat = { 0, 0, 0, -1 };
 
+// 21 lines
 static int func_while(struct ast *ast, int return_value)
 {
     int res = 0;
@@ -81,6 +82,7 @@ static int func_while(struct ast *ast, int return_value)
     return res;
 }
 
+// 21 lines
 static int func_until(struct ast *ast, int return_value)
 {
     int res = 0;
@@ -116,6 +118,7 @@ static int func_until(struct ast *ast, int return_value)
     return res;
 }
 
+// 27 lines
 static int func_for(struct ast *ast, int return_value)
 {
     int res = 0;
@@ -209,14 +212,13 @@ static int func_list(struct ast *ast, int return_value)
     return execute(ast->data->ast_list->cmd_if[size], return_value);
 }
 
+// 38 lines
 struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error)
 {
     struct stock_fd *stock_fd = NULL;
     int res = 0;
     for (size_t i = 0; i < redir->size && !res; i++)
     {
-        // expandinho(&(redir->cmd_if[i]->data->ast_redir->exit_file),
-        // return_value, marker, 0);
         char *tmp = expandinho_phoenix_junior(
             redir->cmd_if[i]->data->ast_redir->exit_file, return_value);
         free(redir->cmd_if[i]->data->ast_redir->exit_file);
@@ -274,7 +276,7 @@ static void swap_vector(struct ast *ast, struct vector **vect_copy)
     }
 }
 
-//36 lines
+// 38 lines
 static int func_cmd(struct ast *ast, int return_value)
 {
     if (wat.is_in_loop && wat.is_break != -1)
@@ -348,6 +350,7 @@ static int func_sub(struct ast *ast, int return_value)
 }
 
 /*
+ * 31 lines
  * \brief recursively execute the ast
  * \param ast from parser
  * \return the code error

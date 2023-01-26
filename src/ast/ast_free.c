@@ -11,6 +11,7 @@ static void free_list2(struct ast_list *list)
     free(list);
 }
 
+// 8 lines
 static void free_if(struct ast *ast)
 {
     if (ast->data->ast_if->condition)
@@ -45,6 +46,7 @@ static void free_redir(struct ast *ast)
     free(ast->data->ast_redir);
 }
 
+// 6 lines
 static void free_while(struct ast *ast)
 {
     if (ast->data->ast_while->condition)
@@ -55,6 +57,7 @@ static void free_while(struct ast *ast)
     free(ast->data->ast_while);
 }
 
+// 6 lines
 static void free_until(struct ast *ast)
 {
     if (ast->data->ast_until->condition)
@@ -65,6 +68,7 @@ static void free_until(struct ast *ast)
     free(ast->data->ast_until);
 }
 
+// 8 lines
 static void free_for(struct ast *ast)
 {
     if (ast->data->ast_for->arg)
@@ -84,6 +88,7 @@ static void free_not(struct ast *ast)
     free(ast->data->ast_not);
 }
 
+// 8 lines
 static void free_and_or(struct ast *ast)
 {
     if (ast->type == AST_AND)
@@ -115,6 +120,7 @@ static void free_subshell(struct ast *ast)
     free(ast->data->ast_subshell);
 }
 
+// 6 lines
 void free_func(struct ast *ast)
 {
     free_node(ast->data->ast_func->func); 
@@ -125,6 +131,7 @@ void free_func(struct ast *ast)
     free(ast);
 }
 
+// 26 lines
 void free_node(struct ast *ast)
 {
     if (!ast || ast->type == AST_FUNC)

@@ -4,7 +4,8 @@
 #include <stdlib.h>
 
 /*
- *convert any type of ast into a general ast
+ * 30 lines
+ * convert any type of ast into a general ast
  */
 struct ast *convert_node_ast(enum ast_type type, void *node)
 {
@@ -43,6 +44,7 @@ struct ast *convert_node_ast(enum ast_type type, void *node)
     return ast_node;
 }
 
+// 5 lines
 void add_to_list(struct ast_list *list, struct ast *node)
 {
     list->cmd_if[list->size] = node;

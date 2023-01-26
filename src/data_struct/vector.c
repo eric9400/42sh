@@ -97,6 +97,7 @@ struct vector *vector_reset(struct vector *v, size_t n)
     return v;
 }
 
+// 14 lines
 struct vector *vector_copy(struct vector *v, int is_for)
 {
     struct vector *res = malloc(sizeof(struct vector));

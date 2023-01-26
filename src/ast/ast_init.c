@@ -19,6 +19,7 @@ static struct ast_pipe *init_pipe(void);
 static struct ast_func *init_function(size_t capacity);
 static struct ast_subshell *init_subshell(void);
 
+// 27 lines
 void *init_ast(enum ast_type type)
 {
     if (type == AST_CMD)

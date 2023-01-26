@@ -24,6 +24,7 @@ static void print_tab(int tab)
         printf("    ");
 }
 
+// 28 lines
 void ugly_print(struct ast *ast, int tab)
 {
     if (!ast)
@@ -56,6 +57,7 @@ void ugly_print(struct ast *ast, int tab)
         print_subshell(ast, tab);
 }
 
+// 10 lines
 static void print_if(struct ast *ast, int tab)
 {
     print_tab(tab);
@@ -90,6 +92,7 @@ static void print_list2(struct ast_list *list, int tab)
     }
 }
 
+// 11 lines
 static void print_cmd(struct ast *ast, int tab)
 {
     print_tab(tab);
@@ -165,6 +168,7 @@ static void print_not(struct ast *ast, int tab)
     ugly_print(ast->data->ast_not->node, tab + 1);
 }
 
+// 19 lines
 static void print_redirect(struct ast *ast)
 {
     printf(" ");

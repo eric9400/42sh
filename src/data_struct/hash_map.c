@@ -45,6 +45,7 @@ static struct pair_list *is_key_in(struct pair_list **p, const char *key)
     return NULL;
 }
 
+// 36 lines
 bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
 {
     // insert in env
@@ -57,7 +58,6 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
 	    str = strcat(str, "\0");
 	    export_insert(str);
 	    free(str);
-	    // maybe free TODO
     }
     if (!hash_map || hash_map->size == 0)
         return false;
@@ -104,6 +104,7 @@ static void free_pair(struct pair_list *pair)
     free(pair);
 }
 
+// 10 lines
 void hash_map_free(struct hash_map *hash_map)
 {
     if (!hash_map)
@@ -122,6 +123,7 @@ void hash_map_free(struct hash_map *hash_map)
     free(hash_map);
 }
 
+// 12 lines
 char *hash_map_get(const struct hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
@@ -140,6 +142,7 @@ char *hash_map_get(const struct hash_map *hash_map, const char *key)
     return NULL;
 }
 
+// 32 lines
 bool hash_map_remove(struct hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)
@@ -230,6 +233,7 @@ static struct pair_ast *is_key_in_ast(struct pair_ast **p, const char *key)
     return NULL;
 }
 
+// 28 lines
 bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key, struct ast *value)
 {
     if (!hash_map || hash_map->size == 0)
@@ -313,6 +317,7 @@ struct ast *f_hash_map_get(const struct f_hash_map *hash_map, const char *key)
     return NULL;
 }
 
+// 32 lines
 bool f_hash_map_remove(struct f_hash_map *hash_map, const char *key)
 {
     if (!hash_map || hash_map->size == 0)

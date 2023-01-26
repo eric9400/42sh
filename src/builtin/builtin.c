@@ -51,6 +51,7 @@ static void print_echo(int f_n, int f_e, struct vector *v)
         printf("\n");
 }
 
+// 19 lines
 static int is_flag(char *s, int *f_n, int *f_e)
 {
     if (!s)
@@ -82,6 +83,7 @@ static int is_flag(char *s, int *f_n, int *f_e)
     return 0;
 }
 
+// 19 lines
 static int echo(char **s)
 {
     if (fcntl(STDOUT_FILENO, F_GETFD))
@@ -127,6 +129,7 @@ void export_insert(char *s)
     putenv(result);
 }
 
+// 40 lines
 static int export(char **s)
 {
     int lenvar = 0;
@@ -187,6 +190,7 @@ static int export(char **s)
     return returnvalue;
 }
 
+// 17 lines
 static int is_flag_for_unset(char *s, int *f_f, int *f_v)
 {
     if (!s)
@@ -232,6 +236,7 @@ void check_free_unset(char *s)
     }
 }
 
+// 20 lines
 // REMOVE VAR FROM HASH_MAP, ENV_VAR_, AND REMOVE FUNCTIONS
 static int unset(char **s)
 {
@@ -268,6 +273,7 @@ static int unset(char **s)
     return return_value;
 }
 
+// 38 lines
 static int cd(char **s)
 {
     int res = 0;
@@ -338,6 +344,7 @@ static int exit_dot(void)
     }
 }
 
+// 14 lines
 void hash_map_restore(char **values)
 {
     int i = 0;
@@ -360,6 +367,7 @@ void hash_map_restore(char **values)
     free(values);
 }
 
+// 11 lines
 char **copy_values(void)
 {
     char **result = calloc(100, 1);
@@ -377,6 +385,7 @@ char **copy_values(void)
     return result;
 }
 
+// 24 lines
 static int dot2(char **s, FILE *filedot)
 {
     struct lexer *old_lex = tofree->lex;
@@ -409,6 +418,7 @@ static int dot2(char **s, FILE *filedot)
     return res;
 }
 
+// 29 lines
 static int dot(char **s)
 {
     char *filename = s[1];
@@ -454,6 +464,7 @@ static int dot(char **s)
     return dot2(s, filedot);
 }
 
+// 17 lines
 static int my_exit(char **s, int return_value)
 {
     if (s[1] == NULL)
@@ -487,6 +498,7 @@ static int my_exit(char **s, int return_value)
     exit(atoi(s[1]));
 }
 
+// 13 lines
 static int corb(char **s, struct c_or_b *no_to_racismo, int i)
 {
     if (s[1] == NULL)
@@ -512,6 +524,7 @@ static int corb(char **s, struct c_or_b *no_to_racismo, int i)
     }
 }
 
+// 23 lines
 int check_builtin(char **str, struct c_or_b *no_to_racismo, int return_value)
 {
     if (!(*str))
