@@ -1,7 +1,7 @@
-#include "lexer.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include "lexer.h"
 
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr);
 static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr,
@@ -17,7 +17,8 @@ void peek_token(struct lexer *lex)
     else if (!lex->tok)
         next_token(lex);
     else if (lex->tok && lex->tok->type != END_OF_FILE && !lex->tok2)
-    //case of full sfirst register token we add to the second token register a token
+    // case of full sfirst register token we add to the second token register a
+    // token
     {
         struct token *tokk = lex->tok;
         lex->tok = NULL;

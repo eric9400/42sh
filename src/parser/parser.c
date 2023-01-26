@@ -215,7 +215,7 @@ static int rule_or(struct lexer *lex, struct ast **child, struct ast **pipe)
     return 0;
 }
 
-static void error_pipeline(struct ast *parent, struct ast_not *not)
+static void error_pipeline(struct ast *parent, struct ast_not * not )
 {
     if (parent != NULL)
         free_node(parent);

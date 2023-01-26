@@ -182,14 +182,16 @@ static int is_special_char(char c)
     return c == '@' || c == '?' || c == '$' || c == '#' || c == '*';
 }
 
-static void expand_special_char(struct string *str, struct string *new_str, int return_value, int in_d_quotes)
+static void expand_special_char(struct string *str, struct string *new_str,
+                                int return_value, int in_d_quotes)
 {
     char *key = strndup(str->str + str->index, 1);
     expand_from_hashmap(new_str, key, return_value, in_d_quotes);
     free(key);
 }
 
-static void expand_special_char_v2(struct string *str, struct string *new_str, int return_value, int in_d_quotes)
+static void expand_special_char_v2(struct string *str, struct string *new_str,
+                                   int return_value, int in_d_quotes)
 {
     char *temp = strstr(str->str, "}");
     temp[0] = '\0';
@@ -198,80 +200,80 @@ static void expand_special_char_v2(struct string *str, struct string *new_str, i
     free(key);
 }
 
-
 // 30 lines
 static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 {
-	int status;
+    int status;
 
-	pid_t pid = fork();
+    pid_t pid = fork();
 
-	// parent
-	if (pid != 0)
-	{
-		//close write side
-		close(pipe_fds[1]);
+    // parent
+    if (pid != 0)
+    {
+        // close write side
+        close(pipe_fds[1]);
 
-		char *buffer = NULL;
-		int nb_bytes = 0;
-		size_t capacity = 20;
-		int nb_bytes_tot = 0;
-		do
-		{
-			nb_bytes_tot += nb_bytes;
-			buffer = realloc(buffer, capacity + 21);
-			capacity += 20;
-			nb_bytes = read(pipe_fds[0], buffer + nb_bytes_tot, capacity - nb_bytes_tot);
-		} while(nb_bytes > 0);
+        char *buffer = NULL;
+        int nb_bytes = 0;
+        size_t capacity = 20;
+        int nb_bytes_tot = 0;
+        do
+        {
+            nb_bytes_tot += nb_bytes;
+            buffer = realloc(buffer, capacity + 21);
+            capacity += 20;
+            nb_bytes = read(pipe_fds[0], buffer + nb_bytes_tot,
+                            capacity - nb_bytes_tot);
+        } while (nb_bytes > 0);
 
-		waitpid(pid, &status, 0);
-		buffer[nb_bytes_tot] = '\0';
-		if (status == 0)
-			string_append(new_str, buffer);
-		free(buffer);
-		close(pipe_fds[0]);
-		return status;
-	}
-	else
-	{
-		//close read side
-		close(pipe_fds[0]);
+        waitpid(pid, &status, 0);
+        buffer[nb_bytes_tot] = '\0';
+        if (status == 0)
+            string_append(new_str, buffer);
+        free(buffer);
+        close(pipe_fds[0]);
+        return status;
+    }
+    else
+    {
+        // close read side
+        close(pipe_fds[0]);
 
-		//create file for the string and set -c option
-		FILE *filename = fmemopen(str, strlen(str), "r");
-		struct flags *f = calloc(1, sizeof(struct flags));
-		f->c = 1;
+        // create file for the string and set -c option
+        FILE *filename = fmemopen(str, strlen(str), "r");
+        struct flags *f = calloc(1, sizeof(struct flags));
+        f->c = 1;
 
-		dup2(pipe_fds[1], STDOUT_FILENO);
+        dup2(pipe_fds[1], STDOUT_FILENO);
 
-		int err = parse_execute_loop(filename, f);
+        int err = parse_execute_loop(filename, f);
 
-		close(pipe_fds[1]);
-		exit(err);
-	}
+        close(pipe_fds[1]);
+        exit(err);
+    }
 }
 
 static int command_substitution(struct string *str, struct string *new_str)
 {
-	str->index += 1;
-	int start = str->index;
-	while(str->str[str->index] != ')' && str->str[str->index] != '\0')
-		str->index += 1;
-	if (str->str[str->index] == '\0')
-		return 1;
+    str->index += 1;
+    int start = str->index;
+    while (str->str[str->index] != ')' && str->str[str->index] != '\0')
+        str->index += 1;
+    if (str->str[str->index] == '\0')
+        return 1;
 
-	int pipe_fds[2];
+    int pipe_fds[2];
 
-	if (pipe(pipe_fds) < 0)
-		return 1;
-	
-	char *s = strndup(str->str + start, str->index - start);
+    if (pipe(pipe_fds) < 0)
+        return 1;
 
-	int err = exec_command_sub(s, pipe_fds, new_str);
+    char *s = strndup(str->str + start, str->index - start);
 
-	free(s);
+    int err = exec_command_sub(s, pipe_fds, new_str);
 
-	return err;
+    free(s);
+
+    return err;
 }
 
 // 37 lines
@@ -305,11 +307,11 @@ int dollar_expansion(struct string *str, struct string *new_str,
         // if no matching '}' => error
         return 1;
     }
-	// command substitution case $()
-	else if (str->str[str->index] == '(')
-	{
-		return command_substitution(str, new_str);
-	}
+    // command substitution case $()
+    else if (str->str[str->index] == '(')
+    {
+        return command_substitution(str, new_str);
+    }
     // $a $RANDOM $UID $HOME
     else if (is_valid_char(str->str[str->index]))
     {

@@ -267,7 +267,7 @@ static int unset(char **s)
         else
         {
             if (!f_hash_map_remove(hashM->fhashmap, s[i]))
-               return_value = 1;
+                return_value = 1;
         }
         i++;
     }
@@ -422,12 +422,12 @@ static int dot2(char **s, FILE *filedot)
         hash_map_insert(hashM->hashmap, value, s[i]);
         i++;
     }
-	sprintf(value, "%d", i - 1);
-	while (hash_map_remove(hashM->hashmap, value))
-	{
-		i += 1;
-		sprintf(value, "%d", i - 1);
-	}
+    sprintf(value, "%d", i - 1);
+    while (hash_map_remove(hashM->hashmap, value))
+    {
+        i += 1;
+        sprintf(value, "%d", i - 1);
+    }
     is_in_dot = 1;
     int res = parse_execute_loop(filedot, tofree->global_flags);
     hash_map_restore(old_hashmap);

@@ -8,14 +8,14 @@
 #include <unistd.h>
 
 #include "ast.h"
+#include "builtin.h"
+#include "execute.h"
 #include "expand_tools.h"
 #include "hash_map.h"
 #include "hash_map_global.h"
 #include "my_string.h"
-#include "vector.h"
 #include "redirection.h"
-#include "execute.h"
-#include "builtin.h"
+#include "vector.h"
 
 static int in_s_quotes = 0;
 static int in_d_quotes = 0;
@@ -40,7 +40,7 @@ static void expandinho_phoenix_2(struct string *str, struct string *new_str,
 {
     new_str->str = realloc(new_str->str, new_str->index + 1);
     new_str->str[new_str->index] = '\0';
-    if (new_str->index != 0 )
+    if (new_str->index != 0)
         *vect_temp = vector_append(*vect_temp, strdup(new_str->str));
     phoenix_destroyer(str, new_str, NULL);
 }
@@ -131,7 +131,7 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
             value = expandinho_phoenix_junior(value, return_value);
         }
 
-	    // a=b
+        // a=b
         hash_map_insert(hashM->hashmap, str, value);
         if (need_to_free)
             free(value);
@@ -312,9 +312,9 @@ void print_hash_map(void)
 int check_function(char **str, int return_value)
 {
     struct ast *ast = f_hash_map_get(hashM->fhashmap, str[0]);
-    if (ast == NULL) //if this is not a function in the hash_map
+    if (ast == NULL) // if this is not a function in the hash_map
         return -1;
-   
+
     int error_redir = 0;
     struct stock_fd *stock_fd =
         func_redir(ast->data->ast_cmd->redir, return_value, &error_redir);
@@ -322,20 +322,20 @@ int check_function(char **str, int return_value)
         return error_redir;
     char **old_hashmap = copy_values();
     int i = 1;
-	char value[100] = { 0 };
+    char value[100] = { 0 };
     while (str[i] != NULL)
     {
         sprintf(value, "%d", i);
         hash_map_insert(hashM->hashmap, value, str[i]);
         i++;
     }
-	sprintf(value, "%d", i);
-	while (hash_map_remove(hashM->hashmap, value))
-	{
-		i += 1;
-		sprintf(value, "%d", i);
-	}
-	int res = execute(ast->data->ast_func->func, return_value);
-	hash_map_restore(old_hashmap);
-	return res;
+    sprintf(value, "%d", i);
+    while (hash_map_remove(hashM->hashmap, value))
+    {
+        i += 1;
+        sprintf(value, "%d", i);
+    }
+    int res = execute(ast->data->ast_func->func, return_value);
+    hash_map_restore(old_hashmap);
+    return res;
 }

@@ -123,7 +123,7 @@ static void free_subshell(struct ast *ast)
 // 8 lines
 void free_func(struct ast *ast, int force)
 {
-    free_node(ast->data->ast_func->func); 
+    free_node(ast->data->ast_func->func);
     free_list2(ast->data->ast_func->redir);
     free(ast->data->ast_func->name);
     free(ast->data->ast_func);
@@ -133,7 +133,7 @@ void free_func(struct ast *ast, int force)
         free_node(ast);
 }
 
-// 26 lines
+// 30 lines
 void free_node(struct ast *ast)
 {
     if (!ast)

@@ -18,7 +18,8 @@ void peek_token(struct lexer *lex)
         next_token(lex);
     else if (lex->tok && lex->tok->type != END_OF_FILE
              && lex->tok->type != NEWLINE && !lex->tok2)
-    //case of full sfirst register token we add to the second token register a token
+    // case of full sfirst register token we add to the second token register a
+    // token
     {
         struct token *tokk = lex->tok;
         lex->tok = NULL;

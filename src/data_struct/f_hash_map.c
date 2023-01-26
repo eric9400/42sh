@@ -32,7 +32,8 @@ static struct pair_ast *is_key_in_ast(struct pair_ast **p, const char *key)
 }
 
 // 28 lines
-bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key, struct ast *value)
+bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key,
+                       struct ast *value)
 {
     if (!hash_map || hash_map->size == 0)
         return false;

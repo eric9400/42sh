@@ -40,13 +40,13 @@ bool hash_map_insert(struct hash_map *hash_map, const char *key, char *value)
     // insert in env
     if (getenv(key))
     {
-	    char *str = calloc((strlen(key) + strlen(value) + 2), sizeof(char));
-	    str = strcat(str, key);
-	    str = strcat(str, "=");
-	    str = strcat(str, value);
-	    str = strcat(str, "\0");
-	    export_insert(str);
-	    free(str);
+        char *str = calloc((strlen(key) + strlen(value) + 2), sizeof(char));
+        str = strcat(str, key);
+        str = strcat(str, "=");
+        str = strcat(str, value);
+        str = strcat(str, "\0");
+        export_insert(str);
+        free(str);
     }
     if (!hash_map || hash_map->size == 0)
         return false;

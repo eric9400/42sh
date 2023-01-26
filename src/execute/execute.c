@@ -12,9 +12,9 @@
 #include "hash_map.h"
 #include "hash_map_global.h"
 #include "lexer.h"
+#include "parse_execute_loop.h"
 #include "pipe.h"
 #include "redirection.h"
-#include "parse_execute_loop.h"
 
 static char buf[] = "     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣾⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀\n\
@@ -214,7 +214,8 @@ static int func_list(struct ast *ast, int return_value)
 }
 
 // 38 lines
-struct stock_fd *func_redir(struct ast_list *redir, int return_value, int *error)
+struct stock_fd *func_redir(struct ast_list *redir, int return_value,
+                            int *error)
 {
     struct stock_fd *stock_fd = NULL;
     int res = 0;
@@ -324,8 +325,8 @@ static int func_cmd(struct ast *ast, int return_value)
         }
         if (errno == ENOEXEC)
             exit(126);
-        
-		exit(2);
+
+        exit(2);
     }
     destroy_stock_fd(stock_fd);
     int status;
@@ -334,20 +335,19 @@ static int func_cmd(struct ast *ast, int return_value)
     return WEXITSTATUS(status);
 }
 
-
 static int func_sub(struct ast *ast, int return_value)
 {
-	pid_t pid = fork();
-	
+    pid_t pid = fork();
+
     if (!pid)
-	{
-		int err = execute(ast->data->ast_subshell->sub, return_value);
-		exit(err);
-	}
+    {
+        int err = execute(ast->data->ast_subshell->sub, return_value);
+        exit(err);
+    }
     int status;
     waitpid(pid, &status, 0);
     return WEXITSTATUS(status);
-    //return 0;
+    // return 0;
 }
 
 /*
@@ -385,8 +385,8 @@ int execute(struct ast *ast, int return_value)
     case AST_FUNC:
         f_hash_map_insert(hashM->fhashmap, ast->data->ast_func->name, ast);
         return 0;
-	case AST_SUBSHELL:
-		return func_sub(ast, return_value);
+    case AST_SUBSHELL:
+        return func_sub(ast, return_value);
     default:
         return 19;
         // ADD NEW AST EXECUTE HERE

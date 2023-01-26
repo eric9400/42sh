@@ -46,7 +46,8 @@ struct ast *simple_command(struct lexer *lex)
     }
 
     peek_token(lex);
-    if (lex->tok2 && lex->tok2->type == OPERATOR && strcmp(lex->tok2->data, "(") == 0)
+    if (lex->tok2 && lex->tok2->type == OPERATOR
+        && strcmp(lex->tok2->data, "(") == 0)
     {
         free_node(convert_node_ast(AST_CMD, cmd));
         return NULL;
