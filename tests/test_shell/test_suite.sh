@@ -758,6 +758,7 @@ test_error "echo coucou; echo foo; }"
 test_error "if {echo foo; echo bar; echo tuu; } && true; then echo foooooo; fi"
 test_error "{ echo foo; echo bar; echo coucou }"
 test_error "{echo toto;}"
+test_error "{ echo toto}"
 
 test_error2 "export \$a=AAAAAAAAAAAAAAAAAA"
 
