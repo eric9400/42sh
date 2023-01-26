@@ -420,12 +420,13 @@ static struct ast *compound_list_spe(struct lexer *lex)
     new_lines(lex);
 
     peek_token(lex);
-    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
+    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE && node->type != AST_LIST)
     {
         free_node(convert_node_ast(AST_LIST, list));
         return error_handler(lex, 1, "ERROR COMPOUND_LIST SPE: ; or \\n");
     }
-    free_token(lex);
+    if (lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
+        free_token(lex);
 
     compound_list_spe2(lex, list);
     if (lex->error != 0)
@@ -462,11 +463,12 @@ static void compound_list_spe2(struct lexer *lex, struct ast_list *list)
     add_to_list(list, node);
     
     peek_token(lex);
-    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE)
+    if (lex->tok->type != SEMICOLON && lex->tok->type != NEWLINE && node->type != AST_LIST)
     {
         error_handler(lex, 1, "ERROR COMPOUND_LIST SPE 2.2");
         return;
     }
-    free_token(lex);
+    if (lex->tok->type == SEMICOLON || lex->tok->type == NEWLINE)
+        free_token(lex);
     compound_list_spe2(lex, list);
 }
