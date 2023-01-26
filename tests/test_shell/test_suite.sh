@@ -731,6 +731,7 @@ test_input "\$(echo foo; echo bar; \$(echo toto;)); ls"
 test_input "\$(\$(\$(\$(\$(\$(\$(echo foo;))))))); echo bar"
 test_input "\$(echo \"je suis pas une parenthese:)\" non plus:\) )"
 test_input "while true; do echo toto; \$(echo dada); break; done"
+test_error "{ echo toto;}"
 
 test_input "(echo toto)"
 test_input "(echo toto; (echo tata))"
@@ -756,6 +757,7 @@ test_error "{{{{{{{{{"
 test_error "echo coucou; echo foo; }"
 test_error "if {echo foo; echo bar; echo tuu; } && true; then echo foooooo; fi"
 test_error "{ echo foo; echo bar; echo coucou }"
+test_error "{echo toto;}"
 
 test_error2 "export \$a=AAAAAAAAAAAAAAAAAA"
 

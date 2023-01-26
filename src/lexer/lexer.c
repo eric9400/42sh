@@ -63,6 +63,19 @@ void free_lexer(struct lexer *lex)
     free(lex);
 }
 
+static int start_operator(struct lexer *lex, char c)
+{
+    if (c == '{' || c == '}' || c == '(' || c == ')')
+    {
+        return 1;
+        /*char curr = fgetc(lex->filename);
+        ungetc(curr, lex->filename);
+        return my_isspace(curr);*/
+    }
+    else
+        return c == '!' || c == '|' || c == '&' || c == '>' || c == '<';
+}
+
 static char skip_space(struct lexer *lex)
 {
     // ephemere char to skip <space> type
@@ -208,7 +221,7 @@ void next_token(struct lexer *lex)
     char curr = tmp;
     // word flag, singlequote flag, doublequote flag, operator flag
 
-    if (start_operator(curr))
+    if (start_operator(lex, curr))
     {
         lex->flags->was_operator = 1;
         tok->data[lex->flags->i] = curr;
@@ -293,7 +306,7 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
         rule_5(lex, tok, *c);
 
     else if (!f->in_squote && !f->in_dquote && !f->in_acollade
-             && !f->in_parenthese && start_operator(*c))
+             && !f->in_parenthese && start_operator(lex, *c))
     {
         if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
