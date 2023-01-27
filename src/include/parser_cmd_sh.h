@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "parser_cmd.h"
+#include "parser_cplist.h"
 
 struct ast *shell_command(struct lexer *lex);
 

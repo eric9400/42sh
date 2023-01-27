@@ -17,6 +17,8 @@ static void print_redirect(struct ast *ast);
 static void print_pipe(struct ast *ast, int tab);
 static void print_function(struct ast *ast, int tab);
 static void print_subshell(struct ast *ast, int tab);
+static void print_case(struct ast *ast, int tab);
+static void print_case_item(struct ast *ast, int tab);
 
 static void print_tab(int tab)
 {
@@ -55,6 +57,10 @@ void ugly_print(struct ast *ast, int tab)
         print_function(ast, tab);
     else if (ast->type == AST_SUBSHELL)
         print_subshell(ast, tab);
+    else if (ast->type == AST_CASE)
+        print_case(ast, tab);
+    else if (ast->type == AST_CASE_ITEM)
+        print_case_item(ast, tab);
 }
 
 // 10 lines
@@ -216,4 +222,20 @@ static void print_subshell(struct ast *ast, int tab)
     ugly_print(ast->data->ast_subshell->sub, tab + 1);
 }
 
+static void print_case(struct ast *ast, int tab)
+{
+    print_tab(tab);
+    printf(" CASE %s :\n", ast->data->ast_case->value);
+    print_list2(ast->data->ast_case->items, tab + 1);
+}
+
+static void print_case_item(struct ast *ast, int tab)
+{
+    print_tab(tab);
+    printf(" ITEM :\n");
+    print_list2(ast->data->ast_case_item->patterns, tab + 1);
+    printf(" DO :\n");
+    print_list2(ast->data->ast_case_item->list, tab + 1);
+
+}
 // ADD NEW AST PRINT HERE

@@ -39,6 +39,10 @@ struct ast *convert_node_ast(enum ast_type type, void *node)
         ast_node->data->ast_func = (struct ast_func *)node;
     if (type == AST_SUBSHELL)
         ast_node->data->ast_subshell = (struct ast_subshell *)node;
+    if (type == AST_CASE)
+        ast_node->data->ast_case = (struct ast_case *)node;
+    if (type == AST_CASE_ITEM)
+        ast_node->data->ast_case_item = (struct ast_case_item *)node;
     // ADD NEW AST CONVERT HERE
 
     return ast_node;
