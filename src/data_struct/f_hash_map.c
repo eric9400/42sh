@@ -55,7 +55,7 @@ bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key,
         if (temp != NULL)
         {
             if (temp->value != NULL)
-                free_func(temp->value, 0);
+                free_node(temp->value);
             temp->value = value;
         }
         else
@@ -73,10 +73,10 @@ bool f_hash_map_insert(struct f_hash_map *hash_map, const char *key,
     return true;
 }
 
-static void free_pair_ast(struct pair_ast *pair, int force)
+static void free_pair_ast(struct pair_ast *pair)
 {
     free(pair->key);
-    free_func(pair->value, force);
+    free_node(pair->value);
     free(pair);
 }
 
@@ -91,7 +91,7 @@ void f_hash_map_free(struct f_hash_map *hash_map)
         while (hash_map->data[i])
         {
             l = l->next;
-            free_pair_ast(hash_map->data[i], 1);
+            free_pair_ast(hash_map->data[i]);
             hash_map->data[i] = l;
         }
     }
@@ -133,7 +133,7 @@ bool f_hash_map_remove(struct f_hash_map *hash_map, const char *key)
         if (!strcmp(q->key, key))
         {
             free(hash_map->data[i]->key);
-            free_func(hash_map->data[i]->value, 0);
+            free_node(hash_map->data[i]->value);
             free(hash_map->data[i]);
             hash_map->data[i] = NULL;
             return true;
@@ -144,7 +144,7 @@ bool f_hash_map_remove(struct f_hash_map *hash_map, const char *key)
     {
         q = q->next;
         free(hash_map->data[i]->key);
-        free_func(hash_map->data[i]->value, 0);
+        free_node(hash_map->data[i]->value);
         free(hash_map->data[i]);
         hash_map->data[i] = q;
         return true;
@@ -156,7 +156,7 @@ bool f_hash_map_remove(struct f_hash_map *hash_map, const char *key)
         if (!strcmp(q->key, key))
         {
             old->next = q->next;
-            free_pair_ast(q, 0);
+            free_pair_ast(q);
             return true;
         }
         old = q;
