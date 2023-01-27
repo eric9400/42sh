@@ -407,7 +407,7 @@ static int func_case(struct ast *ast, int return_value)
 }
 
 /*
- * 31 lines
+ * 32 lines
  * \brief recursively execute the ast
  * \param ast from parser
  * \return the code error

@@ -48,7 +48,6 @@ int func_pipe(struct ast *ast, int return_value)
 {
     int pipe_fds[2]; // file descriptor used to redirect stdin & stdout
 
-    // TODO check error
     if (pipe(pipe_fds) < 0)
         return 1;
 

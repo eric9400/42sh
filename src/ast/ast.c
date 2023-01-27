@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 /*
- * 30 lines
+ * 34 lines
  * convert any type of ast into a general ast
  */
 struct ast *convert_node_ast(enum ast_type type, void *node)

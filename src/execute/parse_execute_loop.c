@@ -69,7 +69,7 @@ static void init_toFree(FILE *f, struct flags *flags)
         tofree->env_variables = calloc(20, sizeof(char *));
 }
 
-// 34 lines
+// 31 lines
 int parse_execute_loop(FILE *f, struct flags *flags)
 {
     init_toFree(f, flags);
@@ -114,13 +114,6 @@ int parse_execute_loop(FILE *f, struct flags *flags)
             }
             fflush(tofree->file);
             return_value = execute(tofree->ast, return_value);
-            /*
-            if (return_value)
-            {
-                if (tofree->file != stdin)
-                    return freeAll(return_value);
-            }
-            */
         }
         free_node(tofree->ast);
         fflush(stdout);

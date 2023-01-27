@@ -47,7 +47,6 @@ static inline char *is_special_var(char *str, int return_value)
 {
     char buf[1000];
 
-    /*if (!strcmp(str, "@") || !strcmp(str, "*")){}else */
     if (atoi(str) != 0 || !strcmp(str, "#") || !strcmp(str, "OLDPWD")
         || !strcmp(str, "PWD") || !strcmp(str, "IFS"))
     {
@@ -169,7 +168,6 @@ static void expand_from_hashmap(struct string *new_str, char *buf,
     {
         char *value = NULL;
         if ((value = is_special_var(buf, return_value)) == NULL)
-            // value = hashmap_get_copy(hashM->hashmap, buf);
             value = hashmap_get_global(hashM->hashmap, buf);
         if (value)
         {
@@ -215,7 +213,7 @@ static void cosplay(char *buf)
         buf[i - 1] = '\0';
 }
 
-// 31 lines
+// 32 lines
 static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 {
     int status;
@@ -273,6 +271,7 @@ static int backslashable(char c)
     return c == '`' || c == '$' || c == '\\' || c == ')';
 }
 
+// 26 lines
 int command_substitution(struct string *str, struct string *new_str, char delim)
 {
     str->index += 1;
@@ -345,7 +344,7 @@ int dollar_expansion(struct string *str, struct string *new_str,
     }
 
     // command substitution case $()
-    else if (str->str[str->index] == '(') // || str->str[str->index] == '`')
+    else if (str->str[str->index] == '(')
         return command_substitution(str, new_str, ')');
 
     // $a $RANDOM $UID $HOME

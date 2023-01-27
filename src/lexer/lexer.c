@@ -154,7 +154,7 @@ static void comments(struct lexer *lex, struct token *tok)
     ungetc(curr, lex->filename);
 }
 
-// 28 lines
+// 34 lines
 static void rule_5(struct lexer *lex, struct token *tok, char curr)
 {
     struct lex_flags *f = lex->flags;
@@ -215,7 +215,7 @@ static void case_alias(struct token *tok)
 }
 
 // WHEN EXE IS KILL CLOSE THE FILE
-// 22 lines
+// 23 lines
 void next_token(struct lexer *lex)
 {
     if (lex->tok)
@@ -255,7 +255,6 @@ void next_token(struct lexer *lex)
     case_alias(tok);
     findtype(tok, lex->flags);
     lex->tok = tok;
-    // puts(lex->tok->data);
 }
 
 /*

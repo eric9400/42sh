@@ -18,6 +18,7 @@ void free_peek(struct lexer *lex)
     return;
 }
 
+// 28 lines
 struct ast *rule_case(struct lexer *lex)
 {
     peek_token(lex);
@@ -114,6 +115,7 @@ static void case_clause2(struct lexer *lex, struct ast_case *ast_case)
     case_clause2(lex, ast_case);
 }
 
+// 23 lines
 static struct ast *case_item(struct lexer *lex)
 {
     peek_token(lex);

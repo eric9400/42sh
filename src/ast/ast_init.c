@@ -21,7 +21,7 @@ static struct ast_subshell *init_subshell(void);
 static struct ast_case *init_case(size_t capacity);
 static struct ast_case_item *init_case_item(void);
 
-// 27 lines
+// 31 lines
 void *init_ast(enum ast_type type)
 {
     if (type == AST_CMD)
@@ -55,9 +55,9 @@ void *init_ast(enum ast_type type)
     else if (type == AST_CASE_ITEM)
         return init_case_item();
     return NULL;
-    // ADD NEW AST INIT HERE
 }
 
+// 4 lines
 static struct ast_cmd *init_cmd(size_t capacity)
 {
     struct ast_cmd *ast_cmd = calloc(1, sizeof(struct ast_cmd));
@@ -184,5 +184,3 @@ static struct ast_case_item *init_case_item(void)
     ast_case_item->patterns = vector_init(10);
     return ast_case_item;
 }
-
-// ADD NEW AST INIT HERE

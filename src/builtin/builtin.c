@@ -130,19 +130,16 @@ void export_insert(char *s)
     putenv(result);
 }
 
-// 40 lines
+// 37 lines
 static int export(char **s)
 {
-    int lenvar = 0;
-    size_t lens;
-    int isseton = 0;
     int k = 1;
     int returnvalue = 0;
     while (s[k] != NULL)
     {
-        isseton = 0;
-        lenvar = 0;
-        lens = strlen(s[k]);
+        int isseton = 0;
+        size_t lens = strlen(s[k]);
+        int lenvar = 0;
         for (size_t i = 0; i < lens; i++, lenvar++)
         {
             if (s[k][i] == '=')
@@ -544,6 +541,7 @@ static int corb(char **s, struct c_or_b *no_to_racismo, int i)
     }
 }
 
+// 36 lines
 static int alias(char **s)
 {
     char *str = s[1];
@@ -617,7 +615,7 @@ static int unalias(char **str)
     return err;
 }
 
-// 23 lines
+// 27 lines
 int check_builtin(char **str, struct c_or_b *no_to_racismo, int return_value)
 {
     if (!(*str))

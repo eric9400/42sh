@@ -25,4 +25,4 @@ struct token
 
 // ALL TOKEN FUNCTIONS ARE IN "lexer.h" FOR PRACTICAL REASONS
 
-#endif /*TOKEN_H*/
+#endif /* TOKEN_H */

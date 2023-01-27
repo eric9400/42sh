@@ -7,6 +7,7 @@
 #include "hash_map_global.h"
 #include "parse_execute_loop.h"
 
+// 4 lines
 static void free_list2(struct ast_list *list)
 {
     for (size_t i = 0; i < list->size; i++)
@@ -28,6 +29,7 @@ static void free_if(struct ast *ast)
     free(ast->data->ast_if);
 }
 
+// 4 lines
 static void free_list(struct ast *ast)
 {
     for (size_t i = 0; i < ast->data->ast_list->size; i++)
@@ -36,6 +38,7 @@ static void free_list(struct ast *ast)
     free(ast->data->ast_list);
 }
 
+// 3 lines
 static void free_cmd(struct ast *ast)
 {
     vector_destroy(ast->data->ast_cmd->arg);
@@ -43,6 +46,7 @@ static void free_cmd(struct ast *ast)
     free(ast->data->ast_cmd);
 }
 
+// 3 lines
 static void free_redir(struct ast *ast)
 {
     if (ast->data->ast_redir->exit_file)
@@ -85,6 +89,7 @@ static void free_for(struct ast *ast)
     free(ast->data->ast_for);
 }
 
+// 3 lines
 static void free_not(struct ast *ast)
 {
     if (ast->data->ast_not->node)
@@ -109,6 +114,7 @@ static void free_and_or(struct ast *ast)
     }
 }
 
+// 5 lines
 static void free_pipe(struct ast *pipe)
 {
     if (pipe->data->ast_pipe->left)
@@ -118,6 +124,7 @@ static void free_pipe(struct ast *pipe)
     free(pipe->data->ast_pipe);
 }
 
+// 2 lines
 static void free_subshell(struct ast *ast)
 {
     free_node(ast->data->ast_subshell->sub);
@@ -134,6 +141,7 @@ void free_func(struct ast *ast)
     free(ast->data->ast_func);
 }
 
+// 3 lines
 void free_case(struct ast *ast)
 {
     free_list2(ast->data->ast_case->items);
@@ -141,6 +149,7 @@ void free_case(struct ast *ast)
     free(ast->data->ast_case);
 }
 
+// 4 lines
 void free_case_item(struct ast *ast)
 {
     if (ast->data->ast_case_item->patterns)
@@ -149,7 +158,7 @@ void free_case_item(struct ast *ast)
     free(ast->data->ast_case_item);
 }
 
-// 30 lines
+// 32 lines
 void free_node(struct ast *ast)
 {
     if (!ast)
@@ -186,5 +195,3 @@ void free_node(struct ast *ast)
     free(ast->data);
     free(ast);
 }
-
-// ADD NEW AST FREE HERE

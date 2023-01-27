@@ -26,7 +26,7 @@ static void print_tab(int tab)
         printf("    ");
 }
 
-// 28 lines
+// 32 lines
 void ugly_print(struct ast *ast, int tab)
 {
     if (!ast)
@@ -238,4 +238,3 @@ static void print_case_item(struct ast *ast, int tab)
     printf(" DO :\n");
     ugly_print(ast->data->ast_case_item->body, tab + 1);
 }
-// ADD NEW AST PRINT HERE

@@ -26,4 +26,4 @@ bool hash_map_remove(struct hash_map *hash_map, const char *key);
 char *hashmap_get_copy(struct hash_map *hashmap, char *hkey);
 char *hashmap_get_global(struct hash_map *hashmap, char *hkey);
 
-#endif /* !HASH_MAP_H */
+#endif /* HASH_MAP_H */

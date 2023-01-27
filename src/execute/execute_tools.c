@@ -78,7 +78,7 @@ static int in_quotes(char c)
     return in_d_quotes || in_s_quotes;
 }
 
-// 36 lines
+// 37 lines
 static int add_assign_word(struct ast *ast, char *str, struct string *s,
                            struct string *new_str)
 {
@@ -163,7 +163,7 @@ void s_quotes_cond(char buf[2], struct string *new_str)
         string_append(new_str, buf);
 }
 
-// 39 lines
+// 40 lines
 int expandinho_phoenix(struct ast *ast, int ret_value)
 {
     size_t size = size_according_ast(ast, ret_value);
@@ -235,7 +235,7 @@ static char *expandinho_junior_2(struct string *new_str)
     return return_str;
 }
 
-// 39 lines
+// 38 lines
 char *expandinho_phoenix_junior(char *s, int return_value)
 {
     int in_s_quotes = 0;
