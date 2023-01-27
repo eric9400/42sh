@@ -132,7 +132,6 @@ static struct ast *case_item(struct lexer *lex)
         free_node(convert_node_ast(AST_CASE_ITEM, item));
         return error_handler(lex, 1, "ERROR CASE ITEM : INVALID PATTERN");
     }
-    vector_append(item->patterns, NULL);
 
     peek_token(lex);
     if (lex->tok->type != OPERATOR || strcmp(lex->tok->data, ")") != 0)

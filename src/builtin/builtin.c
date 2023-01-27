@@ -564,29 +564,42 @@ static int alias(char **s)
     value[0] = '\0';
     value++;
     value = strdup(value);
-
+    vector_append(v, value);
+    int is_already_present = 0;
     char *temp = NULL;
     while ((temp = hash_map_get(hashM->hashmap_alias, value)))
     {
         size_t i = 0;
+        is_already_present = 0;
+
         // parcourir le vecteur v et checker si on a deja croise la string temp
         for (i = 0; i < v->size; i++)
         {
             if (!strcmp(v->data[i], temp))
+            {
+                is_already_present = 1;
                 break;
-            // si on l'a pas deja croise on append
-            free(value);
-            value = strdup(temp);
-            vector_append(v, temp);
+            }
         }
-        if (i != v->size)
+        if (is_already_present)
             break;
+
+        // si on l'a pas deja croise on append
+        value = strdup(temp);
+        vector_append(v, value);
+    }
+
+    if (is_already_present)
+    {
+        vector_destroy(v);
+        free(key);
+        free(value);
+        return 0;
     }
 
     hash_map_insert(hashM->hashmap_alias, key, value);
     vector_destroy(v);
     free(key);
-    free(value);
     return 0;
 }
 
