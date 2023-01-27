@@ -182,7 +182,7 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
             buf[0] = str->str[str->index];
             // 2.2.2 single quotes
             if (in_s_quotes)
-				s_quotes_cond(buf, new_str);
+                s_quotes_cond(buf, new_str);
             // 2.2.3 double quotes
             else if (in_d_quotes)
             {
@@ -197,9 +197,9 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
                     slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
-				else if (buf[0] == '`')
-					command_substitution(str, new_str, '`');
-				else
+                else if (buf[0] == '`')
+                    command_substitution(str, new_str, '`');
+                else
                     string_append(new_str, buf);
             }
             // other char
@@ -216,9 +216,9 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
                     slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
-				else if (buf[0] == '`')
-					command_substitution(str, new_str, '`');
-				else
+                else if (buf[0] == '`')
+                    command_substitution(str, new_str, '`');
+                else
                     string_append(new_str, buf);
             }
         }
@@ -234,7 +234,6 @@ static char *expandinho_junior_2(struct string *new_str)
     char *return_str = strdup(new_str->str);
     return return_str;
 }
-
 
 // 39 lines
 char *expandinho_phoenix_junior(char *s, int return_value)

@@ -370,37 +370,39 @@ static void add_func(struct ast *old)
 
 static int func_case_items(char *cond, struct ast *ast, int return_value)
 {
-	int is_correct = 0;
-	for (size_t i = 0; i < ast->data->ast_case_item->patterns->size; i++)
-	{
-		char *temp = expandinho_phoenix_junior(ast->data->ast_case_item->patterns->data[i], return_value);
-		if (!strcmp(cond, temp))
-		{
-			free(temp);
-			is_correct = 1;
-			break;
-		}
-		free(temp);
-	}
+    int is_correct = 0;
+    for (size_t i = 0; i < ast->data->ast_case_item->patterns->size; i++)
+    {
+        char *temp = expandinho_phoenix_junior(
+            ast->data->ast_case_item->patterns->data[i], return_value);
+        if (!strcmp(cond, temp))
+        {
+            free(temp);
+            is_correct = 1;
+            break;
+        }
+        free(temp);
+    }
 
-	if (is_correct)
-		execute(ast->data->ast_case_item->body, return_value);
-	return is_correct;
+    if (is_correct)
+        execute(ast->data->ast_case_item->body, return_value);
+    return is_correct;
 }
 
 static int func_case(struct ast *ast, int return_value)
 {
-	char *cond = ast->data->ast_case->value;
+    char *cond = ast->data->ast_case->value;
 
-	cond = expandinho_phoenix_junior(cond, return_value);
+    cond = expandinho_phoenix_junior(cond, return_value);
 
-	for (size_t i = 0; i < ast->data->ast_case->items->size; i++)
-	{
-		if (func_case_items(cond, ast->data->ast_case->items->cmd_if[i], return_value))
-			break;
-	}
+    for (size_t i = 0; i < ast->data->ast_case->items->size; i++)
+    {
+        if (func_case_items(cond, ast->data->ast_case->items->cmd_if[i],
+                            return_value))
+            break;
+    }
 
-	free(cond);
+    free(cond);
     return 0;
 }
 
@@ -441,9 +443,9 @@ int execute(struct ast *ast, int return_value)
         return 0;
     case AST_SUBSHELL:
         return func_sub(ast, return_value);
-	case AST_CASE:
-		return func_case(ast, return_value);
-	default:
+    case AST_CASE:
+        return func_case(ast, return_value);
+    default:
         return 19;
         // ADD NEW AST EXECUTE HERE
     }
