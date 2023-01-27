@@ -18,6 +18,8 @@ static struct ast_redir *init_redir(void);
 static struct ast_pipe *init_pipe(void);
 static struct ast_func *init_function(size_t capacity);
 static struct ast_subshell *init_subshell(void);
+static struct ast_case *init_case(size_t capacity);
+static struct ast_case_item *init_case_item(size_t capacity);
 
 void *init_ast(enum ast_type type)
 {
@@ -47,6 +49,10 @@ void *init_ast(enum ast_type type)
         return init_function(SIZE);
     else if (type == AST_SUBSHELL)
         return init_subshell();
+    else if (type == AST_CASE)
+        return init_case(SIZE);
+    else if (type == AST_CASE_ITEM)
+        return init_case_item(SIZE);
     return NULL;
     // ADD NEW AST INIT HERE
 }
@@ -160,4 +166,21 @@ static struct ast_subshell *init_subshell(void)
     ast_subshell->sub = NULL;
     return ast_subshell;
 }
+
+static struct ast_case *init_case(size_t capacity)
+{
+    struct ast_case *ast_case = calloc(1, sizeof(struct ast_case));
+    ast_case->value = NULL;
+    ast_case->items = init_list(capacity);
+    return ast_case;
+}
+
+static struct ast_case_item *init_case_item(size_t capacity)
+{
+    struct ast_case_item *ast_case_item = calloc(1, sizeof(struct ast_case_item));
+    ast_case_item->list = init_list(capacity);
+    ast_case_item->patterns = init_list(capacity);
+    return ast_case_item;
+}
+
 // ADD NEW AST INIT HERE

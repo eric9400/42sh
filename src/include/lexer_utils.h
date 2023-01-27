@@ -18,6 +18,7 @@ struct lex_flags
     int in_parenthese;
     int is_ionumber;
     int found_backslash;
+    int in_backquote;
 };
 
 int is_invalid(struct lex_flags *flags);

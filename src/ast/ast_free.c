@@ -125,6 +125,20 @@ void free_func(struct ast *ast)
     free(ast);
 }
 
+void free_case(struct ast *ast)
+{
+    free_list2(ast->data->ast_case->items);
+    free(ast->data->ast_case->value);
+    free(ast->data->ast_case);
+}
+
+void free_case_item(struct ast *ast)
+{
+    free_list2(ast->data->ast_case_item->list);
+    free_list2(ast->data->ast_case_item->patterns);
+    free(ast->data->ast_case_item);
+}
+
 void free_node(struct ast *ast)
 {
     if (!ast || ast->type == AST_FUNC)
@@ -151,6 +165,10 @@ void free_node(struct ast *ast)
         free_not(ast);
     else if (ast->type == AST_SUBSHELL)
         free_subshell(ast);
+    else if (ast->type == AST_CASE)
+        free_case(ast);
+    else if (ast->type == AST_CASE_ITEM)
+        free_case_item(ast);
 
     free(ast->data);
     free(ast);

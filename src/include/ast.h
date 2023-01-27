@@ -23,6 +23,9 @@ enum ast_type
     AST_FUNC,
     AST_SUBSHELL,
 
+    AST_CASE,
+    AST_CASE_ITEM,
+
     NONE
 };
 
@@ -125,6 +128,18 @@ struct ast_subshell
     struct ast *sub;
 };
 
+struct ast_case
+{
+    char *value;
+    struct ast_list *items;
+};
+
+struct ast_case_item
+{
+    struct ast_list *patterns;
+    struct ast_list *list; 
+};
+
 union ast_union
 {
     struct ast_cmd *ast_cmd;
@@ -144,6 +159,9 @@ union ast_union
 
     struct ast_func *ast_func;
     struct ast_subshell *ast_subshell;
+
+    struct ast_case *ast_case;
+    struct ast_case_item *ast_case_item;
 };
 
 struct ast

@@ -63,26 +63,8 @@ void free_lexer(struct lexer *lex)
     free(lex);
 }
 
-static int start_operator(struct lexer *lex, char c, char p)
+static int start_operator(char c)
 {
-    if (c == '{')
-    {
-        if (p == '{' || p == '}')
-            return 0;
-        //return 1;
-        char curr = fgetc(lex->filename);
-        ungetc(curr, lex->filename);
-        return my_isspace(curr) || curr == '\n' || curr == EOF;
-    }
-    else if (c == '}')
-    {
-        if (p == '}')
-            return 0;
-        char curr = fgetc(lex->filename);
-        ungetc(curr, lex->filename);
-        return curr != '}';
-    }
-
     return c == ')' || c == '(' || c == '!' || c == '|'
            || c == '&' || c == '>' || c == '<';
 }
@@ -170,7 +152,15 @@ static void comments(struct lexer *lex, struct token *tok)
 static void rule_5(struct lexer *lex, struct token *tok, char curr)
 {
     struct lex_flags *f = lex->flags;
-    if (f->in_parenthese)
+    if (curr == '`')
+    {
+        tok->data[f->i] = curr;
+        if (f->in_backquote)
+            f->in_backquote = 0;
+        else
+            f->in_backquote = 1;
+    }
+    else if (f->in_parenthese)
     {
         tok->data[f->i] = curr;
         if (curr == ')' && !f->in_dquote && !f->in_squote)
@@ -232,7 +222,7 @@ void next_token(struct lexer *lex)
     char curr = tmp;
     // word flag, singlequote flag, doublequote flag, operator flag
 
-    if (start_operator(lex, curr, '\0'))
+    if (start_operator(curr))
     {
         lex->flags->was_operator = 1;
         tok->data[lex->flags->i] = curr;
@@ -299,7 +289,7 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
     struct lex_flags *f = lex->flags;
 
     if (!f->in_squote && !f->in_dquote && !f->in_acollade && !f->in_parenthese
-        && f->was_operator)
+        && !f->in_backquote && f->was_operator)
     {
         if (!is_operator(*p, *c))
             return next_token_dog(lex, c);
@@ -313,27 +303,29 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
         quote(lex, tok, *c);
 
     else if (f->in_acollade || f->in_parenthese || *c == '$'
-             || (*p == '$' && *c == '#'))
+             || *c == '`' || (*p == '$' && *c == '#'))
         rule_5(lex, tok, *c);
 
     else if (!f->in_squote && !f->in_dquote && !f->in_acollade
-             && !f->in_parenthese && start_operator(lex, *c, *p))
+             && !f->in_parenthese && !f->in_backquote
+             && start_operator(*c))
     {
         if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
         return next_token_dog(lex, c);
     }
 
-    else if (!f->in_parenthese && (*c == ';' || *c == '\n'))
+    else if (!f->in_parenthese && !f->in_backquote
+             && (*c == ';' || *c == '\n'))
         return next_token_dog(lex, c);
 
-    else if (!f->in_parenthese && my_isspace(*c))
+    else if (!f->in_parenthese && !f->in_backquote && my_isspace(*c))
         return 1; // RETURN TOKEN WITHOUT BLANK
 
-    else if (!f->in_parenthese && f->is_word)
+    else if (!f->in_parenthese && !f->in_backquote && f->is_word)
         tok->data[f->i] = *c;
 
-    else if (!f->in_parenthese && *c == '#')
+    else if (!f->in_parenthese && !f->in_backquote && *c == '#')
     {
         comments(lex, tok);
         return 2;

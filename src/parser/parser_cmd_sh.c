@@ -34,13 +34,12 @@ struct ast *shell_command(struct lexer *lex)
         return convert_node_ast(AST_SUBSHELL, ast_sub);
     }
 
-    if (lex->tok->type == OPERATOR && strcmp(lex->tok->data, "{") == 0)
+    if (strcmp(lex->tok->data, "{") == 0)
     {
         free_peek(lex);
-        struct ast *comp_list = compound_list_spe(lex);
+        struct ast *comp_list = compound_list(lex);
         peek_token(lex);
-        if (lex->error == 2 || lex->tok->type != OPERATOR
-            || strcmp(lex->tok->data, "}") != 0)
+        if (!comp_list || lex->error == 2 || strcmp(lex->tok->data, "}") != 0)
         {
             free_node(comp_list);
             return error_handler(lex, 1,

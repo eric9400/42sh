@@ -7,7 +7,7 @@
 int is_invalid(struct lex_flags *flags)
 {
     return flags->in_acollade || flags->in_parenthese || flags->in_squote
-        || flags->in_dquote;
+        || flags->in_dquote || flags->in_backquote;
 }
 
 struct lex_flags *init_lex_flags(int len)
@@ -26,6 +26,7 @@ struct lex_flags *init_lex_flags(int len)
     flags->is_ionumber = 0;
     flags->found_backslash = 0;
     flags->in_parenthese = 0;
+    flags->in_backquote = 0;
     return flags;
 }
 
@@ -41,6 +42,7 @@ void reinit_lex_flags(struct lex_flags *flags, int len)
     flags->is_ionumber = 0;
     flags->found_backslash = 0;
     flags->in_parenthese = 0;
+    flags->in_backquote = 0;
 }
 
 static int is_name(char *str, size_t size)
