@@ -401,6 +401,7 @@ static int func_case(struct ast *ast, int return_value)
 	}
 
 	free(cond);
+    return 0;
 }
 
 /*
