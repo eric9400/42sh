@@ -155,6 +155,14 @@ static size_t size_according_ast(struct ast *ast, int ret_value)
     return ast->data->ast_for->arg->size;
 }
 
+void s_quotes_cond(char buf[2], struct string *new_str)
+{
+    if (buf[0] == '\'')
+        in_s_quotes = 0;
+    else
+        string_append(new_str, buf);
+}
+
 // 39 lines
 int expandinho_phoenix(struct ast *ast, int ret_value)
 {
@@ -174,12 +182,7 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
             buf[0] = str->str[str->index];
             // 2.2.2 single quotes
             if (in_s_quotes)
-            {
-                if (buf[0] == '\'')
-                    in_s_quotes = 0;
-                else
-                    string_append(new_str, buf);
-            }
+				s_quotes_cond(buf, new_str);
             // 2.2.3 double quotes
             else if (in_d_quotes)
             {
@@ -194,7 +197,9 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
                     slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
-                else
+				else if (buf[0] == '`')
+					command_substitution(str, new_str, '`');
+				else
                     string_append(new_str, buf);
             }
             // other char
@@ -211,7 +216,9 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
                 else if (buf[0] == '\\')
                     // there is always something after a backslash
                     slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
-                else
+				else if (buf[0] == '`')
+					command_substitution(str, new_str, '`');
+				else
                     string_append(new_str, buf);
             }
         }
@@ -228,13 +235,6 @@ static char *expandinho_junior_2(struct string *new_str)
     return return_str;
 }
 
-void s_quotes_cond(char buf[2], struct string *new_str, int *in_s_quotes)
-{
-    if (buf[0] == '\'')
-        *in_s_quotes = 0;
-    else
-        string_append(new_str, buf);
-}
 
 // 39 lines
 char *expandinho_phoenix_junior(char *s, int return_value)
@@ -249,7 +249,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
         buf[0] = str->str[str->index];
         // 2.2.2 single quotes
         if (in_s_quotes)
-            s_quotes_cond(buf, new_str, &in_s_quotes);
+            s_quotes_cond(buf, new_str);
         // 2.2.3 double quotes
         else if (in_d_quotes)
         {
