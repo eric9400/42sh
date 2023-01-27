@@ -704,6 +704,10 @@ test_stdin "test_shell/step3/case_error1.sh"
 test_stdin "test_shell/step3/case_error2.sh"
 test_stdin "test_shell/step3/case_error3.sh"
 test_stdin "test_shell/step3/case_error4.sh"
+test_stdin "test_shell/step4/alias1.sh"
+test_stdin "test_shell/step4/alias2.sh"
+test_stdin "test_shell/step4/alias3.sh"
+test_stdin "test_shell/step4/alias4.sh"
 
 test_stdin2 "test_shell/step3/block_list.sh"
 test_stdin2 "test_shell/step3/continue.sh"
@@ -781,6 +785,11 @@ test_stdin2 "test_shell/step3/case_error1.sh"
 test_stdin2 "test_shell/step3/case_error2.sh"
 test_stdin2 "test_shell/step3/case_error3.sh"
 test_stdin2 "test_shell/step3/case_error4.sh"
+
+test_stdin2 "test_shell/step4/alias1.sh"
+test_stdin2 "test_shell/step4/alias2.sh"
+test_stdin2 "test_shell/step4/alias3.sh"
+test_stdin2 "test_shell/step4/alias4.sh"
 
 ecco
 ecco $blue " INPUTE"

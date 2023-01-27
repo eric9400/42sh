@@ -546,7 +546,7 @@ static int corb(char **s, struct c_or_b *no_to_racismo, int i)
 
 static int alias(char **s)
 {
-    char *str = *s;
+    char *str = s[1];
     if (!str)
         return 0;
 
@@ -554,7 +554,7 @@ static int alias(char **s)
 
     char *key = strdup(str);
 
-    char *value = strstr(str, "=");
+    char *value = strstr(key, "=");
     if (!value)
     {
         vector_destroy(v);
