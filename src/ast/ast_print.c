@@ -228,10 +228,11 @@ static void print_case(struct ast *ast, int tab)
 static void print_case_item(struct ast *ast, int tab)
 {
     print_tab(tab);
-    printf(" ITEM :\n");
-    print_list2(ast->data->ast_case_item->patterns, tab + 1);
+    printf(" ITEM : ");
+    for (size_t i = 0; i < ast->data->ast_case_item->patterns->size; i++)
+        printf(" %s |", ast->data->ast_case_item->patterns->data[i]);
     printf(" DO :\n");
-    print_list2(ast->data->ast_case_item->list, tab + 1);
+    ugly_print(ast->data->ast_case_item->body, tab + 1);
 
 }
 // ADD NEW AST PRINT HERE

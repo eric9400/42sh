@@ -6,6 +6,7 @@
 #define SIZE 150
 
 struct ast *shell_command(struct lexer *lex);
+static struct ast *shell_command2(struct lexer *lex);
 static struct ast *rule_if(struct lexer *lex, int opt);
 static struct ast *else_clause(struct lexer *lex);
 static struct ast *rule_while(struct lexer *lex);
@@ -13,7 +14,6 @@ static struct ast *rule_until(struct lexer *lex);
 static struct ast *rule_for(struct lexer *lex);
 static int rule_for_in(struct lexer *lex, struct ast_for *for_node);
 
-// 37 lines
 struct ast *shell_command(struct lexer *lex)
 {
     peek_token(lex);
@@ -49,6 +49,11 @@ struct ast *shell_command(struct lexer *lex)
         return comp_list;
     }
 
+    return shell_command2(lex);
+}
+
+static struct ast *shell_command2(struct lexer *lex)
+{
     struct ast *cmd_if = rule_if(lex, 1);
 
     if (cmd_if)
@@ -63,6 +68,11 @@ struct ast *shell_command(struct lexer *lex)
 
     if (cmd_until)
         return cmd_until;
+
+    struct ast *cmd_case = rule_case(lex);
+
+    if (cmd_case)
+        return cmd_case;
 
     struct ast *cmd_for = rule_for(lex);
 
@@ -90,7 +100,7 @@ static struct ast *rule_if(struct lexer *lex, int is_if)
                              "Error rule_if: NO MATCHING PATERN after \"if\"");
     }
 
-    next_token(lex);
+    peek_token(lex);
     if (strcmp("then", lex->tok->data) != 0)
     {
         free_node(convert_node_ast(AST_IF, if_node));
@@ -110,7 +120,7 @@ static struct ast *rule_if(struct lexer *lex, int is_if)
 
     if (is_if)
     {
-        next_token(lex);
+        peek_token(lex);
         if (lex->error == 2 || strcmp("fi", lex->tok->data) != 0)
         {
             free_node(convert_node_ast(AST_IF, if_node));
@@ -158,7 +168,7 @@ static struct ast *rule_while(struct lexer *lex)
             lex, 1, "Error rule_while: NO MATCHING PATERN after \"while\"");
     }
 
-    next_token(lex);
+    peek_token(lex);
     if (strcmp("do", lex->tok->data) != 0)
     {
         free_node(convert_node_ast(AST_WHILE, while_node));
@@ -174,7 +184,7 @@ static struct ast *rule_while(struct lexer *lex)
             lex, 1, "Error rule_while: NO MATCHING PATERN after \"do\"");
     }
 
-    next_token(lex);
+    peek_token(lex);
     if (lex->error == 2 || strcmp("done", lex->tok->data) != 0)
     {
         free_node(convert_node_ast(AST_WHILE, while_node));
@@ -202,7 +212,7 @@ static struct ast *rule_until(struct lexer *lex)
             lex, 1, "Error rule_until: NO MATCHING PATERN after \"until\"");
     }
 
-    next_token(lex);
+    peek_token(lex);
     if (strcmp("do", lex->tok->data) != 0)
     {
         free_node(convert_node_ast(AST_UNTIL, until_node));
@@ -218,7 +228,7 @@ static struct ast *rule_until(struct lexer *lex)
             lex, 1, "Error rule_until: NO MATCHING PATERN after \"do\"");
     }
 
-    next_token(lex);
+    peek_token(lex);
     if (lex->error == 2 || strcmp("done", lex->tok->data) != 0)
     {
         free_node(convert_node_ast(AST_UNTIL, until_node));
@@ -276,7 +286,7 @@ struct ast *rule_for(struct lexer *lex)
             return rule_for_error(for_node, lex);
     }
 
-    next_token(lex);
+    peek_token(lex);
 
     if (lex->tok->type == NEWLINE)
         new_lines(lex);
@@ -295,7 +305,7 @@ struct ast *rule_for(struct lexer *lex)
         return NULL;
     }
 
-    next_token(lex);
+    peek_token(lex);
 
     if (strcmp("done", lex->tok->data))
         return rule_for_error(for_node, lex);

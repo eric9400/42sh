@@ -134,8 +134,9 @@ void free_case(struct ast *ast)
 
 void free_case_item(struct ast *ast)
 {
-    free_list2(ast->data->ast_case_item->list);
-    free_list2(ast->data->ast_case_item->patterns);
+    if (ast->data->ast_case_item->patterns)
+        vector_destroy(ast->data->ast_case_item->patterns);
+    free_node(ast->data->ast_case_item->body);
     free(ast->data->ast_case_item);
 }
 
