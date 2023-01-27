@@ -126,7 +126,7 @@ static int func_for(struct ast *ast, int return_value)
     int res = 0;
     struct vector *vect_copy = vector_copy(ast->data->ast_for->arg, 1);
     expandinho_phoenix(ast, return_value);
-    //field_split(&(ast->data->ast_for->arg), AST_FOR);
+    field_split(&(ast->data->ast_for->arg), AST_FOR);
     wat.is_in_loop = 1;
     wat.loop_deep++;
     for (size_t i = 0; i < ast->data->ast_for->arg->size; i++)
@@ -297,8 +297,7 @@ static int func_cmd(struct ast *ast, int return_value)
         swap_vector(ast, &vect_copy);
         return 0;
     }
-
-    //field_split(&(ast->data->ast_cmd->arg), AST_CMD);
+    field_split(&(ast->data->ast_cmd->arg), AST_CMD);
 
     int code = check_builtin(ast->data->ast_cmd->arg->data, &wat, return_value);
     if (code != -1)

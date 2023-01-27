@@ -360,7 +360,7 @@ int dollar_expansion(struct string *str, struct string *new_str,
 
 static int is_valid_escape_d_quotes(char c)
 {
-    return c == '$' || c == '`' || c == '"' || c == '\\' || c == '\n';
+    return c == '$' || c == '`' || c == '\n' || c == '"' || c == '\\';
 }
 
 void slash_expansion_in_d_quotes(struct string *str, struct string *new_str,
@@ -386,3 +386,4 @@ void slash_expansion_in_d_quotes(struct string *str, struct string *new_str,
     }
     string_append(new_str, buf);
 }
+

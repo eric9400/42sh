@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "parse_execute_loop.h"
+
 static void free_list2(struct ast_list *list)
 {
     for (size_t i = 0; i < list->size; i++)
@@ -140,9 +142,18 @@ void free_node(struct ast *ast)
         return;
     if (ast->type == AST_FUNC)
     {
-        if (ast->data == NULL)
+        if (tofree->lex->error)
+        {
+            free_func(ast, 0);
             free(ast);
-        return;
+            return;
+        }
+        else
+        {
+            if (ast->data == NULL)
+                free(ast);
+            return;
+        }
     }
     if (ast->type == AST_IF)
         free_if(ast);

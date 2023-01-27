@@ -23,6 +23,8 @@ static int in_d_quotes = 0;
 static int quotes = 0;
 static int return_value = 0;
 
+void s_quotes_cond(char buf[2], struct string *new_str);
+
 static int phoenix_destroyer(struct string *str, struct string *new_str,
                              struct vector *v)
 {
@@ -70,12 +72,11 @@ static int vector_replace(struct vector *vect_temp, struct ast *ast)
     return 0;
 }
 
-static int in_quotes(char c)
+static void in_quotes(char c)
 {
     in_d_quotes = c == '"';
     in_s_quotes = c == '\'';
     quotes = quotes || in_d_quotes || in_s_quotes;
-    return in_d_quotes || in_s_quotes;
 }
 
 // 36 lines
@@ -154,6 +155,12 @@ static size_t size_according_ast(struct ast *ast, int ret_value)
     return ast->data->ast_for->arg->size;
 }
 
+static void kong_strong(struct string *str, char *buf)
+{
+    in_d_quotes = 0;
+    string_append(str, buf);
+}
+
 // 39 lines
 int expandinho_phoenix(struct ast *ast, int ret_value)
 {
@@ -173,44 +180,39 @@ int expandinho_phoenix(struct ast *ast, int ret_value)
             buf[0] = str->str[str->index];
             // 2.2.2 single quotes
             if (in_s_quotes)
-            {
-                if (buf[0] == '\'')
-                    in_s_quotes = 0;
-                else
-                    string_append(new_str, buf);
-            }
+                s_quotes_cond(buf, new_str);
+
             // 2.2.3 double quotes
             else if (in_d_quotes)
             {
                 if (buf[0] == '"')
-                    in_d_quotes = 0;
+                    kong_strong(new_str, buf);
                 else if (buf[0] == '$')
                 {
                     if (dollar_expansion(str, new_str, return_value, 1))
                         // error case
                         return phoenix_destroyer(str, new_str, vect_temp);
                 }
-                else if (buf[0] == '\\')
+                /*else if (buf[0] == '\\')
                     // there is always something after a backslash
                     slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
-                else
+                */else
                     string_append(new_str, buf);
             }
             // other char
             else
             {
-                if (in_quotes(buf[0]))
-                    continue;
+                in_quotes(buf[0]);
                 if (buf[0] == '$')
                 {
                     if (dollar_expansion(str, new_str, return_value, 0))
                         // error case
                         return phoenix_destroyer(str, new_str, vect_temp);
                 }
-                else if (buf[0] == '\\')
+                /*else if (buf[0] == '\\')
                     // there is always something after a backslash
                     slash_expansion_in_d_quotes(str, new_str, in_d_quotes);
-                else
+                */else
                     string_append(new_str, buf);
             }
         }
@@ -227,12 +229,11 @@ static char *expandinho_junior_2(struct string *new_str)
     return return_str;
 }
 
-void s_quotes_cond(char buf[2], struct string *new_str, int *in_s_quotes)
+void s_quotes_cond(char buf[2], struct string *new_str)
 {
 	if (buf[0] == '\'')
-		*in_s_quotes = 0;
-	else
-		string_append(new_str, buf);
+		in_s_quotes = 0;
+	string_append(new_str, buf);
 }
 
 // 39 lines
@@ -248,7 +249,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
         buf[0] = str->str[str->index];
         // 2.2.2 single quotes
         if (in_s_quotes)
-			s_quotes_cond(buf, new_str, &in_s_quotes);
+			s_quotes_cond(buf, new_str);
 		// 2.2.3 double quotes
         else if (in_d_quotes)
         {
@@ -273,8 +274,7 @@ char *expandinho_phoenix_junior(char *s, int return_value)
         // other char
         else
         {
-            if (in_quotes(buf[0]))
-                continue;
+            in_quotes(buf[0]);
             if (buf[0] == '$')
             {
                 if (dollar_expansion(str, new_str, return_value, in_d_quotes))
