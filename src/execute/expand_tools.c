@@ -202,6 +202,19 @@ static void expand_special_char_v2(struct string *str, struct string *new_str,
     free(key);
 }
 
+static void cosplay(char *buf)
+{
+    int i = 0;
+    while (buf[i])
+    {
+        if (buf[i] == '\n')
+            buf[i] = ' ';
+        i++;
+    }
+    if (i - 1 >= 0 && buf[i - 1] == ' ')
+        buf[i - 1] = '\0';
+}
+
 // 31 lines
 static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 {
@@ -228,6 +241,10 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 
         waitpid(pid, &status, 0);
         buffer[nb_bytes_tot] = '\0';
+
+        // FRAUDE
+        cosplay(buffer);
+
         if (status == 0)
             string_append(new_str, buffer);
         free(buffer);
@@ -253,7 +270,7 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 
 static int backslashable(char c)
 {
-	return c == '`' || c == '$' || c == '\\';
+	return c == '`' || c == '$' || c == '\\' || c == ')';
 }
 
 int command_substitution(struct string *str, struct string *new_str, char delim)
