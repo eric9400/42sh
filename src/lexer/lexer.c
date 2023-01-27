@@ -3,9 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "hash_map_global.h"
+
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr);
 static int next_token_genZ(struct lexer *lex, struct token *tok, char *curr,
                            char *prev);
+static void case_alias(struct token *tok);
 
 // 12 lines
 void peek_token(struct lexer *lex)
@@ -202,6 +205,15 @@ static void rule_5(struct lexer *lex, struct token *tok, char curr)
     }
 }
 
+static void case_alias(struct token *tok)
+{
+    char *alias = hash_map_get(hashM->hashmap_alias, tok->data);
+    if (!alias)
+        return;
+    free(tok->data);
+    tok->data = strdup(alias);
+}
+
 // WHEN EXE IS KILL CLOSE THE FILE
 // 22 lines
 void next_token(struct lexer *lex)
@@ -240,6 +252,7 @@ void next_token(struct lexer *lex)
 
     tok->data = realloc(tok->data, lex->flags->i + 1);
     tok->data[lex->flags->i] = '\0';
+    case_alias(tok);
     findtype(tok, lex->flags);
     lex->tok = tok;
     // puts(lex->tok->data);
