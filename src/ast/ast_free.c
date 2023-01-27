@@ -125,16 +125,13 @@ static void free_subshell(struct ast *ast)
 }
 
 // 8 lines
-void free_func(struct ast *ast, int force)
+void free_func(struct ast *ast)
 {
     free_node(ast->data->ast_func->func);
-    free_list2(ast->data->ast_func->redir);
+    if (ast->data->ast_func->redir != NULL)
+        free_list2(ast->data->ast_func->redir);
     free(ast->data->ast_func->name);
     free(ast->data->ast_func);
-    free(ast->data);
-    ast->data = NULL;
-    if (force)
-        free_node(ast);
 }
 
 void free_case(struct ast *ast)
@@ -157,17 +154,8 @@ void free_node(struct ast *ast)
     if (!ast)
         return;
     if (ast->type == AST_FUNC)
-    {
-        if (tofree->lex->error)
-        {
-            f_hash_map_remove(hashM->fhashmap, ast->data->ast_func->name);
-            free(ast);
-        }
-        else if (ast->data == NULL)
-            free(ast);
-        return;
-    }
-    if (ast->type == AST_IF)
+        free_func(ast); 
+    else if (ast->type == AST_IF)
         free_if(ast);
     else if (ast->type == AST_WHILE)
         free_while(ast);

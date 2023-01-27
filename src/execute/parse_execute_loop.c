@@ -19,11 +19,8 @@ struct toFree *tofree = NULL;
 // 15 lines
 int freeAll(int error)
 {
-    int eerror = tofree->lex->error;
-    free_lexer(tofree->lex);
-    tofree->lex = malloc(sizeof(struct lexer));
-    tofree->lex->error = eerror;
     free_node(tofree->ast);
+    free_lexer(tofree->lex);
     fclose(tofree->file);
     if (!is_in_dot)
     {
@@ -38,11 +35,8 @@ int freeAll(int error)
             i++;
         }
         free(tofree->env_variables);
-        free(tofree->lex);
         free(tofree);
     }
-    else
-        free(tofree->lex);
     return error;
 }
 

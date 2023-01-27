@@ -11,9 +11,11 @@
 #include "expand_tools.h"
 #include "hash_map.h"
 #include "hash_map_global.h"
+#include "f_hash_map.h"
 #include "lexer.h"
 #include "parse_execute_loop.h"
 #include "pipe.h"
+#include "ast_free.h"
 #include "redirection.h"
 
 static char buf[] = "     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\
@@ -350,6 +352,22 @@ static int func_sub(struct ast *ast, int return_value)
     // return 0;
 }
 
+static void add_func(struct ast *old)
+{
+    struct ast *ast = malloc(sizeof(struct ast));
+    ast->type = AST_FUNC;
+    ast->data = malloc(sizeof(union ast_union));
+    struct ast_func *ast_func = calloc(1, sizeof(struct ast_func));
+    ast_func->func = old->data->ast_func->func;
+    ast_func->name = old->data->ast_func->name;
+    ast_func->redir = old->data->ast_func->redir;
+    old->data->ast_func->func = NULL;
+    old->data->ast_func->name = NULL;
+    old->data->ast_func->redir = NULL;
+    ast->data->ast_func = ast_func;
+    f_hash_map_insert(hashM->fhashmap, ast->data->ast_func->name, ast);
+}
+
 /*
  * 31 lines
  * \brief recursively execute the ast
@@ -383,7 +401,7 @@ int execute(struct ast *ast, int return_value)
     case AST_PIPE:
         return func_pipe(ast, return_value);
     case AST_FUNC:
-        f_hash_map_insert(hashM->fhashmap, ast->data->ast_func->name, ast);
+        add_func(ast);
         return 0;
     case AST_SUBSHELL:
         return func_sub(ast, return_value);
