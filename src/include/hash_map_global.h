@@ -8,6 +8,7 @@ struct hash_maps
 {
     struct hash_map *hashmap;
     struct f_hash_map *fhashmap;
+	struct hash_map *hashmap_alias;
 };
 
 extern struct hash_maps *hashM;

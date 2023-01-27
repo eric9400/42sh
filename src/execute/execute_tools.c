@@ -86,7 +86,7 @@ static int add_assign_word(struct ast *ast, char *str, struct string *s,
 
     // edge case for export
     if (ast->type == AST_CMD
-        && !strcmp(ast->data->ast_cmd->arg->data[0], "export"))
+        && (!strcmp(ast->data->ast_cmd->arg->data[0], "export") || !strcmp(ast->data->ast_cmd->arg->data[0], "alias")))
     {
         if (str[0] == '#')
         {
