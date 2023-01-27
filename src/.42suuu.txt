@@ -1,0 +1,15 @@
+42sh
+ast
+builddir
+builtin
+data_struct
+execute
+include
+lexer
+main.c
+meson2.build
+meson.build
+parser
+SUUUU.sh
+test_shell
+utils

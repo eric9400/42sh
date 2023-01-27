@@ -1,4 +1,4 @@
-case zbeube in
+case *be in
 	enbien) echo error
 	;;
 	lameuf) echo error
@@ -7,4 +7,6 @@ case zbeube in
 	;;
 	lesmeilleurs) echo error
 	;;
+    babajibe) echo valid
+    ;;
 esac
