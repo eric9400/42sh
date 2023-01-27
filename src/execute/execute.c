@@ -10,6 +10,7 @@
 #include "builtin.h"
 #include "execute_tools.h"
 #include "expand_tools.h"
+#include "fnmatch.h"
 #include "f_hash_map.h"
 #include "hash_map.h"
 #include "hash_map_global.h"
@@ -375,7 +376,7 @@ static int func_case_items(char *cond, struct ast *ast, int return_value)
     {
         char *temp = expandinho_phoenix_junior(
             ast->data->ast_case_item->patterns->data[i], return_value);
-        if (!strcmp(cond, temp))
+        if (!fnmatch(temp, cond, 0))
         {
             free(temp);
             is_correct = 1;
