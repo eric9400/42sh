@@ -546,62 +546,62 @@ static int corb(char **s, struct c_or_b *no_to_racismo, int i)
 
 static int alias(char **s)
 {
-	char *str = *s;
-	if (!str)
-		return 0;
+    char *str = *s;
+    if (!str)
+        return 0;
 
-	struct vector *v = vector_init(10);
+    struct vector *v = vector_init(10);
 
-	char *key = strdup(str);
+    char *key = strdup(str);
 
-	char *value = strstr(str, "=");
-	if (!value)
-	{
-		vector_destroy(v);
-		free(key);
-		return 1;
-	}
-	value[0] = '\0';
-	value++;
-	value = strdup(value);	
+    char *value = strstr(str, "=");
+    if (!value)
+    {
+        vector_destroy(v);
+        free(key);
+        return 1;
+    }
+    value[0] = '\0';
+    value++;
+    value = strdup(value);
 
-	char *temp = NULL;
-	while((temp = hash_map_get(hashM->hashmap_alias, value)))
-	{
-		size_t i = 0;
-		// parcourir le vecteur v et checker si on a deja croise la string temp
-		for (i = 0; i < v->size; i++) 
-		{
-			if (!strcmp(v->data[i], temp)) 
-				break;
-			// si on l'a pas deja croise on append
-			free(value);
-			value = strdup(temp);
-			vector_append(v, temp);
-		}
-		if (i != v->size)
-			break;
-	}
+    char *temp = NULL;
+    while ((temp = hash_map_get(hashM->hashmap_alias, value)))
+    {
+        size_t i = 0;
+        // parcourir le vecteur v et checker si on a deja croise la string temp
+        for (i = 0; i < v->size; i++)
+        {
+            if (!strcmp(v->data[i], temp))
+                break;
+            // si on l'a pas deja croise on append
+            free(value);
+            value = strdup(temp);
+            vector_append(v, temp);
+        }
+        if (i != v->size)
+            break;
+    }
 
-	hash_map_insert(hashM->hashmap_alias, key, value);
-	vector_destroy(v);
-	free(key);
-	free(value);
-	return 0;
+    hash_map_insert(hashM->hashmap_alias, key, value);
+    vector_destroy(v);
+    free(key);
+    free(value);
+    return 0;
 }
 
 static int unalias(char **str)
 {
-	int err = 0;
-	for (size_t i = 0; str[i]; i++)
-	{
-		if(!hash_map_remove(hashM->hashmap_alias, str[i]))
-		{
-			err = 1;
-			fprintf(stderr, "UNALIAS: %s not found\n", str[i]);
-		}
-	}
-	return err;
+    int err = 0;
+    for (size_t i = 0; str[i]; i++)
+    {
+        if (!hash_map_remove(hashM->hashmap_alias, str[i]))
+        {
+            err = 1;
+            fprintf(stderr, "UNALIAS: %s not found\n", str[i]);
+        }
+    }
+    return err;
 }
 
 // 23 lines
@@ -609,29 +609,29 @@ int check_builtin(char **str, struct c_or_b *no_to_racismo, int return_value)
 {
     if (!(*str))
         return -1;
-	else if (!strcmp(str[0], "true"))
+    else if (!strcmp(str[0], "true"))
         return 0;
-	else if (!strcmp(str[0], "false"))
+    else if (!strcmp(str[0], "false"))
         return 1;
-	else if (!strcmp(str[0], "echo"))
+    else if (!strcmp(str[0], "echo"))
         return echo(str);
-	else if (!strcmp(str[0], "export"))
+    else if (!strcmp(str[0], "export"))
         return export(str);
-	else if (!strcmp(str[0], "unset"))
+    else if (!strcmp(str[0], "unset"))
         return unset(str);
-	else if (!strcmp(str[0], "continue"))
+    else if (!strcmp(str[0], "continue"))
         return corb(str, no_to_racismo, 0);
-	else if (!strcmp(str[0], "break"))
+    else if (!strcmp(str[0], "break"))
         return corb(str, no_to_racismo, 1);
-	else if (!strcmp(str[0], "exit"))
+    else if (!strcmp(str[0], "exit"))
         return my_exit(str, return_value);
-	else if (!strcmp(str[0], "."))
+    else if (!strcmp(str[0], "."))
         return dot(str);
     else if (!strcmp(str[0], "cd"))
         return cd(str);
-	else if (!strcmp(str[0], "alias"))
-		return alias(str);
-	else if (!strcmp(str[0], "unalias"))
-		return unalias(str);
+    else if (!strcmp(str[0], "alias"))
+        return alias(str);
+    else if (!strcmp(str[0], "unalias"))
+        return unalias(str);
     return -1;
 }

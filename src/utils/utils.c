@@ -25,7 +25,7 @@ int BaBaJi(int argc, char **argv, char **filename, struct flags *flags)
     hashM->hashmap = hash_map_init(20);
     hashM->fhashmap = f_hash_map_init(10);
     hashM->hashmap_alias = hash_map_init(20);
-	if (argc == 0)
+    if (argc == 0)
         return 0;
     int i = 1;
     for (; i < argc; i++)

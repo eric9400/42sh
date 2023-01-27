@@ -247,8 +247,8 @@ void next_token(struct lexer *lex)
 
 /*
  * 18 lines
- * return 1 if there was a comment so that the rest of next_token is not executed
- * else return 0
+ * return 1 if there was a comment so that the rest of next_token is not
+ * executed else return 0
  */
 static int next_token_junior(struct lexer *lex, struct token *tok, char curr)
 {
@@ -308,21 +308,19 @@ static int next_token_genZ(struct lexer *lex, struct token *tok, char *c,
              || *c == '\\')
         quote(lex, tok, *c);
 
-    else if (f->in_acollade || f->in_parenthese || *c == '$'
-             || *c == '`' || (*p == '$' && *c == '#'))
+    else if (f->in_acollade || f->in_parenthese || *c == '$' || *c == '`'
+             || (*p == '$' && *c == '#'))
         rule_5(lex, tok, *c);
 
     else if (!f->in_squote && !f->in_dquote && !f->in_acollade
-             && !f->in_parenthese && !f->in_backquote
-             && start_operator(*c))
+             && !f->in_parenthese && !f->in_backquote && start_operator(*c))
     {
         if (is_number(tok->data) && (*c == '<' || *c == '>'))
             f->is_ionumber = 1;
         return next_token_dog(lex, c);
     }
 
-    else if (!f->in_parenthese && !f->in_backquote
-             && (*c == ';' || *c == '\n'))
+    else if (!f->in_parenthese && !f->in_backquote && (*c == ';' || *c == '\n'))
         return next_token_dog(lex, c);
 
     else if (!f->in_parenthese && !f->in_backquote && my_isspace(*c))

@@ -270,7 +270,7 @@ static int exec_command_sub(char *str, int pipe_fds[2], struct string *new_str)
 
 static int backslashable(char c)
 {
-	return c == '`' || c == '$' || c == '\\' || c == ')';
+    return c == '`' || c == '$' || c == '\\' || c == ')';
 }
 
 int command_substitution(struct string *str, struct string *new_str, char delim)
@@ -282,17 +282,18 @@ int command_substitution(struct string *str, struct string *new_str, char delim)
     if (delim == ')')
         starting = '(';
     while (str->str[str->index] != '\0')
-	{
-		if (str->str[str->index] == '\\' && backslashable(str->str[str->index + 1]))
-			str->index += 1;
+    {
+        if (str->str[str->index] == '\\'
+            && backslashable(str->str[str->index + 1]))
+            str->index += 1;
         else if (str->str[str->index] == delim)
             number_bracket--;
         else if (str->str[str->index] == starting)
             number_bracket++;
         if (number_bracket == 0)
             break;
-		str->index += 1;
-	}
+        str->index += 1;
+    }
     if (str->str[str->index] == '\0')
         return 1;
 
@@ -344,7 +345,7 @@ int dollar_expansion(struct string *str, struct string *new_str,
     }
 
     // command substitution case $()
-    else if (str->str[str->index] == '(')// || str->str[str->index] == '`')
+    else if (str->str[str->index] == '(') // || str->str[str->index] == '`')
         return command_substitution(str, new_str, ')');
 
     // $a $RANDOM $UID $HOME

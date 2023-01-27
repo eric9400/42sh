@@ -6,16 +6,16 @@
 #include <unistd.h>
 
 #include "ast.h"
+#include "ast_free.h"
 #include "builtin.h"
 #include "execute_tools.h"
 #include "expand_tools.h"
+#include "f_hash_map.h"
 #include "hash_map.h"
 #include "hash_map_global.h"
-#include "f_hash_map.h"
 #include "lexer.h"
 #include "parse_execute_loop.h"
 #include "pipe.h"
-#include "ast_free.h"
 #include "redirection.h"
 
 static char buf[] = "     ⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀\n\

@@ -25,7 +25,7 @@ int freeAll(int error)
     if (!is_in_dot)
     {
         hash_map_free(hashM->hashmap);
-		hash_map_free(hashM->hashmap_alias);
+        hash_map_free(hashM->hashmap_alias);
         f_hash_map_free(hashM->fhashmap);
         free(hashM);
         free(tofree->global_flags);

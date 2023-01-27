@@ -155,7 +155,7 @@ void free_node(struct ast *ast)
     if (!ast)
         return;
     if (ast->type == AST_FUNC)
-        free_func(ast); 
+        free_func(ast);
     else if (ast->type == AST_IF)
         free_if(ast);
     else if (ast->type == AST_WHILE)

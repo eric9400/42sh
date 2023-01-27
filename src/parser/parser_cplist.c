@@ -75,7 +75,7 @@ static void case_clause(struct lexer *lex, struct ast_case *ast_case)
     }
     if (!item)
         return;
-    
+
     add_to_list(ast_case->items, item);
 
     case_clause2(lex, ast_case);
@@ -86,7 +86,7 @@ static void case_clause(struct lexer *lex, struct ast_case *ast_case)
     }
     if (!item)
         return;
-    
+
     new_lines(lex);
 }
 
@@ -102,7 +102,7 @@ static void case_clause2(struct lexer *lex, struct ast_case *ast_case)
     new_lines(lex);
     if (strcmp(lex->tok->data, "esac") == 0)
         return;
-        
+
     struct ast *item = case_item(lex);
     if (!item)
     {
@@ -182,8 +182,7 @@ struct ast *compound_list(struct lexer *lex)
     else if (lex->error != 0)
     {
         free_node(node);
-        return error_handler(lex, 1,
-                             "ERROR COMPOUND_LIST: NO MATCHIN PATTERN");
+        return error_handler(lex, 1, "ERROR COMPOUND_LIST: NO MATCHIN PATTERN");
     }
     struct ast_list *list = init_ast(AST_LIST);
     add_to_list(list, node);
@@ -220,8 +219,8 @@ static void compound_list2(struct lexer *lex, struct ast_list *list)
     new_lines(lex);
     if (lex->tok->type == SEMICOLON)
     {
-        error_handler(
-            lex, 1, "ERROR COMPOUND_LIST2: INVALID AND_OR AFTER VALID \";\"");
+        error_handler(lex, 1,
+                      "ERROR COMPOUND_LIST2: INVALID AND_OR AFTER VALID \";\"");
         return;
     }
     struct ast *node = and_or(lex);

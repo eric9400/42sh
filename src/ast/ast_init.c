@@ -178,7 +178,8 @@ static struct ast_case *init_case(size_t capacity)
 
 static struct ast_case_item *init_case_item(void)
 {
-    struct ast_case_item *ast_case_item = calloc(1, sizeof(struct ast_case_item));
+    struct ast_case_item *ast_case_item =
+        calloc(1, sizeof(struct ast_case_item));
     ast_case_item->body = NULL;
     ast_case_item->patterns = vector_init(10);
     return ast_case_item;

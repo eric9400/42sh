@@ -137,7 +137,7 @@ struct ast_case
 struct ast_case_item
 {
     struct vector *patterns;
-    struct ast *body; 
+    struct ast *body;
 };
 
 union ast_union

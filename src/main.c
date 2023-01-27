@@ -30,10 +30,10 @@ int main(int argc, char **argv)
         file = stdin;
 
     if (argc >= 3 && filename[0] == '\0' && flags->c)
-    {	    
-	    free(filename);
-	    free(flags);
-	    return 0;
+    {
+        free(filename);
+        free(flags);
+        return 0;
     }
 
     if (!file)
