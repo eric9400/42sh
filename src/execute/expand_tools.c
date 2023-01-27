@@ -277,10 +277,20 @@ int command_substitution(struct string *str, struct string *new_str, char delim)
 {
     str->index += 1;
     int start = str->index;
-    while (str->str[str->index] != delim && str->str[str->index] != '\0')
+    int number_bracket = 1;
+    char starting = delim;
+    if (delim == ')')
+        starting = '(';
+    while (str->str[str->index] != '\0')
 	{
 		if (str->str[str->index] == '\\' && backslashable(str->str[str->index + 1]))
 			str->index += 1;
+        else if (str->str[str->index] == delim)
+            number_bracket--;
+        else if (str->str[str->index] == starting)
+            number_bracket++;
+        if (number_bracket == 0)
+            break;
 		str->index += 1;
 	}
     if (str->str[str->index] == '\0')

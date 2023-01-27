@@ -17,7 +17,7 @@ int is_shell_command(struct lexer *lex)
         || strcmp("fi", data) == 0 || strcmp("while", data) == 0
         || strcmp("until", data) == 0 || strcmp("for", data) == 0
         || strcmp("do", data) == 0 || strcmp("done", data) == 0
-        || strcmp("in", data) == 0
+        || strcmp("in", data) == 0 || strcmp("!", data) == 0
         || strcmp("{", data) == 0 || strcmp("}", data) == 0
         || strcmp("case", data) == 0 || strcmp("esac", data) == 0;
 }

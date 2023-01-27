@@ -237,7 +237,7 @@ static struct ast *pipeline(struct lexer *lex)
 
     struct ast_not *not = NULL;
 
-    if (lex->tok->type == OPERATOR && !strcmp(lex->tok->data, "!"))
+    if (!strcmp(lex->tok->data, "!"))
     {
         free_token(lex);
         peek_token(lex);

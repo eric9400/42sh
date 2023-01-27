@@ -67,8 +67,7 @@ void free_lexer(struct lexer *lex)
 
 static int start_operator(char c)
 {
-    return c == ')' || c == '(' || c == '!' || c == '|'
-           || c == '&' || c == '>' || c == '<';
+    return c == ')' || c == '(' || c == '|' || c == '&' || c == '>' || c == '<';
 }
 
 static char skip_space(struct lexer *lex)
