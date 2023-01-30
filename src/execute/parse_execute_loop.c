@@ -75,6 +75,8 @@ int parse_execute_loop(FILE *f, struct flags *flags)
     init_toFree(f, flags);
     int return_value = 0;
     hash_map_init_basic();
+    if (tofree->file == stdin)
+        printf("42sh$ ");
     // RAJOUTER UN ETAT D'AST POUR QUAND
     while (1)
     {
@@ -117,6 +119,8 @@ int parse_execute_loop(FILE *f, struct flags *flags)
         }
         free_node(tofree->ast);
         fflush(stdout);
+        if (tofree->file == stdin)
+            printf("42sh$ ");
     }
     if (tofree->lex->error)
         return freeAll(tofree->lex->error);

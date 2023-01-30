@@ -1,6 +1,6 @@
 #!/bin/sh
 
-color=1 #1 if there is not a color default in echo  
+color=0 #1 if there is not a color default in echo  
 p_all=0 #print all test even the ones that passes
 
 REF_OUT=".42suuu.txt"
