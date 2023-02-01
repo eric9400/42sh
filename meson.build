@@ -10,17 +10,7 @@ src = []
 
 subdir('src')
 
-dependencies_temp = [
-  ast_lib,
-  builtin_lib,
-  execute_lib,
-  lexer_lib,
-  parser_lib,
-  utils_lib,
-]
-
 exe = executable('42sh',
   sources : src,
   include_directories : inc,
-  link_with: dependencies_temp,
 )
