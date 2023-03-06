@@ -11,3 +11,9 @@ Or simply:
 42sh$ chmod +x SUUUU.sh
 42sh$ ./SUUUU.sh
 ```
+
+# Usage
+```
+42sh$ ./SUUUU.sh [clean]
+42sh$ ./42sh
+```
