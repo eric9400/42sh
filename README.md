@@ -8,6 +8,6 @@ To compile the project, do as follows:
 
 Or simply:
 ```
-42sh$ chmod 111 SUUUU.sh
+42sh$ chmod +x SUUUU.sh
 42sh$ ./SUUUU.sh
 ```
